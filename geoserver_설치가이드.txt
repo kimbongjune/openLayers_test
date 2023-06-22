@@ -1,0 +1,70 @@
+####geoserver 사용 가이드####
+#
+#작성일 : 2022-08-30
+#작성자 : kbj
+#
+#linux 개발환경에 geoserver를 설치하는 가이드를 작성한 문서이다.
+#
+#geoserver는 java 기반의 서버이므로 jvm 설치가 필요하나 여기선 jvm이 설치되어있다고 가정 하에 다음단계부터 진행하겠다.
+#
+##개발환경
+#OS : linux - ubuntu:focal(20.04LTS)
+#Lang : java1.8
+#
+A. 설치
+
+	1. wget 명령어로 geoserver 바이너리 알집을 다운로드받는다.
+	2. 다운로드 받은 .zip파일을 압축해제한다.
+	3. 정상동작하는지 확인하기위해 bin 폴더 밑에 startup.sh 스크립트를 실행한다.
+	4. 스크립트 실행 후 [HOST_IP]:8080/geoserver/web 으로 접속한다.
+	5. 정상동작한것을 확인 하였다면 CTRL+C 를 입력하여 종료한다.
+
+	========================================================================
+	| 1 wget http://sourceforge.net/projects/geoserver/files/GeoServer/2.19.1/geoserver-2.19.1-bin.zip	|
+	| 2 unzip geoserver-2.19.1-bin.zip								|
+	| 3-1 cd bin										|
+	| 3-2 ./startup.sh										|
+	| 4 ifconfig --> hostip 확인 후 웹페이지에서 접속 ex) 192.168.10.99:8080/geoserver/web		|
+	| 5 CTRL+C										|
+	========================================================================
+
+B. 설정
+
+	1. 포트 변경은 geoserver 디렉토리 내 start.ini 파일에서 jetty.http.port 의 포트를 변경하면 된다.
+	2. 포트 변경이 되었는지 확인한다.
+
+	========================================================================
+	| 1 vi start.ini --> jetty.http.port 변경 ex) jetty.http.port=8180					|
+	| 2-1 cd bin										|
+	| 2-2 ./startup.sh										|
+	========================================================================
+	
+
+C. 데몬 등록
+
+	1. geoserver를 데몬으로 등록하기 위해 동봉되어있는 geoserver 파일을 /etc/init.d 디렉토리에 복사한다.
+	*루트 권한이 필요하므로 루트로 접속하여야 한다.
+	*ftp 나 scp로 파일을 서버 내에 전송 하거나 geoserver 파일을 cat 명령어로 새로운 파일을 생성하여 붙여넣는다.
+	*geoserver 내 환경변수 (USER, GEOSERVER_DATA_DIR, GEOSERVER_HOME, JAVA_HOME) 등은 본인 환경에 맞게 수정한다.
+	*chmod 755 명령어로 접근이 가능하게 권한을 설정한다.
+	2. 데몬으로 정상 등록되었는지 systemctl 명령어로 확인한다.
+	
+	========================================================================
+	| 1-1 cp geoserver /etc/init.d								|
+	| 1-2 chmod 755 geoserver									|
+	| 1-3 systemctl daemon-reload								|
+	| 2 systemctl status geoserver.service								|
+	========================================================================
+
+D. 기본 명령어
+	1. geoserver 시작하기
+	2. geoserver 종료하기
+	3. geoserver 재 시작하기
+	4. geoserver 상태 확인하기
+
+	========================================================================
+	| 1 systemctl start geoserver.service								|
+	| 2 systemctl stop geoserver.service								|
+	| 3 systemctl restart geoserver.service								|
+	| 2 systemctl status geoserver.service								|
+	========================================================================	

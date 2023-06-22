@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>    
+    <meta charset="utf-8" />    
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />    
+    <title>Hello World!</title>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.79.1/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.79.1/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <style>
+      html,
+      body,
+      #cesiumContainer {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cesiumContainer"></div>
+    <script>
+      Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJjODZmZjA2OC0yMGJiLTRjZGYtOTAyNC0yNGRjOTNhYzQ0MTgiLCJpZCI6MTA2MTYxLCJpYXQiOjE2NjE3MzI2NjZ9.cuC3iGsqR3N0RFYEwGRZJJU5lQz8NZJ5OIDtUKFVoz0';
+		var viewer = new Cesium.Viewer('cesiumContainer', {
+            baseLayerPicker : false,
+            animation: false,
+            timeline: false,
+            tollbar: false,
+            sceneMode: Cesium.SceneMode.SCENE3D,
+            terrainProvider : Cesium.createWorldTerrain({
+                requestWaterMask : true,
+                requestVertexNormals : true
+            }),
+            // imageryProvider: Cesium.createWorldImagery({
+            //   style: Cesium.IonWorldImageryStyle.ROAD,
+            // }),
+      	});
+        viewer.scene.globe.depthTestAgainstTerrain = true;
+        viewer.camera.setView({
+          destination : Cesium.Cartesian3.fromDegrees(127.786754, 36.643957, 600000.0),
+        });	
+
+        const imageryProvider = new Cesium.WebMapServiceImageryProvider({
+                url: "http://192.168.10.99:8180/geoserver/cite/wms?service=WMS",
+                parameters: {
+                    format: 'image/png',
+                    transparent:'true'
+                },
+                layers: 'cite:F_FAC_BUILDING_11_202208',
+                sts : "EPSG:4326",
+                getFeatureInfoUrl :{
+                  request: 'GetFeatureInfo',
+                  service: 'WMS',
+                  srs: 'EPSG:4326',
+                  styles: this.styles,
+                  transparent: this.transparent,
+                  version: this.version,      
+                  format: this.format,
+                  layers: this.layers,
+                  query_layers: this.layers,
+                  info_format: 'text/html'
+                }
+            });
+        viewer.scene.primitives.add(Cesium.createOsmBuildings());
+        viewer.imageryLayers.addImageryProvider(imageryProvider);
+        
+        viewer.selectedEntityChanged.addEventListener(function(selectedEntity) {
+          if (Cesium.defined(selectedEntity)) {
+              if (Cesium.defined(selectedEntity.name)) {
+                console.log(selectedEntity);
+                console.log('Selected ' + selectedEntity.name);
+              } else {
+                return;
+              }
+          } else {
+            console.log('Deselected.');
+          }
+        });
+    </script>
+  </body>
+</html>
+//http://192.168.10.99:8180/geoserver/cite/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&FORMAT=image/png&TRANSPARENT=true&QUERY_LAYERS=cite:F_FAC_BUILDING_11_202208&STYLES&LAYERS=cite:F_FAC_BUILDING_11_202208&exceptions=application/vnd.ogc.se_inimage&INFO_FORMAT=text/html&FEATURE_COUNT=50&X=50&Y=50&SRS=EPSG:4326&WIDTH=101&HEIGHT=101&BBOX=127.03778207302094,37.608561515808105,127.03886568546295,37.60964512825012
