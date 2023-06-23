@@ -1,17 +1,20 @@
  
+//맵의 view 객체 정의
+var view = new ol.View({
+	center : [ 14128579.82, 4512570.74 ],
+	maxZoom : 19,
+	zoom : 19,
+	constrainResolution: true,
+	rotation: Math.PI / 6
+	// center: [-8910887.277395891, 5382318.072437216],
+	// maxZoom: 19,
+	// zoom: 15
+})
+
 //일반적인 openlayers 맵 객체
 var map = new ol.Map({
 	target : document.getElementById('map'),
-	view : new ol.View({
-		center : [ 14128579.82, 4512570.74 ],
-		maxZoom : 19,
-		zoom : 19,
-		constrainResolution: true,
-		rotation: Math.PI / 6,
-        // center: [-8910887.277395891, 5382318.072437216],
-        // maxZoom: 19,
-        // zoom: 15
-	})
+	view :view
 });
 
 
@@ -48,11 +51,17 @@ var tile = new ol.layer.Tile({
 	})
 });
 
+//맵의 객체를 컨트롤하기 위한 빈 벡터 레이어
+var vectorLayer = new ol.layer.Vector({ source: new ol.source.Vector() });
+
 //지도의 좌표를 이용해 URL 파라미터를 이동하여 뒤로가기 및 앞으로가기 기능을 활성화 한다.
 map.addInteraction(new ol.interaction.Link());
 
-//맵에 레이어 추가
+//맵에 기본 맵 레이어 추가
 map.addLayer(tile)
+
+map.addLayer(vectorLayer)
+
 
 //맵에 축적 추가
 const scaleControl = new ol.control.ScaleLine({
@@ -682,4 +691,151 @@ function getRouteSummury(startX, startY, endX, endY){
 	.done(function(data) {
 		console.log(data);
 	})
+}
+
+
+var pinIcon = 'https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/pin_drop.png';
+var centerIcon = 'https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/center.png';
+var listIcon = 'https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/view_list.png';
+var namespace = "ol-ctx-menu";
+var icon_class = "-icon";
+var zoom_in_class = "-zoom-in";
+var zoom_out_class = "-zoom-out";
+
+var contextmenuItems = [
+  {
+    text: '지도 중앙 변경',
+    classname: 'bold',
+    icon: centerIcon,
+    callback: center
+  },
+  {
+    text: '기타 작업',
+    icon: listIcon,
+    items: [
+      {
+        text: '지도 중앙 변경',
+        icon: centerIcon,
+        callback: center
+      },
+      {
+        text: '마커 추가',
+        icon: pinIcon,
+        callback: marker
+      }
+    ]
+  },
+  {
+    text: '마커 추가',
+    icon: pinIcon,
+    callback: marker
+  },
+  '-' ,
+  {
+	text: '줌 인',
+	classname: [
+	  namespace + zoom_in_class, 
+	  namespace + icon_class
+	].join(' '),
+	callback: zoomIn
+  },
+  {
+	text: '줌 아웃',
+	classname: [
+	  namespace + zoom_out_class,
+	  namespace + icon_class
+	].join(' '),
+	callback: zoomOut
+  }
+];
+
+function zoomIn(obj, map){
+	map.getView().animate({
+		zoom: map.getView().getZoom() + 1,
+		center : obj.coordinate,
+		duration: 500
+	})
+}
+
+function zoomOut(obj, map){
+	map.getView().animate({
+		zoom: map.getView().getZoom() - 1,
+		center : obj.coordinate,
+		duration: 500
+	})
+}
+
+var contextmenu = new ContextMenu({
+  width: 180,
+  defaultItems: false,
+  items: contextmenuItems
+});
+
+map.addControl(contextmenu);
+
+var removeMarkerItem = {
+  text: '마커 삭제',
+  classname: 'marker',
+  callback: removeMarker
+};
+
+contextmenu.on('open', function (evt) {
+  var feature =	map.forEachFeatureAtPixel(evt.pixel, ft => ft);
+  
+  if (feature && feature.get('type') === 'removable') {
+    contextmenu.clear();
+    removeMarkerItem.data = { marker: feature };
+    contextmenu.push(removeMarkerItem);
+  } else {
+    contextmenu.clear();
+    contextmenu.extend(contextmenuItems);
+    //contextmenu.extend(contextmenu.getDefaultItems());
+  }
+});
+
+map.on('pointermove', function (e) {
+  if (e.dragging) return;
+
+  var pixel = map.getEventPixel(e.originalEvent);
+  var hit = map.hasFeatureAtPixel(pixel);
+
+  map.getTargetElement().style.cursor = hit ? 'pointer' : '';
+});
+
+// from https://github.com/DmitryBaranovskiy/raphael
+function elastic(t) {
+  return Math.pow(2, -10 * t) * Math.sin((t - 0.075) * (2 * Math.PI) / 0.3) + 1;
+}
+
+function center(obj) {
+  view.animate({
+    duration: 700,
+    center: obj.coordinate
+  });
+}
+
+function removeMarker(obj) {
+  vectorLayer.getSource().removeFeature(obj.data.marker);
+}
+
+function marker(obj) {
+  var coord4326 = ol.proj.transform(obj.coordinate, 'EPSG:3857', 'EPSG:4326'),
+      template = '좌표 : ({x}, {y})',
+      iconStyle = new ol.style.Style({
+        image: new ol.style.Icon({ scale: .6, src: pinIcon }),
+        text: new ol.style.Text({
+          offsetY: 25,
+          text: ol.coordinate.format(coord4326, template, 12),
+          font: '15px Open Sans,sans-serif',
+          fill: new ol.style.Fill({ color: '#111' }),
+          stroke: new ol.style.Stroke({ color: '#eee', width: 2 })
+        })
+      }),
+      feature = new ol.Feature({
+        type: 'removable',
+        geometry: new ol.geom.Point(obj.coordinate)
+      });
+
+  feature.setStyle(iconStyle);
+  vectorLayer.getSource().addFeature(feature);
 }
