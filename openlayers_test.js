@@ -839,3 +839,7 @@ function marker(obj) {
   feature.setStyle(iconStyle);
   vectorLayer.getSource().addFeature(feature);
 }
+
+document.getElementById('refresh').addEventListener('click', function () {
+	$("#refresh").load(window.location.href + " #refresh");
+})
