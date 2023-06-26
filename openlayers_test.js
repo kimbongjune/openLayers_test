@@ -759,62 +759,113 @@ document.getElementById("map").oncontextmenu = (e) => {
 //이미지 저장 함수
 document.getElementById("export-png").addEventListener("click", function () {
     map.once("rendercomplete", function () {
-        const mapCanvas = document.createElement("canvas");
-        const size = map.getSize();
-        mapCanvas.width = size[0];
-        mapCanvas.height = size[1];
-        const mapContext = mapCanvas.getContext("2d");
-        Array.prototype.forEach.call(
-            map
-                .getViewport()
-                .querySelectorAll(".ol-layer canvas, canvas.ol-layer"),
-            function (canvas) {
-                if (canvas.width > 0) {
-                    const opacity =
-                        canvas.parentNode.style.opacity || canvas.style.opacity;
-                    mapContext.globalAlpha =
-                        opacity === "" ? 1 : Number(opacity);
-                    let matrix;
-                    const transform = canvas.style.transform;
-                    if (transform) {
-                        // Get the transform parameters from the style's transform matrix
-                        matrix = transform
-                            .match(/^matrix\(([^\(]*)\)$/)[1]
-                            .split(",")
-                            .map(Number);
-                    } else {
-                        matrix = [
-                            parseFloat(canvas.style.width) / canvas.width,
-                            0,
-                            0,
-                            parseFloat(canvas.style.height) / canvas.height,
-                            0,
-                            0,
-                        ];
-                    }
-                    // Apply the transform to the export map context
-                    CanvasRenderingContext2D.prototype.setTransform.apply(
-                        mapContext,
-                        matrix
-                    );
-                    const backgroundColor =
-                        canvas.parentNode.style.backgroundColor;
-                    if (backgroundColor) {
-                        mapContext.fillStyle = backgroundColor;
-                        mapContext.fillRect(0, 0, canvas.width, canvas.height);
-                    }
-                    mapContext.drawImage(canvas, 0, 0);
-                }
-            }
-        );
-        mapContext.globalAlpha = 1;
-        mapContext.setTransform(1, 0, 0, 1, 0, 0);
-        const link = document.getElementById("image-download");
-        link.href = mapCanvas.toDataURL();
-        link.click();
-    });
+        html2canvas(document.querySelector("#map")).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'map.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+    })
     map.renderSync();
-});
+})
+
+//인쇄 함수
+document.getElementById("export-pdf").addEventListener("click", function (e) {
+    const dims = {
+        a0: [1189, 841],
+        a1: [841, 594],
+        a2: [594, 420],
+        a3: [420, 297],
+        a4: [297, 210],
+        a5: [210, 148],
+      };
+
+    e.target.disabled = true;
+    document.body.style.cursor = 'progress';
+  
+      const format = document.getElementById('format').value;
+      const resolution = document.getElementById('resolution').value;
+      const dim = dims[format];
+      const width = Math.round((dim[0] * resolution) / 25.4);
+      const height = Math.round((dim[1] * resolution) / 25.4);
+      const size = map.getSize();
+      const viewResolution = map.getView().getResolution();
+  
+        html2canvas(document.querySelector("#map")).then(canvas => {
+            // 캔버스를 이미지 데이터 URL로 변환
+            const imgData = canvas.toDataURL('image/png');
+        
+            // 이미지 데이터 URL을 PDF에 추가
+            const pdf = new jspdf.jsPDF('landscape', undefined, format);
+            pdf.addImage(
+                imgData,
+                'JPEG',
+                0,
+                0,
+                dim[0],
+                dim[1]
+              );
+            pdf.save("map.pdf");
+            map.setSize(size);
+            map.getView().setResolution(viewResolution);
+            e.target.disabled = false;
+            document.body.style.cursor = 'auto';
+        });
+        const printSize = [width, height];
+        map.setSize(printSize);
+        const scaling = Math.min(width / size[0], height / size[1]);
+        map.getView().setResolution(viewResolution / scaling);
+        // map.once('rendercomplete', function () {
+        //     const mapCanvas = document.createElement('canvas');
+        //     mapCanvas.width = width;
+        //     mapCanvas.height = height;
+        //     const mapContext = mapCanvas.getContext('2d');
+        //     Array.prototype.forEach.call(
+        //       document.querySelectorAll('.ol-layer canvas'),
+        //       function (canvas) {
+        //         if (canvas.width > 0) {
+        //           const opacity = canvas.parentNode.style.opacity;
+        //           mapContext.globalAlpha = opacity === '' ? 1 : Number(opacity);
+        //           const transform = canvas.style.transform;
+        //           // Get the transform parameters from the style's transform matrix
+        //           const matrix = transform
+        //             .match(/^matrix\(([^\(]*)\)$/)[1]
+        //             .split(',')
+        //             .map(Number);
+        //           // Apply the transform to the export map context
+        //           CanvasRenderingContext2D.prototype.setTransform.apply(
+        //             mapContext,
+        //             matrix
+        //           );
+        //           mapContext.drawImage(canvas, 0, 0);
+        //         }
+        //       }
+        //     );
+        //     mapContext.globalAlpha = 1;
+        //     mapContext.setTransform(1, 0, 0, 1, 0, 0);
+        //     const pdf = new jspdf.jsPDF('landscape', undefined, format);
+        //     pdf.addImage(
+        //       mapCanvas.toDataURL('image/jpeg'),
+        //       'JPEG',
+        //       0,
+        //       0,
+        //       dim[0],
+        //       dim[1]
+        //     );
+        //     pdf.save('map.pdf');
+        //     // Reset original map size
+        //     map.setSize(size);
+        //     map.getView().setResolution(viewResolution);
+        //     exportButton.disabled = false;
+        //     document.body.style.cursor = 'auto';
+        //   });
+      
+        //   // Set print size
+        //   const printSize = [width, height];
+        //   map.setSize(printSize);
+        //   const scaling = Math.min(width / size[0], height / size[1]);
+        //   map.getView().setResolution(viewResolution / scaling);
+}, false);
 
 //spectrum 라이브러리 호출 함수
 $("#color-picker").spectrum({
