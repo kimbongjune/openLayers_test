@@ -60,6 +60,9 @@ map.addLayer(tile);
 
 map.addLayer(vectorLayer);
 
+const zoomInfo = document.getElementById("zoom-info");
+const info = document.getElementById("info");
+
 //맵에 축적 추가
 const scaleControl = new ol.control.ScaleLine({
     units: "metric", //미터법
@@ -83,6 +86,13 @@ map.addControl(
     })
 );
 
+//지도 객체가 로드가 완료되었을때 동작하는 이벤트
+map.on('loadend', function () {
+    console.log("@")
+    var zoomLevel = map.getView().getZoom();
+    zoomInfo.innerHTML = `줌 레벨 : ${zoomLevel}`;
+});
+
 //지도 클릭 이벤트
 map.on("click", function (evt) {
     console.log(evt.coordinate);
@@ -92,7 +102,7 @@ map.on("click", function (evt) {
     console.log("각도", map.getView().getRotation(), "radian");
 });
 
-//방위계 아이콘을 변경한다.
+//방위계 아이콘을 변경하고 컨트롤 객체에 추가한다.
 var span = document.createElement("span");
 span.innerHTML = '<img src="./resources/img/rotate-removebg.png">';
 map.addControl(new ol.control.Rotate({ autoHide: false, label: span }));
@@ -119,18 +129,6 @@ map.getView().setRotation(0);
 //지도의 방향을 얻어온다.
 //console.log(map.getView().getRotation())
 
-//지도 줌의 변화가 발생했을 때 동작하는 이벤트
-const zoomInfo = document.getElementById("zoom-info");
-var currZoom = map.getView().getZoom();
-map.on("moveend", function (e) {
-    var newZoom = map.getView().getZoom();
-    if (currZoom != newZoom) {
-        console.log("zoom end, new zoom: " + newZoom);
-        currZoom = newZoom;
-        zoomInfo.innerHTML = `줌 레벨 : ${newZoom}`;
-    }
-});
-
 //지도에 선 그리고 길이 측정하는 로직
 var source = new ol.source.Vector();
 var sourceLayer = new ol.layer.Vector({
@@ -156,10 +154,10 @@ var polygonLayer = new ol.layer.Vector({
 
 map.addLayer(polygonLayer);
 
-var sircleSource = new ol.source.Vector();
+var cricleSource = new ol.source.Vector();
 
-var sircleLayer = new ol.layer.Vector({
-    source: sircleSource,
+var circleLayer = new ol.layer.Vector({
+    source: cricleSource,
     style: new ol.style.Style({
         stroke: new ol.style.Stroke({
             color: "green",
@@ -171,13 +169,20 @@ var sircleLayer = new ol.layer.Vector({
     }),
 });
 
-map.addLayer(sircleLayer);
+map.addLayer(circleLayer);
 
-const info = document.getElementById("info");
+//지도의 이동이 종료되었을 때 발생하는 이벤트 지도 중앙좌표와 줌 레벨을 표시한다.
+var currZoom = map.getView().getZoom();
 map.on("moveend", function () {
     const view = map.getView();
     const center = view.getCenter();
     info.innerHTML = formatCoordinate(center);
+    var newZoom = map.getView().getZoom();
+    if (currZoom != newZoom) {
+        console.log("zoom end, new zoom: " + newZoom);
+        currZoom = newZoom;
+        zoomInfo.innerHTML = `줌 레벨 : ${newZoom}`;
+    }
 });
 
 function formatCoordinate(coordinate) {
@@ -204,7 +209,7 @@ var measureTooltip; // 측정값 툴팁
 var draw; // Create draw interaction outside scope for removal later
 
 var circle;
-var sircleTooltipElement;
+var circleTooltipElement;
 var circleTooltip;
 
 function addLineInteraction() {
@@ -239,7 +244,6 @@ function addLineInteraction() {
             );
             measureTooltip.setPosition(geom.getLastCoordinate());
             measureTooltipElement.parentElement.style.pointerEvents = "none";
-            console.log(geom.getCoordinates().length);
             if (geom.getCoordinates().length > 2 && !overlayDisplayed) {
                 measureTooltipElement.className = "tooltip tooltip-static";
                 overlayDisplayed = true;
@@ -259,7 +263,7 @@ function addLineInteraction() {
 
     draw.on("drawend", function (evt) {
         //ol.Observable.unByKey(listener);
-        //getRouteSummury(126.9166035574894,37.60234079487296,128.6359639090519,37.02346466801575)
+        getRouteSummury(126.9166035574894,37.60234079487296,128.6359639090519,37.02346466801575)
         if (!overlayDisplayed) {
             map.removeOverlay(measureTooltip);
         }
@@ -380,11 +384,11 @@ function createAreaTooltip() {
 }
 
 function createCircleAreaTooltip() {
-    sircleTooltipElement = document.createElement("div");
-    sircleTooltipElement.className = "tooltip tooltip-measure";
-    sircleTooltipElement.style.zIndex = 1;
+    circleTooltipElement = document.createElement("div");
+    circleTooltipElement.className = "tooltip tooltip-measure";
+    circleTooltipElement.style.zIndex = 1;
     circleTooltip = new ol.Overlay({
-        element: sircleTooltipElement,
+        element: circleTooltipElement,
         offset: [-15, 0],
         positioning: "top-left",
     });
@@ -482,7 +486,7 @@ function addPolygonInteraction() {
 
 function addCircleInteraction() {
     circle = new ol.interaction.Draw({
-        source: sircleSource,
+        source: cricleSource,
         type: "Circle",
         style: new ol.style.Style({
             stroke: new ol.style.Stroke({
@@ -515,12 +519,12 @@ function addCircleInteraction() {
         // 이벤트 핸들러 추가
         sketch.getGeometry().on("change", function (evt) {
             //var output = formatCircleArea((geom));
-            sircleTooltipElement.innerHTML = drawingAreaTooltipText(
+            circleTooltipElement.innerHTML = drawingAreaTooltipText(
                 "circle",
                 this
             );
             circleTooltip.setPosition(lastMouseCoordinate);
-            sircleTooltipElement.parentElement.style.pointerEvents = "none";
+            circleTooltipElement.parentElement.style.pointerEvents = "none";
         });
         createCircleAreaTooltip();
     });
@@ -533,28 +537,28 @@ function addCircleInteraction() {
         if (coordinateLength < 2) {
             setTimeout(function () {
                 console.log("S");
-                sircleSource.removeFeature(evt.feature);
+                cricleSource.removeFeature(evt.feature);
                 map.removeOverlay(circleTooltip);
             }, 0);
         }
 
         var overlayToRemove = circleTooltip;
-        sircleTooltipElement.innerHTML = createAreaTooltipText(
+        circleTooltipElement.innerHTML = createAreaTooltipText(
             "circle",
             evt.feature.getGeometry()
         );
 
-        var deleteButton = sircleTooltipElement.querySelector(".delete-btn");
+        var deleteButton = circleTooltipElement.querySelector(".delete-btn");
         deleteButton.addEventListener("click", function () {
             // 해당 feature 제거
-            sircleSource.removeFeature(evt.feature);
+            cricleSource.removeFeature(evt.feature);
             // 해당 tooltip 제거
             map.removeOverlay(overlayToRemove);
         });
 
         map.removeInteraction(circle);
         sketch = null;
-        sircleTooltipElement = null;
+        circleTooltipElement = null;
         addCircleInteraction();
 
         ol.Observable.unByKey(listenerKey);
@@ -663,21 +667,19 @@ function uncheckedCheckBox(selectCheckBox) {
     });
 }
 
-document
-    .getElementById("measureCheckbox")
-    .addEventListener("change", function () {
-        console.log($(".measure"));
-        if (this.checked) {
-            uncheckedCheckBox(this);
-            addLineInteraction();
-        } else {
-            if (draw) {
-                map.removeInteraction(draw);
-            }
-            draw = null;
-            sketch = null;
+document.getElementById("measureCheckbox").addEventListener("change", function () {
+    console.log($(".measure"));
+    if (this.checked) {
+        uncheckedCheckBox(this);
+        addLineInteraction();
+    } else {
+        if (draw) {
+            map.removeInteraction(draw);
         }
-    });
+        draw = null;
+        sketch = null;
+    }
+});
 
 //ESC 키 입력 이벤트
 window.addEventListener("keydown", function (event) {
@@ -706,9 +708,9 @@ window.addEventListener("keydown", function (event) {
 
         if (circle) {
             circle.abortDrawing();
-            if (sircleTooltipElement) {
-                sircleTooltipElement.parentNode.removeChild(
-                    sircleTooltipElement
+            if (circleTooltipElement) {
+                circleTooltipElement.parentNode.removeChild(
+                    circleTooltipElement
                 );
             }
             map.removeInteraction(circle);
@@ -743,8 +745,8 @@ document.getElementById("map").oncontextmenu = (e) => {
 
     if (circle) {
         circle.abortDrawing();
-        if (sircleTooltipElement) {
-            sircleTooltipElement.parentNode.removeChild(sircleTooltipElement);
+        if (circleTooltipElement) {
+            circleTooltipElement.parentNode.removeChild(circleTooltipElement);
         }
         map.removeInteraction(circle);
         addCircleInteraction();
@@ -752,7 +754,7 @@ document.getElementById("map").oncontextmenu = (e) => {
     }
 };
 
-//이미지로 저장
+//이미지 저장 함수
 document.getElementById("export-png").addEventListener("click", function () {
     map.once("rendercomplete", function () {
         const mapCanvas = document.createElement("canvas");
@@ -812,6 +814,7 @@ document.getElementById("export-png").addEventListener("click", function () {
     map.renderSync();
 });
 
+//spectrum 라이브러리 호출 함수
 $("#color-picker").spectrum({
     flat: false,
     preferredFormat: "hex", //hex hex3 hsl rgb name
@@ -839,6 +842,7 @@ $("#color-picker").spectrum({
 // 	console.log(rgba);
 //    });
 
+//경로탐색 함수 API로 경로를 요청하고 응답받는다.
 function getRouteSummury(startX, startY, endX, endY) {
     $.ajax(
         `https://router.project-osrm.org/route/v1/driving/${startX},${startY};${endX},${endY}?overview=false`
@@ -847,17 +851,19 @@ function getRouteSummury(startX, startY, endX, endY) {
     });
 }
 
-var pinIcon =
-    "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/pin_drop.png";
-var centerIcon =
-    "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/center.png";
-var listIcon =
-    "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/view_list.png";
+//ol-context 마커 아이콘
+var pinIcon = "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/pin_drop.png";
+//ol-context 지도 중앙위치 아이콘
+var centerIcon = "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/center.png";
+//ol-context 목록 아이콘
+var listIcon = "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/view_list.png";
+
 var namespace = "ol-ctx-menu";
 var icon_class = "-icon";
 var zoom_in_class = "-zoom-in";
 var zoom_out_class = "-zoom-out";
 
+//ol-context 메뉴 아이템 구성 리스트
 var contextmenuItems = [
     {
         text: "지도 중앙 변경",
@@ -903,6 +909,7 @@ var contextmenuItems = [
     },
 ];
 
+//ol-context callback 함수 줌 레벨을 한단계 확대한다.
 function zoomIn(obj, map) {
     map.getView().animate({
         zoom: map.getView().getZoom() + 1,
@@ -911,6 +918,7 @@ function zoomIn(obj, map) {
     });
 }
 
+//ol-context callback 함수 줌 레벨을 한단계 축소한다
 function zoomOut(obj, map) {
     map.getView().animate({
         zoom: map.getView().getZoom() - 1,
@@ -919,6 +927,7 @@ function zoomOut(obj, map) {
     });
 }
 
+//ol-context 이벤트 메뉴가 오픈될 때 트리거된다.
 // var contextmenu = new ContextMenu({
 //   width: 180,
 //   defaultItems: false,
@@ -941,19 +950,20 @@ function zoomOut(obj, map) {
 //   }
 // });
 
+//ol-context의 엘리먼트, 마커 위에서 동작했을 때 트리거된다.
 var removeMarkerItem = {
     text: "마커 삭제",
     classname: "marker",
     callback: removeMarker,
 };
 
+//지도 위에서 마우스가 이동할 때 발생하는 이벤트 길이와 면적 측정시 마우스 커서를 변경하고, 지도 위에 특정 레이어가 존재한다면 커서를 변경한다.
 map.on("pointermove", function (e) {
     if (e.dragging) return;
 
     var pixel = map.getEventPixel(e.originalEvent);
     var hit = map.hasFeatureAtPixel(pixel);
 
-    console.log("work", map.getTargetElement().style.cursor);
     if (
         $(areaCheckbox).is(":checked") ||
         $(measureCheckbox).is(":checked") ||
@@ -966,12 +976,13 @@ map.on("pointermove", function (e) {
 });
 
 // from https://github.com/DmitryBaranovskiy/raphael
-function elastic(t) {
-    return (
-        Math.pow(2, -10 * t) * Math.sin(((t - 0.075) * (2 * Math.PI)) / 0.3) + 1
-    );
-}
+// function elastic(t) {
+//     return (
+//         Math.pow(2, -10 * t) * Math.sin(((t - 0.075) * (2 * Math.PI)) / 0.3) + 1
+//     );
+// }
 
+//ol-context callback 함수 맵의 중앙 위치를 이동한다.
 function center(obj) {
     view.animate({
         duration: 700,
@@ -979,10 +990,12 @@ function center(obj) {
     });
 }
 
+//ol-context callback 함수 특정 마커를 삭제한다.
 function removeMarker(obj) {
     vectorLayer.getSource().removeFeature(obj.data.marker);
 }
 
+//ol-context callback 함수 지도위에 마커를 그린다.
 function marker(obj) {
     var coord4326 = ol.proj.transform(obj.coordinate, "EPSG:3857", "EPSG:4326"),
         template = "좌표 : ({x}, {y})",
@@ -1005,10 +1018,12 @@ function marker(obj) {
     vectorLayer.getSource().addFeature(feature);
 }
 
+//새로고침 버튼 클릭 이벤트 클릭시 지도 영역만 새로고침한다.
 document.getElementById("refresh").addEventListener("click", function () {
     $("#refresh").load(window.location.href + " #refresh");
 });
 
+//툴팁 클릭 이벤트 클릭시 해당 툴팁이 툴팁 오버레이중 최 상단으로 올라온다. 
 $(document).on("click", ".tooltip-content", function (event) {
     event.stopPropagation(); // 자식 엘리먼트의 클릭 이벤트 전파(stopPropagation)
 
@@ -1034,6 +1049,7 @@ $(document).on("click", ".tooltip-content", function (event) {
     selectedOverlayElement.style.zIndex = highestZIndex + 1;
 });
 
+//마우스 커서를 변경하는 함수
 function changeMouseCursor() {
     if ($(areaCheckbox).is(":checked")) {
         return "url(./resources/img/control-toolbox-distance_icon-cursor-area.png), auto";
@@ -1045,3 +1061,15 @@ function changeMouseCursor() {
         return "url(./resources/img/control-toolbox-distance_icon-cursor-radius.png), auto";
     }
 }
+
+//지도 위의 면적 및 길이측적 벡터 레이어와 툴팁 오버레이를 전부 삭제한다.
+document.getElementById("remove-measure").addEventListener("click", function () {
+
+    map.getOverlays().getArray().slice(0).forEach(function(overlay) {
+        map.removeOverlay(overlay) ;
+    });
+
+    source.clear()
+    polygonSource.clear()
+    cricleSource.clear()
+})
