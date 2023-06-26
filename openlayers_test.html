@@ -31,7 +31,7 @@
 			background-color: transparent;
 		}
 
-		.ol-control {
+		.ol-rotate {
 			background-color: transparent !important;
 		}
 
@@ -191,6 +191,13 @@
 	<!-- ol-contextmenu 라이브러리 -->
 	<link href="https://cdn.jsdelivr.net/npm/ol-contextmenu@latest/dist/ol-contextmenu.css" rel="stylesheet">
 	<script src="https://cdn.jsdelivr.net/npm/ol-contextmenu"></script>
+
+	<!-- HTML2Canvas -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.min.js"></script>
+
+	<script src="https://cdn.jsdelivr.net/npm/elm-pep@1.0.6/dist/elm-pep.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
+	
 </head>
 
 <body>
@@ -213,8 +220,27 @@
 	<input id="color-picker" type='button' value='#000000' />
 	<button id="refresh" type='button'>지도 새로고침</button>
 	<button id="remove-measure" type='button'>측정 레이어 전체 삭제</button>
-	<div id="route-info"></div>
-	<!-- <button id="print-button" >프린트</button> -->
+	<br>
+	<form class="form">
+		<label for="format">Page size </label>
+		<select id="format">
+		  <option value="a0">A0 (slow)</option>
+		  <option value="a1">A1</option>
+		  <option value="a2">A2</option>
+		  <option value="a3">A3</option>
+		  <option value="a4" selected>A4</option>
+		  <option value="a5">A5 (fast)</option>
+		</select>
+		<label for="resolution">Resolution </label>
+		<select id="resolution">
+		  <option value="72">72 dpi (fast)</option>
+		  <option value="150">150 dpi</option>
+		  <option value="300">300 dpi (slow)</option>
+		</select>
+	  </form>
+	  <button id="export-pdf">Export PDF</button>
+	  <br>
+	  <div id="route-info"></div>
 	<!-- <form id="options-form" autocomplete="off">
 		<div class="radio">
 			<label>Mode  &nbsp;</label> 
