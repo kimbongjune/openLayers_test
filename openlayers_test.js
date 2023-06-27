@@ -104,6 +104,16 @@ extentInteraction.on('extentchanged', function (event) {
         console.log('면적: ' + area + ' square meters');
         window.selectedExtent = extent;
         //console.log("Width: " + width + ", Height: " + height + ", Area: " + area);
+        
+        createExtentInteractionTooltip()
+        extentInteractionTooltipElement.innerHTML = extentInteractionTooltipText(
+            widthDistance,
+            heigthDistance,
+            area
+        );
+
+        extentInteractionTooltip.setPosition(bottomRight);
+        extentInteractionTooltipElement.parentElement.style.pointerEvents = "none";
     }
 });
 
@@ -154,6 +164,7 @@ map.on('loadend', function () {
 map.on("click", function (evt) {
     if (!ol.events.condition.shiftKeyOnly(evt)) {
         extentInteraction.setExtent(undefined);
+        map.removeOverlay(extentInteractionTooltip)
     }
     console.log(evt.coordinate);
     var coordinate = chageCoordinate(evt.coordinate, "EPSG:3857", "EPSG:4326");
@@ -258,6 +269,9 @@ function formatCoordinate(coordinate) {
 var drawPolygon;
 var areaTooltipElement;
 var areaTooltip;
+
+var extentInteractionTooltipElement;
+var extentInteractionTooltip;
 
 var sketch; // 현재 그려지고 있는 feature
 // var helpTooltipElement; // 도움말 툴팁 요소
@@ -368,6 +382,35 @@ function addLineInteraction() {
     });
 }
 
+function extentInteractionTooltipText(width, heght, measure) {
+    let tooltipCase = "";
+    let tooltipElementClass = "";
+    let tooltipInfoWidth = "";
+    let tooltipInfoHeight = "";
+    let tooltipInfoMeasure = "";
+
+    tooltipCase = "총 길이 : ";
+    tooltipElementClass = "tooltip-info-text-line";
+    tooltipInfoWidth = convertingLength(width);
+    console.log(tooltipInfoWidth)
+    tooltipInfoHeight = convertingLength(heght);
+    tooltipInfoMeasure = convertingMeasure(measure);
+
+    let tooltipInfoWidthText = tooltipInfoWidth[0];
+    let tooltipInfoWidthUnit = tooltipInfoWidth[1];
+
+    let tooltipInfoHeightText = tooltipInfoHeight[0];
+    let tooltipInfoHeightUnit = tooltipInfoHeight[1];
+
+    let tooltipInfoMeasureText = tooltipInfoMeasure[0];
+    let tooltipInfoMeasureUnit = tooltipInfoMeasure[1];
+    let text = `<div class="tooltip-content">`;
+    text += `<div class="tootip-case">가로 길이 : <span class="${tooltipElementClass}">${tooltipInfoWidthText}</span>${tooltipInfoWidthUnit}</div>`;
+    text += `<div class="tootip-case">세로 길이 : <span class="${tooltipElementClass}">${tooltipInfoHeightText}</span>${tooltipInfoHeightUnit}</div>`;
+    text += `<div class="tootip-case">면적 : <span class="${tooltipElementClass}">${tooltipInfoMeasureText}</span>${tooltipInfoMeasureUnit}</div>`;
+    return text;
+}
+
 function createAreaTooltipText(targetInfo, geom) {
     let tooltipCase = "";
     let tooltipElementClass = "";
@@ -443,6 +486,27 @@ function createAreaTooltip() {
         positioning: "top-left",
     });
     map.addOverlay(areaTooltip);
+}
+
+function createExtentInteractionTooltip() {
+    removeExtentInteractionTooltip();
+    extentInteractionTooltipElement = document.createElement("div");
+    extentInteractionTooltipElement.className = "tooltip tooltip-measure";
+    extentInteractionTooltipElement.style.zIndex = 1;
+    extentInteractionTooltip = new ol.Overlay({
+        element: extentInteractionTooltipElement,
+        offset: [-15, 0],
+        positioning: "top-left",
+    });
+    map.addOverlay(extentInteractionTooltip);
+}
+
+function removeExtentInteractionTooltip() {
+    if (extentInteractionTooltip) {
+        map.removeOverlay(extentInteractionTooltip);
+        extentInteractionTooltipElement = null;
+        extentInteractionTooltip = null;
+    }
 }
 
 function createCircleAreaTooltip() {
@@ -667,6 +731,34 @@ function formatLength(line) {
     } else {
         output = Math.round(length * 100) / 100;
         outputUnit = "m";
+    }
+    return [output, outputUnit];
+}
+
+function convertingLength(line) {
+    var output;
+    var outputUnit;
+    if (line > 1000) {
+        output = Math.round((line / 1000) * 100) / 100;
+        outputUnit = "km";
+    } else {
+        output = Math.round(line * 100) / 100;
+        outputUnit = "m";
+    }
+    return [output, outputUnit];
+}
+
+function convertingMeasure(area) {
+    var output;
+    var outputUnit;
+    if (area > 10000) {
+        // 1km^2 이상인 경우 km^2 단위로 표시
+        output = Math.round((area / 1000000) * 100) / 100;
+        outputUnit = " km<sup>2</sup>";
+    } else {
+        // 그 외에는 m^2 단위로 표시
+        output = Math.round(area * 100) / 100;
+        outputUnit = " m<sup>2</sup>";
     }
     return [output, outputUnit];
 }
@@ -1082,12 +1174,9 @@ contextmenu.on('beforeopen', function (evt) {
 
 //ol-context 메뉴가 열릴 때 발생하는 이벤트
 contextmenu.on('open', function (evt) {
-    
-    if(extentInteraction){
-        var isInsideExtent = ol.extent.containsCoordinate(extentInteraction.getExtent(), evt.coordinate);
-        if(isInsideExtent){
-            //TODO 쉬프트 드래그로 생성한 영역 내에서 마우스 오른쪽 클릭 이벤트가 발생하였음 이벤트 후처리가 필요함
-        }
+    var isInsideExtent = false;
+    if(extentInteraction.getExtent()){
+        isInsideExtent = ol.extent.containsCoordinate(extentInteraction.getExtent(), evt.coordinate);
     }
     var feature =	map.forEachFeatureAtPixel(evt.pixel, ft => ft);
 
@@ -1095,6 +1184,9 @@ contextmenu.on('open', function (evt) {
         contextmenu.clear();
         removeMarkerItem.data = { marker: feature };
         contextmenu.push(removeMarkerItem);
+    } else if(isInsideExtent) {
+        contextmenu.clear();
+        contextmenu.extend(captureItem);
     } else {
         contextmenu.clear();
         contextmenu.extend(contextmenuItems);
@@ -1108,6 +1200,22 @@ var removeMarkerItem = {
     classname: "marker",
     callback: removeMarker,
 };
+
+//ol-context의 엘리먼트, extentInteraction 위에서 동작했을 때 트리거된다.
+var captureItem = [
+    {
+        text: "이미지 저장",
+        classname: "center",
+        icon: centerIcon,
+        callback: imageCapture,
+    },
+    {
+        text: "pdf 저장",
+        classname: "marker",
+        callback: exportPdf,
+    }
+]
+
 
 //지도 위에서 마우스가 이동할 때 발생하는 이벤트 길이와 면적 측정시 마우스 커서를 변경하고, 지도 위에 특정 레이어가 존재한다면 커서를 변경한다.
 map.on("pointermove", function (e) {
@@ -1140,6 +1248,16 @@ function center(obj) {
         duration: 700,
         center: obj.coordinate,
     });
+}
+
+//특정 영역의 이미지 캡쳐를 위한 함수 준비
+function imageCapture(obj) {
+    console.log(obj)
+}
+
+//특정 영역의 PDF 저장을 위한 함수 준비
+function exportPdf(obj) {
+    console.log(obj)
 }
 
 //ol-context callback 함수 특정 마커를 삭제한다.
