@@ -14,6 +14,9 @@ var view = new ol.View({
 var map = new ol.Map({
     target: document.getElementById("map"),
     view: view,
+    interactions : ol.interaction.defaults({
+        shiftDragZoom: false
+      })
 });
 
 //국토정보 플랫폼 API를 사용하기 위한 맵 객체
@@ -52,15 +55,20 @@ var tile = new ol.layer.Tile({
 //맵의 객체를 컨트롤하기 위한 빈 벡터 레이어
 var vectorLayer = new ol.layer.Vector({ source: new ol.source.Vector() });
 
+var customCondition = function(mapBrowserEvent) {
+  return ol.events.condition.shiftKeyOnly(mapBrowserEvent) &&
+    mapBrowserEvent.originalEvent.button !== 2;
+};
+
 var extentInteraction = new ol.interaction.Extent({
-    condition: ol.events.condition.shiftKeyOnly,
+    condition: customCondition,
     boxStyle :new ol.style.Style({
         stroke: new ol.style.Stroke({
             color: "blue",
             width: 1,
         }),
         fill: new ol.style.Fill({
-            color: "rgba(0, 0, 255, 0.1)",
+            color: "rgba(0, 0, 255, 0)",
         }),
         image : new ol.style.Circle({
 			radius : 7,
@@ -117,6 +125,78 @@ extentInteraction.on('extentchanged', function (event) {
     }
 });
 
+function saveExtentAsImage() {
+    var extent = extentInteraction.getExtent();
+    if (extent) {
+        var mapCanvas = document.querySelector('.ol-viewport canvas');
+        
+        // 1. Convert extent to pixel coordinates
+        var bottomLeft = map.getPixelFromCoordinate(ol.extent.getBottomLeft(extent));
+        var topRight = map.getPixelFromCoordinate(ol.extent.getTopRight(extent));
+
+        // 2. Clip the part of the map canvas within the extent
+        var width = topRight[0] - bottomLeft[0];
+        var height = bottomLeft[1] - topRight[1];
+        var clippedCanvas = document.createElement('canvas');
+        clippedCanvas.width = width;
+        clippedCanvas.height = height;
+        var clippedContext = clippedCanvas.getContext('2d');
+        clippedContext.drawImage(mapCanvas, bottomLeft[0], topRight[1], width, height, 0, 0, width, height);
+
+        // 3. Convert the clipped canvas to an image
+        var image = new Image();
+        image.src = clippedCanvas.toDataURL('image/png');
+        image.onload = function() {
+            // Create a link for downloading the image
+            var link = document.createElement('a');
+            link.href = image.src;
+            link.download = 'map.png';
+            link.style.display = 'none';
+            link.click();
+        };
+    }
+}
+
+function saveExtentAsPdf() {
+    var extent = extentInteraction.getExtent();
+    if (extent) {
+        var mapCanvas = document.querySelector('.ol-viewport canvas');
+        
+        // 1. Convert extent to pixel coordinates
+        var bottomLeft = map.getPixelFromCoordinate(ol.extent.getBottomLeft(extent));
+        var topRight = map.getPixelFromCoordinate(ol.extent.getTopRight(extent));
+
+        // 2. Clip the part of the map canvas within the extent
+        var width = topRight[0] - bottomLeft[0];
+        var height = bottomLeft[1] - topRight[1];
+        var clippedCanvas = document.createElement('canvas');
+        clippedCanvas.width = width;
+        clippedCanvas.height = height;
+        var clippedContext = clippedCanvas.getContext('2d');
+        clippedContext.drawImage(mapCanvas, bottomLeft[0], topRight[1], width, height, 0, 0, width, height);
+
+        const format = document.getElementById('format').value;
+
+        const dims = {
+            a0: [1189, 841],
+            a1: [841, 594],
+            a2: [594, 420],
+            a3: [420, 297],
+            a4: [297, 210],
+            a5: [210, 148],
+          };
+
+        const dim = dims[format];
+        // 3. Convert the clipped canvas to an image
+        var pdf = new jspdf.jsPDF('landscape', undefined, format);
+        var imgData = clippedCanvas.toDataURL('image/png');
+        pdf.addImage(imgData, 'JPEG', 0, 0, dim[0], dim[1]);
+
+        // Save the PDF
+        pdf.save('map.pdf');
+    }
+}
+
 map.addInteraction(extentInteraction);
 
 //지도의 좌표를 이용해 URL 파라미터를 이동하여 뒤로가기 및 앞으로가기 기능을 활성화 한다.
@@ -167,9 +247,9 @@ map.on("click", function (evt) {
         map.removeOverlay(extentInteractionTooltip)
     }
     console.log(evt.coordinate);
-    var coordinate = chageCoordinate(evt.coordinate, "EPSG:3857", "EPSG:4326");
+    var coordinate = ol.proj.transform(evt.coordinate, "EPSG:3857", "EPSG:4326");
     //var select = select = new ol.interaction.Select();
-    console.log("4326 좌표", coordinate.flatCoordinates);
+    console.log("4326 좌표", coordinate);
     console.log("각도", map.getView().getRotation(), "radian");
 });
 
@@ -177,22 +257,6 @@ map.on("click", function (evt) {
 var span = document.createElement("span");
 span.innerHTML = '<img src="./resources/img/rotate-removebg.png">';
 map.addControl(new ol.control.Rotate({ autoHide: false, label: span }));
-
-//좌표계를 변환한다.
-function chageCoordinate(
-    targetCoordinate,
-    beforCoordinateSystem,
-    afterCoordinateSystem
-) {
-    var newCoordinate = new ol.geom.Point(
-        ol.proj.transform(
-            targetCoordinate,
-            beforCoordinateSystem,
-            afterCoordinateSystem
-        )
-    );
-    return newCoordinate;
-}
 
 //지도에 방향 표시
 map.getView().setRotation(0);
@@ -357,28 +421,28 @@ function addLineInteraction() {
                 source.removeFeature(evt.feature);
                 map.removeOverlay(measureTooltip);
             }, 0);
+        }else{
+            var overlayToRemove = measureTooltip;
+            measureTooltipElement.innerHTML = createAreaTooltipText(
+                "line",
+                evt.feature.getGeometry()
+            );
+            var deleteButton = measureTooltipElement.querySelector(".delete-btn");
+    
+            getRouteSummury(sketch.getGeometry().getCoordinates(), deleteButton)
+    
+            deleteButton.addEventListener("click", function () {
+                // 해당 feature 제거
+                source.removeFeature(evt.feature);
+                // 해당 tooltip 제거
+                map.removeOverlay(overlayToRemove);
+            });
+            sketch = null;
+            measureTooltipElement = null;
+            overlayDisplayed = false;
+            map.removeInteraction(draw);
+            addLineInteraction();
         }
-
-        var overlayToRemove = measureTooltip;
-        measureTooltipElement.innerHTML = createAreaTooltipText(
-            "line",
-            evt.feature.getGeometry()
-        );
-        var deleteButton = measureTooltipElement.querySelector(".delete-btn");
-
-        getRouteSummury(sketch.getGeometry().getCoordinates(), deleteButton)
-
-        deleteButton.addEventListener("click", function () {
-            // 해당 feature 제거
-            source.removeFeature(evt.feature);
-            // 해당 tooltip 제거
-            map.removeOverlay(overlayToRemove);
-        });
-        sketch = null;
-        measureTooltipElement = null;
-        overlayDisplayed = false;
-        map.removeInteraction(draw);
-        addLineInteraction();
     });
 }
 
@@ -874,58 +938,78 @@ window.addEventListener("keydown", function (event) {
     }
 });
 
-//마우스 오른쪽 클릭 이벤트
-document.getElementById("map").oncontextmenu = (e) => {
-    e.preventDefault();
-    if (draw) {
-        console.log(draw);
-        draw.finishDrawing();
-        if (measureTooltipElement) {
-            measureTooltipElement.parentNode.removeChild(measureTooltipElement);
-        }
-        map.removeInteraction(draw);
-        addLineInteraction();
-        return;
-    }
-    if (drawPolygon) {
-        drawPolygon.finishDrawing();
-        if (areaTooltipElement) {
-            areaTooltipElement.parentNode.removeChild(areaTooltipElement);
-        }
-        map.removeInteraction(drawPolygon);
-        addPolygonInteraction();
-        return;
-    }
-
-    if (circle) {
-        circle.abortDrawing();
-        if (circleTooltipElement) {
-            circleTooltipElement.parentNode.removeChild(circleTooltipElement);
-        }
-        map.removeInteraction(circle);
-        addCircleInteraction();
-        return;
-    }
-};
-
 //이미지 저장 함수
 document.getElementById("export-png").addEventListener("click", function () {
-    map.once("rendercomplete", function () {
-        html2canvas(document.querySelector("#map"), {
-            onclone: function(document) {
-                // let controls = document.querySelectorAll('.ol-control');
-                // controls.forEach(function(control) {
-                //     control.style.display = 'none';
-                // });
+    //툴팁까지 포함해서 이미지를 다운로드함
+    // map.once("rendercomplete", function () {
+    //     html2canvas(document.querySelector("#map"), {
+    //         onclone: function(document) {
+    //             // let controls = document.querySelectorAll('.ol-control');
+    //             // controls.forEach(function(control) {
+    //             //     control.style.display = 'none';
+    //             // });
+    //         }
+    //     }).then(canvas => {
+    //         const link = document.createElement('a');
+    //         link.download = 'map.png';
+    //         link.href = canvas.toDataURL();
+    //         link.click();
+    //     });
+    // })
+    // map.renderSync();
+
+    map.once('rendercomplete', function () {
+        const mapCanvas = document.createElement('canvas');
+        const size = map.getSize();
+        mapCanvas.width = size[0];
+        mapCanvas.height = size[1];
+        const mapContext = mapCanvas.getContext('2d');
+        Array.prototype.forEach.call(
+          map.getViewport().querySelectorAll('.ol-layer canvas, canvas.ol-layer'),
+          function (canvas) {
+            if (canvas.width > 0) {
+              const opacity =
+                canvas.parentNode.style.opacity || canvas.style.opacity;
+              mapContext.globalAlpha = opacity === '' ? 1 : Number(opacity);
+              let matrix;
+              const transform = canvas.style.transform;
+              if (transform) {
+                // Get the transform parameters from the style's transform matrix
+                matrix = transform
+                  .match(/^matrix\(([^\(]*)\)$/)[1]
+                  .split(',')
+                  .map(Number);
+              } else {
+                matrix = [
+                  parseFloat(canvas.style.width) / canvas.width,
+                  0,
+                  0,
+                  parseFloat(canvas.style.height) / canvas.height,
+                  0,
+                  0,
+                ];
+              }
+              // Apply the transform to the export map context
+              CanvasRenderingContext2D.prototype.setTransform.apply(
+                mapContext,
+                matrix
+              );
+              const backgroundColor = canvas.parentNode.style.backgroundColor;
+              if (backgroundColor) {
+                mapContext.fillStyle = backgroundColor;
+                mapContext.fillRect(0, 0, canvas.width, canvas.height);
+              }
+              mapContext.drawImage(canvas, 0, 0);
             }
-        }).then(canvas => {
-            const link = document.createElement('a');
-            link.download = 'map.png';
-            link.href = canvas.toDataURL();
-            link.click();
-        });
-    })
-    map.renderSync();
+          }
+        );
+        mapContext.globalAlpha = 1;
+        mapContext.setTransform(1, 0, 0, 1, 0, 0);
+        const link = document.getElementById('image-download');
+        link.href = mapCanvas.toDataURL();
+        link.click();
+      });
+      map.renderSync();
 })
 
 //인쇄 함수
@@ -950,37 +1034,89 @@ document.getElementById("export-pdf").addEventListener("click", function (e) {
       const size = map.getSize();
       const viewResolution = map.getView().getResolution();
 
-        html2canvas(document.querySelector("#map"), {
-            onclone: function(document) {
-                let controls = document.querySelectorAll('.ol-control');
-                controls.forEach(function(control) {
-                    control.style.display = 'none';
-                });
-            }
-        }).then(canvas => {
-            // 캔버스를 이미지 데이터 URL로 변환
-            const imgData = canvas.toDataURL('image/png');
+      //툴팁까지 포함해서 pdf로 내보냄
+        // html2canvas(document.querySelector("#map"), {
+        //     onclone: function(document) {
+        //         let controls = document.querySelectorAll('.ol-control');
+        //         controls.forEach(function(control) {
+        //             control.style.display = 'none';
+        //         });
+        //     }
+        // }).then(canvas => {
+        //     // 캔버스를 이미지 데이터 URL로 변환
+        //     const imgData = canvas.toDataURL('image/png');
             
-            // 이미지 데이터 URL을 PDF에 추가
+        //     // 이미지 데이터 URL을 PDF에 추가
+        //     const pdf = new jspdf.jsPDF('landscape', undefined, format);
+        //     pdf.addImage(
+        //         imgData,
+        //         'JPEG',
+        //         0,
+        //         0,
+        //         dim[0],
+        //         dim[1]
+        //     );
+        //     pdf.save("map.pdf");
+        //     map.setSize(size);
+        //     map.getView().setResolution(viewResolution);
+        //     e.target.disabled = false;
+        //     document.body.style.cursor = 'auto';
+        // });
+        // const printSize = [width, height];
+        // map.setSize(printSize);
+        // const scaling = Math.min(width / size[0], height / size[1]);
+        // map.getView().setResolution(viewResolution / scaling);
+
+        map.once('rendercomplete', function () {
+            const mapCanvas = document.createElement('canvas');
+            mapCanvas.width = width;
+            mapCanvas.height = height;
+            const mapContext = mapCanvas.getContext('2d');
+            Array.prototype.forEach.call(
+              document.querySelectorAll('.ol-layer canvas'),
+              function (canvas) {
+                if (canvas.width > 0) {
+                  const opacity = canvas.parentNode.style.opacity;
+                  mapContext.globalAlpha = opacity === '' ? 1 : Number(opacity);
+                  const transform = canvas.style.transform;
+                  // Get the transform parameters from the style's transform matrix
+                  const matrix = transform
+                    .match(/^matrix\(([^\(]*)\)$/)[1]
+                    .split(',')
+                    .map(Number);
+                  // Apply the transform to the export map context
+                  CanvasRenderingContext2D.prototype.setTransform.apply(
+                    mapContext,
+                    matrix
+                  );
+                  mapContext.drawImage(canvas, 0, 0);
+                }
+              }
+            );
+            mapContext.globalAlpha = 1;
+            mapContext.setTransform(1, 0, 0, 1, 0, 0);
             const pdf = new jspdf.jsPDF('landscape', undefined, format);
             pdf.addImage(
-                imgData,
-                'JPEG',
-                0,
-                0,
-                dim[0],
-                dim[1]
+              mapCanvas.toDataURL('image/jpeg'),
+              'JPEG',
+              0,
+              0,
+              dim[0],
+              dim[1]
             );
-            pdf.save("map.pdf");
+            pdf.save('map.pdf');
+            // Reset original map size
             map.setSize(size);
             map.getView().setResolution(viewResolution);
             e.target.disabled = false;
             document.body.style.cursor = 'auto';
-        });
-        const printSize = [width, height];
-        map.setSize(printSize);
-        const scaling = Math.min(width / size[0], height / size[1]);
-        map.getView().setResolution(viewResolution / scaling);
+          });
+      
+          // Set print size
+          const printSize = [width, height];
+          map.setSize(printSize);
+          const scaling = Math.min(width / size[0], height / size[1]);
+          map.getView().setResolution(viewResolution / scaling);
 }, false);
 
 //spectrum 라이브러리 호출 함수
@@ -1085,6 +1221,12 @@ var centerIcon = "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604be
 //ol-context 목록 아이콘
 var listIcon = "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/view_list.png";
 
+var pdfIcon = "./resources/img/pdf.png"
+
+var imageIcon = "./resources/img/image.png"
+
+var deleteIcon = "./resources/img/delete.png"
+
 var namespace = "ol-ctx-menu";
 var icon_class = "-icon";
 var zoom_in_class = "-zoom-in";
@@ -1166,7 +1308,36 @@ map.addControl(contextmenu);
 //ol-context 메뉴가 열리기 전에 발생하는 이벤트 면적/길이 측정을 진행하는 동안에는 메뉴를 열지 않는다.
 contextmenu.on('beforeopen', function (evt) {
     if ($(areaCheckbox).is(":checked") ||$(measureCheckbox).is(":checked") ||$(areaCircleCheckbox).is(":checked")){
-        return contextmenu.disable();
+        contextmenu.disable();
+        if (draw) {
+            console.log(draw);
+            draw.finishDrawing();
+            if (measureTooltipElement) {
+                measureTooltipElement.parentNode.removeChild(measureTooltipElement);
+            }
+            map.removeInteraction(draw);
+            addLineInteraction();
+            return;
+        }
+        if (drawPolygon) {
+            drawPolygon.finishDrawing();
+            if (areaTooltipElement) {
+                areaTooltipElement.parentNode.removeChild(areaTooltipElement);
+            }
+            map.removeInteraction(drawPolygon);
+            addPolygonInteraction();
+            return;
+        }
+    
+        if (circle) {
+            circle.abortDrawing();
+            if (circleTooltipElement) {
+                circleTooltipElement.parentNode.removeChild(circleTooltipElement);
+            }
+            map.removeInteraction(circle);
+            addCircleInteraction();
+            return;
+        }
     }else{
         return contextmenu.enable();
     }
@@ -1186,6 +1357,7 @@ contextmenu.on('open', function (evt) {
         contextmenu.push(removeMarkerItem);
     } else if(isInsideExtent) {
         contextmenu.clear();
+        captureItem[2].data = { extent: extentInteraction.getExtent() };
         contextmenu.extend(captureItem);
     } else {
         contextmenu.clear();
@@ -1198,6 +1370,7 @@ contextmenu.on('open', function (evt) {
 var removeMarkerItem = {
     text: "마커 삭제",
     classname: "marker",
+    icon : deleteIcon,
     callback: removeMarker,
 };
 
@@ -1206,13 +1379,21 @@ var captureItem = [
     {
         text: "이미지 저장",
         classname: "center",
-        icon: centerIcon,
+        icon: imageIcon,
         callback: imageCapture,
     },
     {
         text: "pdf 저장",
+        icon : pdfIcon,
         classname: "marker",
         callback: exportPdf,
+    },
+    {
+        text: "줌",
+        classname: [namespace + zoom_in_class, namespace + icon_class].join(
+            " "
+        ),
+        callback: zoomExntent,
     }
 ]
 
@@ -1252,12 +1433,20 @@ function center(obj) {
 
 //특정 영역의 이미지 캡쳐를 위한 함수 준비
 function imageCapture(obj) {
-    console.log(obj)
+    saveExtentAsImage()
+}
+
+//특정 영역만큼으로 줌을 당기는 함수
+function zoomExntent(obj) {
+    view.setConstrainResolution(false)
+    console.log(obj.data.extent)
+    map.getView().fit(obj.data.extent, map.getSize()); 
+    view.setConstrainResolution(true)
 }
 
 //특정 영역의 PDF 저장을 위한 함수 준비
 function exportPdf(obj) {
-    console.log(obj)
+    saveExtentAsPdf()
 }
 
 //ol-context callback 함수 특정 마커를 삭제한다.
@@ -1282,6 +1471,28 @@ function marker(obj) {
         feature = new ol.Feature({
             type: "removable",
             geometry: new ol.geom.Point(obj.coordinate),
+        });
+
+    feature.setStyle(iconStyle);
+    vectorLayer.getSource().addFeature(feature);
+}
+
+function addMarker(coordinate) {
+    var coord4326 = ol.proj.transform(coordinate, "EPSG:3857", "EPSG:4326"),
+        template = "현재 위치",
+        iconStyle = new ol.style.Style({
+            image: new ol.style.Icon({ scale: 0.6, src: pinIcon }),
+            text: new ol.style.Text({
+                offsetY: 25,
+                text: ol.coordinate.format(coord4326, template, 12),
+                font: "15px Open Sans,sans-serif",
+                fill: new ol.style.Fill({ color: "#111" }),
+                stroke: new ol.style.Stroke({ color: "#eee", width: 2 }),
+            }),
+        }),
+        feature = new ol.Feature({
+            type: "removable",
+            geometry: new ol.geom.Point(coordinate),
         });
 
     feature.setStyle(iconStyle);
@@ -1342,4 +1553,23 @@ document.getElementById("remove-measure").addEventListener("click", function () 
     source.clear()
     polygonSource.clear()
     cricleSource.clear()
+})
+
+//현재 내 위치에 마커를 찍고 지도 센터를 옮기는 이벤트
+document.getElementById("current-position").addEventListener("click", function () {
+    if ("geolocation" in navigator) {
+        /* geolocation is available */
+        navigator.geolocation.getCurrentPosition(position =>{
+            const { latitude, longitude } = position.coords;
+            const corrdinate = ol.proj.transform([longitude, latitude], 'EPSG:4326', 'EPSG:3857');
+            console.log(corrdinate)
+            map.getView().setCenter(corrdinate);
+            if(map.getView().getZoom() < 14){
+                map.getView().setZoom(14)
+            }
+            addMarker(corrdinate)
+        });
+      } else {
+        /* geolocation IS NOT available */
+      }
 })
