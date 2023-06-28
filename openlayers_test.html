@@ -201,6 +201,22 @@
 			font-weight:100;
 			border-radius:4px;
 		}
+
+		#center-marker{
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			transform: translate(-50%, -50%);
+			z-index: 1;
+			-webkit-user-select: none; /* Chrome/Safari/Opera */
+			-moz-user-select: none; /* Firefox */
+			-ms-user-select: none; /* IE/Edge */
+			user-select: none; /* Standard syntax */
+			cursor: default;
+			pointer-events: none;
+			font-size: 30px;
+			color :rgba(0, 0, 0, .7)
+		}
 	</style>
 
 	<!-- jquery 라이브러리, 2.x 이후의 버전이 필요 -->
@@ -243,6 +259,7 @@
 <body>
 	<!-- Pointer events polyfill for old browsers, see https://caniuse.com/#feat=pointer -->
 	<div id="map" class="map">
+		<div id="center-marker">+</div>
 		<div class="map-interaction" id="current-position">
 			<button class="location">
 				<svg fill="currentColor" height="25" stroke="currentColor" stroke-width="0" viewBox="0 0 24 24" width="25" xmlns="http://www.w3.org/2000/svg" color="white" style="color:#fff">
@@ -262,7 +279,9 @@
 
 		<input type="checkbox" id="areaCircleCheckbox" name="areaCircleCheckbox" class="measure">
 		<label for="areaCircleCheckbox">원형 면적 측정</label>
+		<div id="address"></div>
 	</div>
+	<br>
 	<div id="info"></div>
 	<a id="export-png" class="btn btn-outline-dark" role="button"><i class="fa fa-download"></i> Download PNG</a>
 	<a id="image-download" download="map.png"></a>
@@ -289,6 +308,7 @@
 	  </form>
 	  <button id="export-pdf">Export PDF</button>
 	  <br>
+	  <input type="text" placeholder="주소 검색" id="search-address-text"><button type="button" id="search-address">검색</button>
 	  <div id="route-info"></div>
 	<!-- <form id="options-form" autocomplete="off">
 		<div class="radio">
