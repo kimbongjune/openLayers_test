@@ -184,6 +184,23 @@
 			height: 40px;
 			width: 40px;
 		}
+
+		.ol-scale-bar{
+			left: 67px;
+		}
+
+		#zoom-info{
+			z-index: 1; 
+			position:absolute;
+			bottom:10px;
+			left:8px;
+			height:20px;
+			background-color: rgba(0,60,136,.4);
+			color: #FFFFFF;
+			padding:1px;
+			font-weight:100;
+			border-radius:4px;
+		}
 	</style>
 
 	<!-- jquery 라이브러리, 2.x 이후의 버전이 필요 -->
@@ -234,6 +251,7 @@
 				</svg>
 			</button>
 		</div>
+		<label id="zoom-info">Level: </label>
 	</div>
 	<div>
 		<input type="checkbox" id="measureCheckbox" name="measureCheckbox" class="measure">
@@ -246,7 +264,6 @@
 		<label for="areaCircleCheckbox">원형 면적 측정</label>
 	</div>
 	<div id="info"></div>
-	<div id="zoom-info">줌 레벨 : </div>
 	<a id="export-png" class="btn btn-outline-dark" role="button"><i class="fa fa-download"></i> Download PNG</a>
 	<a id="image-download" download="map.png"></a>
 	<input id="color-picker" type='button' value='#000000' />
