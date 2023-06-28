@@ -55,6 +55,8 @@ var tile = new ol.layer.Tile({
 //맵의 객체를 컨트롤하기 위한 빈 벡터 레이어
 var vectorLayer = new ol.layer.Vector({ source: new ol.source.Vector() });
 
+const info = document.getElementById("info");
+
 var customCondition = function(mapBrowserEvent) {
   return ol.events.condition.shiftKeyOnly(mapBrowserEvent) &&
     mapBrowserEvent.originalEvent.button !== 2;
@@ -89,7 +91,7 @@ var extentInteraction = new ol.interaction.Extent({
 
 extentInteraction.on('extentchanged', function (event) {
     var extent = extentInteraction.getExtent();
-    console.log(extentInteraction)
+    //console.log(extentInteraction)
     if (extent) {
         var bottomLeft = ol.extent.getBottomLeft(extent);
         var bottomRight = ol.extent.getBottomRight(extent);
@@ -107,9 +109,9 @@ extentInteraction.on('extentchanged', function (event) {
         var heigthDistance = ol.sphere.getDistance(topLeftLonLat, bottomLeftLonLat);
 
         var area = widthDistance * heigthDistance;
-        console.log('가로 길이: ' + widthDistance + ' meters');
-        console.log('세로 길이: ' + heigthDistance + ' meters');
-        console.log('면적: ' + area + ' square meters');
+        // console.log('가로 길이: ' + widthDistance + ' meters');
+        // console.log('세로 길이: ' + heigthDistance + ' meters');
+        // console.log('면적: ' + area + ' square meters');
         window.selectedExtent = extent;
         //console.log("Width: " + width + ", Height: " + height + ", Area: " + area);
         
@@ -207,8 +209,7 @@ map.addLayer(tile);
 
 map.addLayer(vectorLayer);
 
-const zoomInfo = document.getElementById("zoom-info");
-const info = document.getElementById("info");
+const zoomInfo = document.getElementById('zoom-info')
 
 //맵에 축적 추가
 const scaleControl = new ol.control.ScaleLine({
@@ -235,9 +236,10 @@ map.addControl(
 
 //지도 객체가 로드가 완료되었을때 동작하는 이벤트
 map.on('loadend', function () {
-    console.log("@")
+    const center = view.getCenter();
+    info.innerHTML = formatCoordinate(center, null);
     var zoomLevel = map.getView().getZoom();
-    zoomInfo.innerHTML = `줌 레벨 : ${zoomLevel}`;
+    zoomInfo.innerHTML = `level: ${zoomLevel}`;
 });
 
 //지도 클릭 이벤트
@@ -309,21 +311,19 @@ map.addLayer(circleLayer);
 //지도의 이동이 종료되었을 때 발생하는 이벤트 지도 중앙좌표와 줌 레벨을 표시한다.
 var currZoom = map.getView().getZoom();
 map.on("moveend", function () {
-    const view = map.getView();
-    const center = view.getCenter();
-    info.innerHTML = formatCoordinate(center);
     var newZoom = map.getView().getZoom();
     if (currZoom != newZoom) {
         console.log("zoom end, new zoom: " + newZoom);
         currZoom = newZoom;
-        zoomInfo.innerHTML = `줌 레벨 : ${newZoom}`;
+        zoomInfo.innerHTML = `level: ${newZoom}`;
     }
 });
 
-function formatCoordinate(coordinate) {
+function formatCoordinate(coordinate, mouseCoordinate) {
     return `
     <table>
       <tbody>
+        <tr><th></th><td>지도 중앙 좌표</td></tr>
         <tr><th>lon</th><td>${coordinate[0].toFixed(2)}</td></tr>
         <tr><th>lat</th><td>${coordinate[1].toFixed(2)}</td></tr>
       </tbody>
@@ -456,7 +456,7 @@ function extentInteractionTooltipText(width, heght, measure) {
     tooltipCase = "총 길이 : ";
     tooltipElementClass = "tooltip-info-text-line";
     tooltipInfoWidth = convertingLength(width);
-    console.log(tooltipInfoWidth)
+    //console.log(tooltipInfoWidth)
     tooltipInfoHeight = convertingLength(heght);
     tooltipInfoMeasure = convertingMeasure(measure);
 
@@ -1148,7 +1148,8 @@ $("#color-picker").spectrum({
 //    });
 
 function getRouteSummury(routeCoordinates, infoElement) {
-    let osrmUrl = `https://router.project-osrm.org/route/v1/driving/`;
+    //let osrmUrl = `https://router.project-osrm.org/route/v1/driving/`;
+    let osrmUrl = `http://192.168.10.99:6001/route/v1/driving/`;
     routeCoordinates.forEach((routeCoordinate, index) =>{
         //console.log(routeCoordinate)
         var coord4326 = ol.proj.transform(routeCoordinate, "EPSG:3857", "EPSG:4326")
@@ -1227,6 +1228,8 @@ var imageIcon = "./resources/img/image.png"
 
 var deleteIcon = "./resources/img/delete.png"
 
+var refreshIcon = "./resources/img/refresh.png"
+
 var namespace = "ol-ctx-menu";
 var icon_class = "-icon";
 var zoom_in_class = "-zoom-in";
@@ -1235,17 +1238,22 @@ var zoom_out_class = "-zoom-out";
 //ol-context 메뉴 아이템 구성 리스트
 var contextmenuItems = [
     {
-        text: "지도 중앙 변경",
+        text: "지도 중앙 이동",
         classname: "bold",
         icon: centerIcon,
         callback: center,
+    },
+    {
+        text: "좌표",
+        classname: "ol-coordinate",
+        callback: null,
     },
     {
         text: "기타 작업",
         icon: listIcon,
         items: [
             {
-                text: "지도 중앙 변경",
+                text: "지도 중앙 이동",
                 icon: centerIcon,
                 callback: center,
             },
@@ -1260,6 +1268,11 @@ var contextmenuItems = [
         text: "마커 추가",
         icon: pinIcon,
         callback: marker,
+    },
+    {
+        text: "새로 고침",
+        icon: refreshIcon,
+        callback: refresh,
     },
     "-",
     {
@@ -1294,6 +1307,11 @@ function zoomOut(obj, map) {
         center: obj.coordinate,
         duration: 500,
     });
+}
+
+//ol-context callback 함수 화면을 새로고침 한다.
+function refresh(obj) {
+    window.location.reload(); 
 }
 
 //ol-context 이벤트 메뉴가 오픈될 때 트리거된다.
@@ -1362,6 +1380,7 @@ contextmenu.on('open', function (evt) {
     } else {
         contextmenu.clear();
         contextmenu.extend(contextmenuItems);
+        document.querySelector('.ol-coordinate').innerText = `${evt.coordinate[0]},\n${evt.coordinate[1]}`;
         //contextmenu.extend(contextmenu.getDefaultItems());
     }
 });
@@ -1394,12 +1413,19 @@ var captureItem = [
             " "
         ),
         callback: zoomExntent,
+    },
+    {
+        text: "영역 해제",
+        icon : deleteIcon,
+        callback: removeExtent,
     }
 ]
 
 
 //지도 위에서 마우스가 이동할 때 발생하는 이벤트 길이와 면적 측정시 마우스 커서를 변경하고, 지도 위에 특정 레이어가 존재한다면 커서를 변경한다.
 map.on("pointermove", function (e) {
+    const center = view.getCenter();
+    info.innerHTML = formatCoordinate(center, e.coordinate);
     if (e.dragging) return;
 
     var pixel = map.getEventPixel(e.originalEvent);
@@ -1431,22 +1457,30 @@ function center(obj) {
     });
 }
 
-//특정 영역의 이미지 캡쳐를 위한 함수 준비
-function imageCapture(obj) {
+//특정 영역의 이미지 캡쳐를 위한 함수
+function imageCapture() {
     saveExtentAsImage()
 }
 
 //특정 영역만큼으로 줌을 당기는 함수
 function zoomExntent(obj) {
-    view.setConstrainResolution(false)
+    //view.setConstrainResolution(false)
     console.log(obj.data.extent)
     map.getView().fit(obj.data.extent, map.getSize()); 
-    view.setConstrainResolution(true)
+    //view.setConstrainResolution(true)
 }
 
-//특정 영역의 PDF 저장을 위한 함수 준비
+//특정 영역의 PDF 저장을 위한 함수
 function exportPdf(obj) {
     saveExtentAsPdf()
+}
+
+//extent 영역을 삭제한다.
+function removeExtent(obj){
+    if(extentInteraction){
+        extentInteraction.setExtent(undefined);
+        map.removeOverlay(extentInteractionTooltip)   
+    }
 }
 
 //ol-context callback 함수 특정 마커를 삭제한다.
@@ -1462,7 +1496,7 @@ function marker(obj) {
             image: new ol.style.Icon({ scale: 0.6, src: pinIcon }),
             text: new ol.style.Text({
                 offsetY: 25,
-                text: ol.coordinate.format(coord4326, template, 12),
+                text: ol.coordinate.format(obj.coordinate, template, 12),
                 font: "15px Open Sans,sans-serif",
                 fill: new ol.style.Fill({ color: "#111" }),
                 stroke: new ol.style.Stroke({ color: "#eee", width: 2 }),
@@ -1549,7 +1583,9 @@ document.getElementById("remove-measure").addEventListener("click", function () 
     map.getOverlays().getArray().slice(0).forEach(function(overlay) {
         map.removeOverlay(overlay) ;
     });
-
+    if (extentInteraction) {
+        extentInteraction.setExtent(undefined);
+    }
     source.clear()
     polygonSource.clear()
     cricleSource.clear()
