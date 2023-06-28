@@ -56,6 +56,7 @@ var tile = new ol.layer.Tile({
 var vectorLayer = new ol.layer.Vector({ source: new ol.source.Vector() });
 
 const info = document.getElementById("info");
+const addressInfo = document.getElementById("address");
 
 var customCondition = function(mapBrowserEvent) {
   return ol.events.condition.shiftKeyOnly(mapBrowserEvent) &&
@@ -248,9 +249,7 @@ map.on("click", function (evt) {
         extentInteraction.setExtent(undefined);
         map.removeOverlay(extentInteractionTooltip)
     }
-    console.log(evt.coordinate);
     var coordinate = ol.proj.transform(evt.coordinate, "EPSG:3857", "EPSG:4326");
-    //var select = select = new ol.interaction.Select();
     console.log("4326 좌표", coordinate);
     console.log("각도", map.getView().getRotation(), "radian");
 });
@@ -310,7 +309,10 @@ map.addLayer(circleLayer);
 
 //지도의 이동이 종료되었을 때 발생하는 이벤트 지도 중앙좌표와 줌 레벨을 표시한다.
 var currZoom = map.getView().getZoom();
-map.on("moveend", function () {
+map.on("moveend", function (evt) {
+    const center = view.getCenter();
+    var coordinate = ol.proj.transform(center , "EPSG:3857", "EPSG:4326");
+    reverseGeoCodingToRegion(coordinate[0], coordinate[1])
     var newZoom = map.getView().getZoom();
     if (currZoom != newZoom) {
         console.log("zoom end, new zoom: " + newZoom);
@@ -1246,7 +1248,7 @@ var contextmenuItems = [
     {
         text: "좌표",
         classname: "ol-coordinate",
-        callback: null,
+        callback: center,
     },
     {
         text: "기타 작업",
@@ -1316,7 +1318,7 @@ function refresh(obj) {
 
 //ol-context 이벤트 메뉴가 오픈될 때 트리거된다.
 var contextmenu = new ContextMenu({
-  width: 180,
+  width: 300,
   defaultItems: false,
   items: contextmenuItems
 });
@@ -1378,9 +1380,11 @@ contextmenu.on('open', function (evt) {
         captureItem[2].data = { extent: extentInteraction.getExtent() };
         contextmenu.extend(captureItem);
     } else {
+        let coord4326 = ol.proj.transform(evt.coordinate, "EPSG:3857", "EPSG:4326");
+        let address = reverseGeoCoding(coord4326[0], coord4326[1])
         contextmenu.clear();
         contextmenu.extend(contextmenuItems);
-        document.querySelector('.ol-coordinate').innerText = `${evt.coordinate[0]},\n${evt.coordinate[1]}`;
+        document.querySelector('.ol-coordinate').innerText = `${coord4326[0]},\n${coord4326[1]}\n${address}`;
         //contextmenu.extend(contextmenu.getDefaultItems());
     }
 });
@@ -1415,7 +1419,7 @@ var captureItem = [
         callback: zoomExntent,
     },
     {
-        text: "영역 해제",
+        text: "영역 삭제",
         icon : deleteIcon,
         callback: removeExtent,
     }
@@ -1608,4 +1612,85 @@ document.getElementById("current-position").addEventListener("click", function (
       } else {
         /* geolocation IS NOT available */
       }
+})
+
+//카카오 API를 이용해 주소를 검색하는 API
+function searchAddress(address){
+    const REST_API_KEY = "a75f661f8fd50587142251f0476ef2da"
+    $.ajax({
+        type: "GET",
+        url: "https://dapi.kakao.com/v2/local/search/address.json",
+        data: {query : address},
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader("Authorization",`KakaoAK ${REST_API_KEY}`);
+        },
+        success: function (res) {
+            console.log(res);
+        },
+        error: function(xhr, status, error){ 
+			alert(error); 
+		}
+    });
+}
+
+//카카오 API를 이용해 좌표를 상세 주소로 변환하는 API
+function reverseGeoCoding(coordinateX, coordinateY){
+    const REST_API_KEY = "a75f661f8fd50587142251f0476ef2da"
+    let result = "";
+    $.ajax({
+        type: "GET",
+        url: "https://dapi.kakao.com/v2/local/geo/coord2address.json",
+        async: false,
+        data: {
+            x : coordinateX,
+            y : coordinateY,
+        },
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader("Authorization",`KakaoAK ${REST_API_KEY}`);
+        },
+        success: function (res) {
+            console.log(res);
+            if(res.documents.length < 1){
+                result = "주소를 찾을 수 없습니다."
+            }else{
+                result = res.documents[0].address.address_name;
+            }
+        },
+        error: function(xhr, status, error){ 
+            console.log(error, status)
+			result = "주소를 찾을 수 없습니다."
+		}
+    });
+    return result;
+}
+
+//카카오 API를 이용해 좌표를 행정구역으로 변환하는 API
+function reverseGeoCodingToRegion(coordinateX, coordinateY){
+    const REST_API_KEY = "a75f661f8fd50587142251f0476ef2da"
+    $.ajax({
+        type: "GET",
+        url: "https://dapi.kakao.com/v2/local/geo/coord2regioncode.json",
+        data: {
+            x : coordinateX,
+            y : coordinateY,
+        },
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader("Authorization",`KakaoAK ${REST_API_KEY}`);
+        },
+        success: function (res) {
+            console.log(res);
+            addressInfo.innerHTML = `${res.documents[0].address_name}`
+        },
+        error: function(xhr, status, error){ 
+			addressInfo.innerHTML = "주소를 찾을 수 없습니다."
+		}
+    });
+}
+
+document.getElementById("search-address").addEventListener("click", function () {
+    let searchValue = document.getElementById("search-address-text").value;
+    if(searchValue === ""){
+        return alert("검색어를 입력해주세요")
+    }
+    searchAddress(searchValue)
 })
