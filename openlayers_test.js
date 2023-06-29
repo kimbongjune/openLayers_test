@@ -26,22 +26,7 @@ var map = new ol.Map({
 // 		// zoom : 19
 // });
 // var map = map1._getMap();
-// map.setView(
-// 	new ol.View({
-// 		center : [ 14128579.82, 4512570.74 ],
-// 		maxZoom : 19,
-// 		minZoom : 6,
-// 		zoom : 19,
-// 		constrainResolution: true,
-// 		rotation: Math.PI / 6,
-//         // center: [-8910887.277395891, 5382318.072437216],
-//         // maxZoom: 19,
-//         // zoom: 15
-// 		// center: [-8910887.277395891, 5382318.072437216],
-// 		// maxZoom: 19,
-// 		// zoom: 15
-// 	})
-// )
+// map.setView(view)
 
 //화면에 노출할 기본 지도 타일
 var tile = new ol.layer.Tile({
@@ -59,8 +44,11 @@ const info = document.getElementById("info");
 const addressInfo = document.getElementById("address");
 
 var customCondition = function(mapBrowserEvent) {
-  return ol.events.condition.shiftKeyOnly(mapBrowserEvent) &&
-    mapBrowserEvent.originalEvent.button !== 2;
+    if($(areaCheckbox).is(":checked") || $(measureCheckbox).is(":checked") || $(areaCircleCheckbox).is(":checked")){
+        return false
+    }
+    return ol.events.condition.shiftKeyOnly(mapBrowserEvent) &&
+        mapBrowserEvent.originalEvent.button !== 2;
 };
 
 var extentInteraction = new ol.interaction.Extent({
@@ -92,6 +80,12 @@ var extentInteraction = new ol.interaction.Extent({
 
 extentInteraction.on('extentchanged', function (event) {
     var extent = extentInteraction.getExtent();
+    if ($(areaCheckbox).is(":checked") || $(measureCheckbox).is(":checked") || $(areaCircleCheckbox).is(":checked")){
+        console.log($(areaCheckbox).is(":checked"))
+        console.log($(measureCheckbox).is(":checked"))
+        console.log($(areaCheckbox).is(":checked"))
+        return;
+    }
     //console.log(extentInteraction)
     if (extent) {
         var bottomLeft = ol.extent.getBottomLeft(extent);
@@ -363,6 +357,7 @@ function addLineInteraction() {
             }),
         }),
         stopClick: true,
+        freehandCondition : ol.events.condition.never,
         condition: (e) =>
             ol.events.condition.noModifierKeys(e) &&
             ol.events.condition.primaryAction(e),
@@ -431,6 +426,7 @@ function addLineInteraction() {
             );
             var deleteButton = measureTooltipElement.querySelector(".delete-btn");
     
+            console.log(sketch.getGeometry().getCoordinates())
             getRouteSummury(sketch.getGeometry().getCoordinates(), deleteButton)
     
             deleteButton.addEventListener("click", function () {
@@ -601,6 +597,7 @@ function addPolygonInteraction() {
             }),
         }),
         stopClick: true,
+        freehandCondition : ol.events.condition.never,
         condition: (e) =>
             ol.events.condition.noModifierKeys(e) &&
             ol.events.condition.primaryAction(e),
@@ -690,6 +687,7 @@ function addCircleInteraction() {
             }),
         }),
         stopClick: true,
+        freehandCondition : ol.events.condition.never,
         condition: (e) =>
             ol.events.condition.noModifierKeys(e) &&
             ol.events.condition.primaryAction(e),
@@ -1155,8 +1153,8 @@ function getRouteSummury(routeCoordinates, infoElement) {
     routeCoordinates.forEach((routeCoordinate, index) =>{
         //console.log(routeCoordinate)
         var coord4326 = ol.proj.transform(routeCoordinate, "EPSG:3857", "EPSG:4326")
-        console.log(coord4326)
-        console.log(index, routeCoordinates.length)
+        // console.log(coord4326)
+        // console.log(index, routeCoordinates.length)
         if(index == routeCoordinates.length - 1){
             osrmUrl += `${coord4326[0]},${coord4326[1]}`
         }else{
