@@ -253,6 +253,8 @@
 
 	<script src="https://cdn.jsdelivr.net/npm/elm-pep@1.0.6/dist/elm-pep.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
+
+	<script src="http://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 	
 </head>
 
@@ -308,8 +310,14 @@
 	  </form>
 	  <button id="export-pdf">Export PDF</button>
 	  <br>
-	  <input type="text" placeholder="주소 검색" id="search-address-text"><button type="button" id="search-address">검색</button>
-	  <div id="route-info"></div>
+	  <!-- <input type="text" placeholder="주소 검색" id="search-address-text"><button type="button" id="search-address">검색</button> -->
+
+	<input type="text" id="sample4_postcode" placeholder="우편번호">
+	<input type="button" onclick="sample4_execDaumPostcode()" value="우편번호 찾기"><br>
+	<input type="text" id="sample4_roadAddress" placeholder="도로명주소">
+	<input type="text" id="sample4_jibunAddress" placeholder="지번주소">
+	<br>
+	<div id="route-info"></div>
 	<!-- <form id="options-form" autocomplete="off">
 		<div class="radio">
 			<label>Mode  &nbsp;</label> 
