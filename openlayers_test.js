@@ -1230,6 +1230,9 @@ var deleteIcon = "./resources/img/delete.png"
 
 var refreshIcon = "./resources/img/refresh.png"
 
+var startMarkerIcon = "./resources/img/red_marker.png"
+var endMarkerIcon = "./resources/img/green_marker.png"
+
 var namespace = "ol-ctx-menu";
 var icon_class = "-icon";
 var zoom_in_class = "-zoom-in";
@@ -1237,6 +1240,18 @@ var zoom_out_class = "-zoom-out";
 
 //ol-context 메뉴 아이템 구성 리스트
 var contextmenuItems = [
+    {
+        text: '출발',
+        classname: 'start-item',
+        icon: startMarkerIcon,
+        callback: startMarker, // 적절한 콜백 함수
+    },
+    {
+        text: '도착',
+        classname: 'end-item',
+        icon: endMarkerIcon,
+        callback: endMarker, // 적절한 콜백 함수
+    },
     {
         text: "지도 중앙 이동",
         classname: "bold",
@@ -1492,8 +1507,7 @@ function removeMarker(obj) {
 
 //ol-context callback 함수 지도위에 마커를 그린다.
 function marker(obj) {
-    var coord4326 = ol.proj.transform(obj.coordinate, "EPSG:3857", "EPSG:4326"),
-        template = "좌표 : ({x}, {y})",
+    var template = "좌표 : ({x}, {y})",
         iconStyle = new ol.style.Style({
             image: new ol.style.Icon({ scale: 0.6, src: pinIcon }),
             text: new ol.style.Text({
@@ -1513,7 +1527,92 @@ function marker(obj) {
     vectorLayer.getSource().addFeature(feature);
 }
 
+function startMarker(obj) {
+    var source = vectorLayer.getSource();
+    var features = source.getFeatures();
+    for (var i = 0; i < features.length; i++) {
+        var feature = features[i];
+        if(feature && feature.get('attribute') == "start"){
+            source.removeFeature(feature);
+        }
+    }
+    var template = "좌표 : ({x}, {y})",
+        iconStyle = new ol.style.Style({
+            image: new ol.style.Icon({ scale: 0.6, src: startMarkerIcon }),
+            text: new ol.style.Text({
+                offsetY: 25,
+                text: ol.coordinate.format(obj.coordinate, template, 12),
+                font: "15px Open Sans,sans-serif",
+                fill: new ol.style.Fill({ color: "#111" }),
+                stroke: new ol.style.Stroke({ color: "#eee", width: 2 }),
+            }),
+        }),
+        feature = new ol.Feature({
+            type: "removable",
+            geometry: new ol.geom.Point(obj.coordinate),
+            attribute : "start"
+        });
+
+    feature.setStyle(iconStyle);
+    vectorLayer.getSource().addFeature(feature);
+
+    var endFeature = features.find(feature => feature.get('attribute') === 'end');
+    if (endFeature) {
+        var endCoordinates = endFeature.getGeometry().getCoordinates();
+        console.log(endCoordinates);
+        console.log("시작 마커를 찍었고 끝지점의 마커도 존재한다")
+    }
+}
+
+function endMarker(obj) {
+    var source = vectorLayer.getSource();
+    var features = source.getFeatures();
+    for (var i = 0; i < features.length; i++) {
+        var feature = features[i];
+        if(feature && feature.get('attribute') == "end"){
+            source.removeFeature(feature);
+        }
+    }
+    var template = "좌표 : ({x}, {y})",
+        iconStyle = new ol.style.Style({
+            image: new ol.style.Icon({ scale: 0.6, src: endMarkerIcon }),
+            text: new ol.style.Text({
+                offsetY: 25,
+                text: ol.coordinate.format(obj.coordinate, template, 12),
+                font: "15px Open Sans,sans-serif",
+                fill: new ol.style.Fill({ color: "#111" }),
+                stroke: new ol.style.Stroke({ color: "#eee", width: 2 }),
+            }),
+        }),
+        feature = new ol.Feature({
+            type: "removable",
+            geometry: new ol.geom.Point(obj.coordinate),
+            attribute : "end"
+        });
+
+    feature.setStyle(iconStyle);
+    vectorLayer.getSource().addFeature(feature);
+    var startFeature = features.find(feature => feature.get('attribute') === 'start');
+    if (startFeature) {
+        var startCoordinates = startFeature.getGeometry().getCoordinates();
+        console.log(startCoordinates);
+        console.log("끝 마커를 찍었고 시작 지점의 마커도 존재한다")
+    }
+}
+
 function addMarker(coordinate) {
+
+    var source = vectorLayer.getSource();
+    var features = source.getFeatures();
+    for (var i = 0; i < features.length; i++) {
+        var feature = features[i];
+        if (ol.coordinate.equals(feature.getGeometry().getCoordinates(), coordinate)) {
+            // If a marker already exists at the coordinate, remove it
+            if(feature.get('attribute') == "position"){
+                source.removeFeature(feature);
+            }
+        }
+    }
     var coord4326 = ol.proj.transform(coordinate, "EPSG:3857", "EPSG:4326"),
         template = "현재 위치",
         iconStyle = new ol.style.Style({
@@ -1529,6 +1628,7 @@ function addMarker(coordinate) {
         feature = new ol.Feature({
             type: "removable",
             geometry: new ol.geom.Point(coordinate),
+            attribute : "position"
         });
 
     feature.setStyle(iconStyle);
