@@ -222,6 +222,80 @@
 			display: inline-block;
 			width: 50%;
 		}
+		.olControlBookmark {
+			position: absolute;
+			top: 190px;
+			right: 0px;
+			width: 175px;
+		}
+		.olControlBookmarkContent {
+			background-color: darkblue;
+			width: 100%;
+			height: 100%;
+			font-family: arial, sans-serif;
+			font-size: smaller;
+			font-weight: bold;
+			color: white;
+			display: none;
+		}
+
+		.olControlBookmarkTitle {
+			text-align: center;
+			padding-bottom: 5px;
+		}
+
+		.olControlBookmarkElements {
+			text-align: left;
+			background-color: transparent;
+			overflow: hidden;
+			padding-block-start: 3px;
+			background-color: #7b98bc;
+		}
+
+		.olControlBookmarkRow {
+			height: auto;
+			vertical-align: top;
+			position: relative;
+		}
+		.olControlBookmarkRemove {
+			margin-left: 10px;
+			background-image: url(./resources/img/close.gif);
+			background-repeat: no-repeat;
+			background-color: white;
+			width: 17px;
+			height: 17px;
+			display: inline-block;
+			cursor: pointer;
+		}
+
+		.olControlBookmarkLink {
+			position: relative;
+			left: 35px;
+			top: 0px;
+			cursor: pointer;
+		}
+
+		.olControlBookmarkMaximizeButton {
+			background-image: url(./resources/img/layer-switcher-maximize.png);
+			background-repeat: no-repeat;
+			width: 18px;
+			height: 18px;
+			display: block;
+			position: absolute;
+			top: 0px;
+			right: 0px;
+		}
+
+		.olControlBookmarkMinimizeButton {
+			background-image: url(./resources/img/layer-switcher-minimize.png);
+			background-repeat: no-repeat;
+			width: 18px;
+			height: 18px;
+			display: none;
+			position: absolute;
+			top: 0px;
+			right: 0px;
+		}
 	</style>
 
 	<!-- jquery 라이브러리, 2.x 이후의 버전이 필요 -->
@@ -260,6 +334,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
 
 	<script src="http://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
 	
 </head>
 
@@ -276,6 +353,39 @@
 			</button>
 		</div>
 		<label id="zoom-info">Level: </label>
+		<div class="modal hide" id="bookmark-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" style="position: absolute;">
+			<div class="modal-dialog modal-sm modal-dialog-centered">
+			  <div class="modal-content">
+				<div class="modal-header" style="padding : 0.5rem 0.5rem;">
+				  <h5 class="modal-title" id="exampleModalLabel" style="font-size: 1rem;">북마크</h5>
+				  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body" style="padding: 0.5rem 0.5rem;">
+					<form>
+						<div class="mb-3" style="margin-bottom: 0px !important;">
+						  <input type="text" class="form-control" id="recipient-name" placeholder="북마크에 등록할 이름을 작성해주세요" style="font-size: 0.7rem;">
+						  <div id="form-control-address">s</div>
+						</div>
+					</form>
+				</div>
+				<div class="modal-footer" style="padding: 0.2rem;">
+				  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="font-size: 0.7rem;">닫기</button>
+				  <button type="button" class="btn btn-primary" style="font-size: 0.7rem;" id="btn-add-bookmark">북마크 추가</button>
+				</div>
+			  </div>
+			</div>
+		  </div>
+	</div>
+	<div id="olcontrolBookmark" class="olControlBookmark">
+		<div id="olControlBookmarkContent" class="olControlBookmarkContent">
+			<div id="olControlBookmarkTitle" class="olControlBookmarkTitle">북마크 목록</div>
+			<div id="olControlBookmarkElements" class="olControlBookmarkElements">
+				<div class="olControlBookmarkRow" id="bookmark-container">
+				</div>
+			</div>
+		</div>
+		<div id="olcontrolBookmarkMaximizeDiv" class="olControlBookmarkMaximizeButton" ></div>
+		<div id="olcontrolBookmarkMinimizeDiv" class="olControlBookmarkMinimizeButton"></div>
 	</div>
 	<div>
 		<input type="checkbox" id="measureCheckbox" name="measureCheckbox" class="measure">
@@ -360,6 +470,7 @@
 	</form> -->
 
 	<script src="openlayers_test.js"></script>
+
 </body>
 
 </html>

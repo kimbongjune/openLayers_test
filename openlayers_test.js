@@ -427,7 +427,7 @@ function addLineInteraction() {
             var deleteButton = measureTooltipElement.querySelector(".delete-btn");
     
             console.log(sketch.getGeometry().getCoordinates())
-            getRouteSummury(sketch.getGeometry().getCoordinates(), deleteButton)
+            //getRouteSummury(sketch.getGeometry().getCoordinates(), deleteButton)
     
             deleteButton.addEventListener("click", function () {
                 // 해당 feature 제거
@@ -1233,6 +1233,8 @@ var refreshIcon = "./resources/img/refresh.png"
 var startMarkerIcon = "./resources/img/red_marker.png"
 var endMarkerIcon = "./resources/img/green_marker.png"
 
+var bookMarkerIcon = "./resources/img/book_mark.png"
+
 var namespace = "ol-ctx-menu";
 var icon_class = "-icon";
 var zoom_in_class = "-zoom-in";
@@ -1257,6 +1259,12 @@ var contextmenuItems = [
         classname: "bold",
         icon: centerIcon,
         callback: center,
+    },
+    {
+        text: "북마크",
+        classname: "bold",
+        icon: bookMarkerIcon,
+        callback: addBookMark,
     },
     {
         text: "좌표",
@@ -1396,6 +1404,7 @@ contextmenu.on('open', function (evt) {
         let coord4326 = ol.proj.transform(evt.coordinate, "EPSG:3857", "EPSG:4326");
         let address = reverseGeoCoding(coord4326[0], coord4326[1])
         contextmenu.clear();
+        contextmenuItems[3].data = { address : address}
         contextmenu.extend(contextmenuItems);
         document.querySelector('.ol-coordinate').innerText = `${coord4326[0]},\n${coord4326[1]}\n${address}`;
         //contextmenu.extend(contextmenu.getDefaultItems());
@@ -1474,6 +1483,19 @@ function center(obj) {
     });
 }
 
+//ol-context callback 함수 해당 위치를 북마크로 등록한다.
+function addBookMark(obj){
+    var modal = new bootstrap.Modal(document.getElementById('bookmark-modal'), {
+        keyboard: true,
+        x : obj.coordinate[0],
+        y : obj.coordinate[1],
+        address : obj.data.address
+    })
+    document.getElementById("form-control-address").innerText = obj.data.address
+    modal.toggle()
+    console.log(obj)
+}
+
 //특정 영역의 이미지 캡쳐를 위한 함수
 function imageCapture() {
     saveExtentAsImage()
@@ -1528,6 +1550,8 @@ function marker(obj) {
 }
 
 function startMarker(obj) {
+    let coord4326 = ol.proj.transform(obj.coordinate, "EPSG:3857", "EPSG:4326");
+    let address = reverseGeoCoding(coord4326[0], coord4326[1])
     var source = vectorLayer.getSource();
     var features = source.getFeatures();
     for (var i = 0; i < features.length; i++) {
@@ -1536,12 +1560,11 @@ function startMarker(obj) {
             source.removeFeature(feature);
         }
     }
-    var template = "좌표 : ({x}, {y})",
-        iconStyle = new ol.style.Style({
+    var iconStyle = new ol.style.Style({
             image: new ol.style.Icon({ scale: 0.6, src: startMarkerIcon }),
             text: new ol.style.Text({
                 offsetY: 25,
-                text: ol.coordinate.format(obj.coordinate, template, 12),
+                text: address,
                 font: "15px Open Sans,sans-serif",
                 fill: new ol.style.Fill({ color: "#111" }),
                 stroke: new ol.style.Stroke({ color: "#eee", width: 2 }),
@@ -1565,6 +1588,8 @@ function startMarker(obj) {
 }
 
 function endMarker(obj) {
+    let coord4326 = ol.proj.transform(obj.coordinate, "EPSG:3857", "EPSG:4326");
+    let address = reverseGeoCoding(coord4326[0], coord4326[1])
     var source = vectorLayer.getSource();
     var features = source.getFeatures();
     for (var i = 0; i < features.length; i++) {
@@ -1573,12 +1598,12 @@ function endMarker(obj) {
             source.removeFeature(feature);
         }
     }
-    var template = "좌표 : ({x}, {y})",
-        iconStyle = new ol.style.Style({
+    
+    var iconStyle = new ol.style.Style({
             image: new ol.style.Icon({ scale: 0.6, src: endMarkerIcon }),
             text: new ol.style.Text({
                 offsetY: 25,
-                text: ol.coordinate.format(obj.coordinate, template, 12),
+                text: address,
                 font: "15px Open Sans,sans-serif",
                 fill: new ol.style.Fill({ color: "#111" }),
                 stroke: new ol.style.Stroke({ color: "#eee", width: 2 }),
@@ -1753,7 +1778,7 @@ function reverseGeoCoding(coordinateX, coordinateY){
             if(res.documents.length < 1){
                 result = "주소를 찾을 수 없습니다."
             }else{
-                result = res.documents[0].address.address_name;
+                result = res.documents[0].road_address != null ? res.documents[0].road_address.address_name : res.documents[0].address.address_name;
             }
         },
         error: function(xhr, status, error){ 
@@ -1827,3 +1852,102 @@ function sample4_execDaumPostcode() {
 //     }
 //     searchAddress(searchValue)
 // })
+
+
+document.getElementById("olcontrolBookmarkMinimizeDiv").addEventListener("click", function () {
+    $("#olControlBookmarkContent").toggle()
+    $("#olcontrolBookmarkMinimizeDiv").css("display", "none")
+    $("#olcontrolBookmarkMaximizeDiv").css("display", "block")
+})
+
+document.getElementById("olcontrolBookmarkMaximizeDiv").addEventListener("click", function () {
+    $("#olControlBookmarkContent").toggle()
+    $("#olcontrolBookmarkMaximizeDiv").css("display", "none")
+    $("#olcontrolBookmarkMinimizeDiv").css("display", "block")
+})
+
+document.getElementById("btn-add-bookmark").addEventListener("click", function (e) {
+    const myModalEl = document.getElementById("bookmark-modal")
+    const modal = bootstrap.Modal.getInstance(myModalEl)
+    const storagedName = document.getElementById("recipient-name").value;
+    
+    if(storagedName.length < 1){
+        return alert("북마크 이름은 필수입니다")
+    }
+    const existsValueFlat = window.localStorage.getItem(storagedName)
+    if(existsValueFlat){
+        return alert("북마크 이름은 중복될 수 없습니다.")
+    }
+    const storageObject = {
+        name : storagedName,
+        address : modal._config.address,
+        x : modal._config.x,
+        y : modal._config.y,
+        zoom : map.getView().getZoom()
+    }
+    const objString = JSON.stringify(storageObject);
+    
+    window.localStorage.setItem(storagedName, objString)
+    const container = $("#bookmark-container")
+    let text = `<span class="olControlBookmarkRemove"></span>
+        <span class="olControlBookmarkLink">${storagedName}</span><br>`
+    container.append(text)
+    modal.hide();
+})
+
+$(document).on('show.bs.modal', '.modal', function () {
+    $(document).on('contextmenu', function (e) {
+        e.preventDefault();
+    });
+}).on('hidden.bs.modal', '.modal', function () {
+    document.getElementById("recipient-name").value = ""
+    $(document).off('contextmenu');
+});
+
+$(document).ready(function(){
+    //window.localStorage.clear();
+    const container = $("#bookmark-container")
+    for(let i = 0; i < window.localStorage.length; i++){
+
+        const key = window.localStorage.key(i);
+        const value = JSON.parse(window.localStorage.getItem(key));
+
+        let text = `<span class="olControlBookmarkRemove"></span>
+        <span class="olControlBookmarkLink">${value.name}</span><br>`
+        
+        console.log(value)
+        //console.log(key + " : " + value + "<br />");
+        container.append(text)
+    }
+});
+
+$('#bookmark-container').on('click', '.olControlBookmarkLink', function() {
+    var index = $('.olControlBookmarkLink').index(this);
+    var storageKey = $('.olControlBookmarkLink').eq(index).text();
+    console.log('Clicked link at index: ', index);
+    console.log(storageKey);
+
+    const value = JSON.parse(window.localStorage.getItem(storageKey));
+
+    console.log(value)
+
+    map.getView().setCenter([value.x, value.y]);
+
+    map.getView().setZoom(value.zoom)
+});
+
+$('#bookmark-container').on('click', '.olControlBookmarkRemove', function() {
+
+    if (!confirm("북마크를 삭제하시겠습니까?")) {
+        // 취소(아니오) 버튼 클릭 시 이벤트
+    } else {
+        var index = $('.olControlBookmarkRemove').index(this);
+        var storageKey = $('.olControlBookmarkLink').eq(index).text();
+    
+        $('.olControlBookmarkLink').eq(index).remove();
+        $('.olControlBookmarkRemove').eq(index).remove();
+        $('#bookmark-container br').eq(index).remove();
+    
+        window.localStorage.removeItem(storageKey);
+    }
+});
