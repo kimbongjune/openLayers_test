@@ -335,8 +335,10 @@
 
 	<script src="http://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+	<link href="./lib/bootstrap.min.css" rel="stylesheet">
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+
+	<!-- <script src="https://map.vworld.kr/js/apis.do?type=Base&apiKey=A5C5E9FF-F9FC-3012-9D01-41A62F369AA7&domain=http://127.0.0.1:3000/openlayers_test.html"></script> -->
 	
 </head>
 
@@ -396,8 +398,24 @@
 
 		<input type="checkbox" id="areaCircleCheckbox" name="areaCircleCheckbox" class="measure">
 		<label for="areaCircleCheckbox">원형 면적 측정</label>
+
+		
 		<div id="address"></div>
 	</div>
+	<input type="radio" id="basic-layer" name="map-layer" value="basic" checked="true">
+	<label for="basic-layer">기본 지도 레이어</label><br>
+
+	<input type="radio" id="text-layer" name="map-layer" value="text">
+	<label for="text-layer">문자 레이어</label><br>
+
+	<input type="radio" id="satellite-layer" name="map-layer" value="satellite">
+	<label for="satellite-layer">항공 사진 레이어</label><br>
+
+	<input type="radio" id="gray-layer" name="map-layer" value="gray">
+	<label for="gray-layer">회색 지도 레이어</label><br>
+
+	<input type="radio" id="night-layer" name="map-layer" value="night">
+	<label for="night-layer">야간 지도 레이어</label><br>
 	<br>
 	<div id="info"></div>
 	<a id="export-png" class="btn btn-outline-dark" role="button"><i class="fa fa-download"></i> Download PNG</a>

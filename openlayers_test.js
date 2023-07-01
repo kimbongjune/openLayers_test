@@ -28,14 +28,51 @@ var map = new ol.Map({
 // var map = map1._getMap();
 // map.setView(view)
 
-//화면에 노출할 기본 지도 타일
-var tile = new ol.layer.Tile({
+var currentBaseLayer;
+
+const VWORLD_API_KEY = "A5C5E9FF-F9FC-3012-9D01-41A62F369AA7";
+
+//vworld 기본 타일
+const baseLayer = new ol.layer.Tile({
     source: new ol.source.OSM({
-        url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Base/{z}/{y}/{x}.png`,
         serverType: "geoserver",
         crossOrigin: "anonymous",
     }),
 });
+
+currentBaseLayer = baseLayer;
+
+//vworld 문자지도 타일
+const textLayer = new ol.layer.Tile({
+    source: new ol.source.XYZ({
+        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Hybrid/{z}/{y}/{x}.png`
+    })
+  });
+
+//vworld 위성지도 타일
+const satelliteLayer = new ol.layer.Tile({
+    source: new ol.source.XYZ({
+        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Satellite/{z}/{y}/{x}.jpeg`
+    })
+  });
+
+  //vworld 회색 지도 타일
+const greyLayer = new ol.layer.Tile({
+    source: new ol.source.XYZ({
+        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/gray/{z}/{y}/{x}.png`
+    })
+  });
+
+  //vworld 야간지도 타일
+const midnightLayer = new ol.layer.Tile({
+    source: new ol.source.XYZ({
+        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/midnight/{z}/{y}/{x}.png`
+    })
+  });
+
+//맵에 기본 맵 레이어 추가
+map.addLayer(baseLayer);
 
 //맵의 객체를 컨트롤하기 위한 빈 벡터 레이어
 var vectorLayer = new ol.layer.Vector({ source: new ol.source.Vector() });
@@ -198,9 +235,6 @@ map.addInteraction(extentInteraction);
 
 //지도의 좌표를 이용해 URL 파라미터를 이동하여 뒤로가기 및 앞으로가기 기능을 활성화 한다.
 map.addInteraction(new ol.interaction.Link());
-
-//맵에 기본 맵 레이어 추가
-map.addLayer(tile);
 
 map.addLayer(vectorLayer);
 
@@ -1951,3 +1985,45 @@ $('#bookmark-container').on('click', '.olControlBookmarkRemove', function() {
         window.localStorage.removeItem(storageKey);
     }
 });
+
+document.querySelectorAll('input[name="map-layer"]').forEach((elem) => {
+    elem.addEventListener("change", function(event) {
+    var layerType = event.target.value; // 선택된 레이어 타입
+  
+    var newBaseLayer;
+    switch (layerType) {
+      case 'basic':
+        newBaseLayer = baseLayer
+        break;
+      case 'text':
+        newBaseLayer = textLayer
+        break;
+    case 'satellite':
+        newBaseLayer = satelliteLayer
+        break;
+    case 'gray':
+        newBaseLayer = greyLayer
+        break;
+    case 'night':
+        newBaseLayer = midnightLayer
+        break;
+    }
+
+    if (currentBaseLayer) {
+        map.removeLayer(currentBaseLayer);
+        map.getLayers().getArray().map(layer => {
+            layer.setZIndex(1)
+        });
+    }
+    map.addLayer(newBaseLayer);
+    currentBaseLayer = newBaseLayer;
+    });
+  });
+
+// map.removeLayer(baseLayer)
+// map.getLayers().getArray().map(layer => {
+//     console.log(layer)
+//     layer.setZIndex(1)
+// });
+// map.addLayer(satelliteLayer)
+// map.renderSync()
