@@ -46,28 +46,32 @@ currentBaseLayer = baseLayer;
 //vworld 문자지도 타일
 const textLayer = new ol.layer.Tile({
     source: new ol.source.XYZ({
-        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Hybrid/{z}/{y}/{x}.png`
+        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Hybrid/{z}/{y}/{x}.png`,
+        crossOrigin: "anonymous",
     })
   });
 
 //vworld 위성지도 타일
 const satelliteLayer = new ol.layer.Tile({
     source: new ol.source.XYZ({
-        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Satellite/{z}/{y}/{x}.jpeg`
+        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Satellite/{z}/{y}/{x}.jpeg`,
+        crossOrigin: "anonymous",
     })
   });
 
   //vworld 회색 지도 타일
 const greyLayer = new ol.layer.Tile({
     source: new ol.source.XYZ({
-        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/gray/{z}/{y}/{x}.png`
+        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/gray/{z}/{y}/{x}.png`,
+        crossOrigin: "anonymous",
     })
   });
 
   //vworld 야간지도 타일
 const midnightLayer = new ol.layer.Tile({
     source: new ol.source.XYZ({
-        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/midnight/{z}/{y}/{x}.png`
+        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/midnight/{z}/{y}/{x}.png`,
+        crossOrigin: "anonymous",
     })
   });
 
@@ -1782,9 +1786,10 @@ function searchAddress(address){
             xhr.setRequestHeader("Authorization",`KakaoAK ${REST_API_KEY}`);
         },
         success: function (res) {
-            console.log(res);
-            // const corrdinate = ol.proj.transform([res.documents[0].address.x, res.documents[0].address.y], 'EPSG:4326', 'EPSG:3857');
-            // map.getView().setCenter(corrdinate);
+            //console.log(res);
+            //console.log(ol.proj.transform([res.documents[0].x, res.documents[0].y], "EPSG:4326", "EPSG:3857"));
+            const corrdinate = ol.proj.transform([res.documents[0].address.x, res.documents[0].address.y], 'EPSG:4326', 'EPSG:3857');
+            map.getView().setCenter(corrdinate);
         },
         error: function(xhr, status, error){ 
 			//alert(error); 
@@ -1873,8 +1878,8 @@ function sample4_execDaumPostcode() {
             // 우편번호와 주소 정보를 해당 필드에 넣는다.
             document.getElementById('sample4_postcode').value = data.zonecode;
             document.getElementById("sample4_roadAddress").value = roadAddr;
+            $('#sample4_roadAddress').trigger('change');
             document.getElementById("sample4_jibunAddress").value = data.jibunAddress;
-            searchAddress(roadAddr)
         }
     }).open();
 }
@@ -2017,13 +2022,14 @@ document.querySelectorAll('input[name="map-layer"]').forEach((elem) => {
     }
     map.addLayer(newBaseLayer);
     currentBaseLayer = newBaseLayer;
+    map.renderSync()
     });
   });
 
-// map.removeLayer(baseLayer)
-// map.getLayers().getArray().map(layer => {
-//     console.log(layer)
-//     layer.setZIndex(1)
-// });
-// map.addLayer(satelliteLayer)
-// map.renderSync()
+  $('#sample4_roadAddress').on('change', function() {
+    // 이벤트 핸들러 코드를 여기에 작성
+    if($(this).val() != ""){
+        searchAddress($(this).val())
+    }
+    console.log('Value changed to:', $(this).val());
+});
