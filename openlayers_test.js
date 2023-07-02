@@ -46,28 +46,32 @@ currentBaseLayer = baseLayer;
 //vworld 문자지도 타일
 const textLayer = new ol.layer.Tile({
     source: new ol.source.XYZ({
-        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Hybrid/{z}/{y}/{x}.png`
+        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Hybrid/{z}/{y}/{x}.png`,
+        crossOrigin: "anonymous",
     })
   });
 
 //vworld 위성지도 타일
 const satelliteLayer = new ol.layer.Tile({
     source: new ol.source.XYZ({
-        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Satellite/{z}/{y}/{x}.jpeg`
+        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Satellite/{z}/{y}/{x}.jpeg`,
+        crossOrigin: "anonymous",
     })
   });
 
   //vworld 회색 지도 타일
 const greyLayer = new ol.layer.Tile({
     source: new ol.source.XYZ({
-        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/gray/{z}/{y}/{x}.png`
+        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/gray/{z}/{y}/{x}.png`,
+        crossOrigin: "anonymous",
     })
   });
 
   //vworld 야간지도 타일
 const midnightLayer = new ol.layer.Tile({
     source: new ol.source.XYZ({
-        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/midnight/{z}/{y}/{x}.png`
+        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/midnight/{z}/{y}/{x}.png`,
+        crossOrigin: "anonymous",
     })
   });
 
@@ -364,6 +368,9 @@ var drawPolygon;
 var areaTooltipElement;
 var areaTooltip;
 
+var routeTooltipElement;
+var routeTooltip;
+
 var extentInteractionTooltipElement;
 var extentInteractionTooltip;
 
@@ -461,7 +468,7 @@ function addLineInteraction() {
             var deleteButton = measureTooltipElement.querySelector(".delete-btn");
     
             console.log(sketch.getGeometry().getCoordinates())
-            //getRouteSummury(sketch.getGeometry().getCoordinates(), deleteButton)
+            searchRouteSummury(sketch.getGeometry().getCoordinates())
     
             deleteButton.addEventListener("click", function () {
                 // 해당 feature 제거
@@ -582,6 +589,18 @@ function createAreaTooltip() {
         positioning: "top-left",
     });
     map.addOverlay(areaTooltip);
+}
+
+function createRouteTooltip() {
+    routeTooltipElement = document.createElement("div");
+    routeTooltipElement.className = "tooltip tooltip-static";
+    routeTooltipElement.style.zIndex = 1;
+    routeTooltip = new ol.Overlay({
+        element: routeTooltipElement,
+        offset: [-15, 0],
+        positioning: "top-left",
+    });
+    map.addOverlay(routeTooltip);
 }
 
 function createExtentInteractionTooltip() {
@@ -1174,16 +1193,9 @@ $("#color-picker").spectrum({
     },
 });
 
-//   $("#color-picker").on('move.spectrum', function(e, tinycolor) {
-// 	const hex = tinycolor.toHex();
-// 	const rgba = tinycolor.toRgb();
-// 	console.log(hex);
-// 	console.log(rgba);
-//    });
-
-function getRouteSummury(routeCoordinates, infoElement) {
-    //let osrmUrl = `https://router.project-osrm.org/route/v1/driving/`;
-    let osrmUrl = `http://192.168.10.99:6001/route/v1/driving/`;
+function searchRouteSummury(routeCoordinates) {
+    let osrmUrl = `https://router.project-osrm.org/route/v1/driving/`;
+    //let osrmUrl = `http://192.168.10.99:6001/route/v1/driving/`;
     routeCoordinates.forEach((routeCoordinate, index) =>{
         //console.log(routeCoordinate)
         var coord4326 = ol.proj.transform(routeCoordinate, "EPSG:3857", "EPSG:4326")
@@ -1206,17 +1218,23 @@ function getRouteSummury(routeCoordinates, infoElement) {
         let instructionsElement = document.getElementById('route-info');
         instructionsElement.innerHTML = instructions;
         let coordinates = data.routes[0].geometry.coordinates.map(c => ol.proj.transform(c, 'EPSG:4326', 'EPSG:3857'));
-
+        createRouteTooltip()
         let totalDistance = (data.routes[0].distance / 1000).toFixed(1); // km 단위
         let totalDuration = (data.routes[0].duration / 60).toFixed(0); // 분 단위
-
         
-        let newDiv = `<div class="tooltip-case">자동차 : <span class="tooltip-info-text-line">${totalDuration}</span>분</div>
+        let text = `<div class="tooltip-content">
+        <div class="tooltip-case">자동차 : <span class="tooltip-info-text-line">${totalDuration}</span>분</div>
         <div class="tooltip-case">경로 길이 : <span class="tooltip-info-text-line">${totalDistance}</span>km</div>
-        <button id="show-route-btn" class="show-route-btn">경로보기</button>`;
-        $(infoElement).before(newDiv)
+        <button id="show-route-btn" class="delete-btn">지우기</button></div>
+        </div>`;
+        console.log(routeCoordinates[1])
+        routeTooltipElement.innerHTML = text
+        routeTooltip.setPosition(routeCoordinates[1]);
+        routeTooltipElement.parentElement.style.pointerEvents = "none";
+        var deleteButton = routeTooltipElement.querySelector(".delete-btn");
+
         let route = new ol.geom.LineString(coordinates);
-        $('#show-route-btn').click(() => {
+
             let routeFeature = new ol.Feature({
                 geometry: route,
                 name: 'Route'
@@ -1241,11 +1259,25 @@ function getRouteSummury(routeCoordinates, infoElement) {
                         width: 4 // 안쪽 선 두께
                       })
                     })
-                  ]
+                  ],
+                  type: 'routeLayer'
               });
                 
-              map.addLayer(routeLayer);
-        });
+            map.addLayer(routeLayer);
+            var overlayToRemove = routeTooltip;
+            deleteButton.addEventListener("click", function () {
+                map.removeLayer(routeLayer);
+                map.removeOverlay(overlayToRemove);
+            })
+
+            let routeExtent = route.getExtent();
+
+            map.getView().fit(routeExtent, {
+                size: map.getSize(),
+                padding: [50, 50, 50, 50],  // 상, 우, 하, 좌 방향으로의 패딩
+            });
+    }).always(function(){
+        routeTooltipElement = null;
     });
 }
 
@@ -1744,6 +1776,11 @@ document.getElementById("remove-measure").addEventListener("click", function () 
     map.getOverlays().getArray().slice(0).forEach(function(overlay) {
         map.removeOverlay(overlay) ;
     });
+    map.getLayers().getArray().slice().forEach(function(layer) {
+        if (layer.get('type') === 'routeLayer') {
+            map.removeLayer(layer);
+        }
+    });
     if (extentInteraction) {
         extentInteraction.setExtent(undefined);
     }
@@ -1782,9 +1819,10 @@ function searchAddress(address){
             xhr.setRequestHeader("Authorization",`KakaoAK ${REST_API_KEY}`);
         },
         success: function (res) {
-            console.log(res);
-            // const corrdinate = ol.proj.transform([res.documents[0].address.x, res.documents[0].address.y], 'EPSG:4326', 'EPSG:3857');
-            // map.getView().setCenter(corrdinate);
+            //console.log(res);
+            //console.log(ol.proj.transform([res.documents[0].x, res.documents[0].y], "EPSG:4326", "EPSG:3857"));
+            const corrdinate = ol.proj.transform([res.documents[0].address.x, res.documents[0].address.y], 'EPSG:4326', 'EPSG:3857');
+            map.getView().setCenter(corrdinate);
         },
         error: function(xhr, status, error){ 
 			//alert(error); 
@@ -1873,8 +1911,8 @@ function sample4_execDaumPostcode() {
             // 우편번호와 주소 정보를 해당 필드에 넣는다.
             document.getElementById('sample4_postcode').value = data.zonecode;
             document.getElementById("sample4_roadAddress").value = roadAddr;
+            $('#sample4_roadAddress').trigger('change');
             document.getElementById("sample4_jibunAddress").value = data.jibunAddress;
-            searchAddress(roadAddr)
         }
     }).open();
 }
@@ -2017,13 +2055,14 @@ document.querySelectorAll('input[name="map-layer"]').forEach((elem) => {
     }
     map.addLayer(newBaseLayer);
     currentBaseLayer = newBaseLayer;
+    map.renderSync()
     });
   });
 
-// map.removeLayer(baseLayer)
-// map.getLayers().getArray().map(layer => {
-//     console.log(layer)
-//     layer.setZIndex(1)
-// });
-// map.addLayer(satelliteLayer)
-// map.renderSync()
+  $('#sample4_roadAddress').on('change', function() {
+    // 이벤트 핸들러 코드를 여기에 작성
+    if($(this).val() != ""){
+        searchAddress($(this).val())
+    }
+    console.log('Value changed to:', $(this).val());
+});
