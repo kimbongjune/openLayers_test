@@ -331,6 +331,24 @@
 			transition: 0.3s;
 		}
 
+		.sidenav h2 {
+			padding: 8px 0px 0px 32px;
+			text-decoration: none;
+			color: rgba(37,72,127, 0.8);
+			font-weight: bold;
+			display: block;
+			font-size: 19px;
+		}
+
+		.sidenav h3 {
+			padding: 8px 0px 0px 32px;
+			text-decoration: none;
+			color: rgba(37,72,127, 0.8);
+			font-weight: normal;
+			display: block;
+			font-size: 19px;
+		}
+
 		.sidenav a:hover {
 			color: black;
 		}
@@ -421,9 +439,7 @@
 <body>
 	<!-- Pointer events polyfill for old browsers, see https://caniuse.com/#feat=pointer -->
 	<div id="map" class="map">
-		<div id="sidenav" class="sidenav">
-		  </div>
-		
+		<div id="sidenav" class="sidenav"></div>
 		<span class="sidenav-menu open" id="nav-button">></span>
 		<div id="center-marker">+</div>
 		<div class="map-interaction" id="current-position">
