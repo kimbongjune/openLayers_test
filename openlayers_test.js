@@ -1,8 +1,13 @@
 //맵의 view 객체 정의
+const MAX_ZOOM_LEVEL = 20;
+const MIN_ZOOM_LEVEL = 6;
+const DEFAULT_ZOOM_LEVEL = 15;
+
 var view = new ol.View({
     center: [14128579.82, 4512570.74],
-    maxZoom: 19,
-    zoom: 19,
+    maxZoom: MAX_ZOOM_LEVEL,
+    zoom: DEFAULT_ZOOM_LEVEL,
+    minZoom : MIN_ZOOM_LEVEL,
     constrainResolution: true,
     rotation: Math.PI / 6,
     // center: [-8910887.277395891, 5382318.072437216],
@@ -39,24 +44,27 @@ const baseLayer = new ol.layer.Tile({
         serverType: "geoserver",
         crossOrigin: "anonymous",
     }),
+    type : "map"
 });
 
 currentBaseLayer = baseLayer;
 
-//vworld 문자지도 타일
+//vworld 문자열 타일
 const textLayer = new ol.layer.Tile({
     source: new ol.source.XYZ({
         url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Hybrid/{z}/{y}/{x}.png`,
         crossOrigin: "anonymous",
-    })
-  });
+    }),
+    type : "map"
+});
 
 //vworld 위성지도 타일
 const satelliteLayer = new ol.layer.Tile({
     source: new ol.source.XYZ({
         url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Satellite/{z}/{y}/{x}.jpeg`,
         crossOrigin: "anonymous",
-    })
+    }),
+    type : "map"
   });
 
   //vworld 회색 지도 타일
@@ -64,7 +72,8 @@ const greyLayer = new ol.layer.Tile({
     source: new ol.source.XYZ({
         url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/gray/{z}/{y}/{x}.png`,
         crossOrigin: "anonymous",
-    })
+    }),
+    type : "map"
   });
 
   //vworld 야간지도 타일
@@ -72,7 +81,8 @@ const midnightLayer = new ol.layer.Tile({
     source: new ol.source.XYZ({
         url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/midnight/{z}/{y}/{x}.png`,
         crossOrigin: "anonymous",
-    })
+    }),
+    type : "map"
   });
 
 //맵에 기본 맵 레이어 추가
@@ -80,6 +90,30 @@ map.addLayer(baseLayer);
 
 //맵의 객체를 컨트롤하기 위한 빈 벡터 레이어
 var vectorLayer = new ol.layer.Vector({ source: new ol.source.Vector() });
+
+//경로탐색 결과에 마우스를 호버 하였을 때 포인트를 찍기위한 벡터 레이어
+let pointStyle = new ol.style.Style({
+    image: new ol.style.Circle({
+        radius: 5,
+        fill: new ol.style.Fill({
+            color: '#D5DCEF',
+            width : 2
+        }),
+        stroke: new ol.style.Stroke({
+            color: 'blue',
+            width: 2
+        })
+    })
+});
+
+let routeVectorSource = new ol.source.Vector({});
+let routeVectorLayer = new ol.layer.Vector({
+    source: routeVectorSource,
+    style: pointStyle
+});
+routeVectorLayer.setZIndex(10)
+
+map.addLayer(routeVectorLayer);
 
 const info = document.getElementById("info");
 const addressInfo = document.getElementById("address");
@@ -347,7 +381,7 @@ map.on("moveend", function (evt) {
     reverseGeoCodingToRegion(coordinate[0], coordinate[1])
     var newZoom = map.getView().getZoom();
     if (currZoom != newZoom) {
-        console.log("zoom end, new zoom: " + newZoom);
+        //console.log("zoom end, new zoom: " + newZoom);
         currZoom = newZoom;
         zoomInfo.innerHTML = `level: ${newZoom}`;
     }
@@ -468,7 +502,7 @@ function addLineInteraction() {
             var deleteButton = measureTooltipElement.querySelector(".delete-btn");
     
             console.log(sketch.getGeometry().getCoordinates())
-            searchRouteSummury(sketch.getGeometry().getCoordinates())
+            //searchRouteSummury(sketch.getGeometry().getCoordinates())
     
             deleteButton.addEventListener("click", function () {
                 // 해당 feature 제거
@@ -600,6 +634,7 @@ function createRouteTooltip() {
         offset: [-15, 0],
         positioning: "top-left",
     });
+    routeTooltip.set("type", "route")
     map.addOverlay(routeTooltip);
 }
 
@@ -1194,8 +1229,9 @@ $("#color-picker").spectrum({
 });
 
 function searchRouteSummury(routeCoordinates) {
-    let osrmUrl = `https://router.project-osrm.org/route/v1/driving/`;
-    //let osrmUrl = `http://192.168.10.99:6001/route/v1/driving/`;
+    console.log("@@@@@@@@@@@@@@@@@@",routeCoordinates)
+    //let osrmUrl = `https://router.project-osrm.org/route/v1/driving/`;
+    let osrmUrl = `http://192.168.10.99:6001/route/v1/driving/`;
     routeCoordinates.forEach((routeCoordinate, index) =>{
         //console.log(routeCoordinate)
         var coord4326 = ol.proj.transform(routeCoordinate, "EPSG:3857", "EPSG:4326")
@@ -1212,10 +1248,11 @@ function searchRouteSummury(routeCoordinates) {
     $.ajax(
         osrmUrl
     ).done(function (data) {
+        console.log(data.routes[0].legs[0].steps)
         let instructions = data.routes[0].legs[0].steps
-            .map(step => `${step.maneuver.type == "depart" ? "시작점" : step.maneuver.type == "arrive" ? "도착점" : ""}${step.maneuver.modifier} ${step.name} ${step.distance}m`) // instruction 추출
+            .map(step => `<a data-coordinate="${ol.proj.transform(step.maneuver.location, "EPSG:4326", "EPSG:3857")}" href="#">${step.maneuver.type == "depart" ? "시작점" : step.maneuver.type == "arrive" ? "도착점" : ""}${step.maneuver.modifier} ${step.name} ${step.distance}m</a>`) // instruction 추출
             .join('<br>');
-        let instructionsElement = document.getElementById('route-info');
+        let instructionsElement = document.getElementById('sidenav');
         instructionsElement.innerHTML = instructions;
         let coordinates = data.routes[0].geometry.coordinates.map(c => ol.proj.transform(c, 'EPSG:4326', 'EPSG:3857'));
         createRouteTooltip()
@@ -1268,6 +1305,18 @@ function searchRouteSummury(routeCoordinates) {
             deleteButton.addEventListener("click", function () {
                 map.removeLayer(routeLayer);
                 map.removeOverlay(overlayToRemove);
+                var source = vectorLayer.getSource();
+                var features = source.getFeatures();
+                for (var i = 0; i < features.length; i++) {
+                    var feature = features[i];
+                    if(feature && feature.get('attribute') == "start"){
+                        source.removeFeature(feature);
+                    }
+                    if(feature && feature.get('attribute') == "end"){
+                        source.removeFeature(feature);
+                    }
+                }
+                instructionsElement.innerHTML = ""
             })
 
             let routeExtent = route.getExtent();
@@ -1276,6 +1325,14 @@ function searchRouteSummury(routeCoordinates) {
                 size: map.getSize(),
                 padding: [50, 50, 50, 50],  // 상, 우, 하, 좌 방향으로의 패딩
             });
+
+            var element = document.getElementById("nav-button");
+            console.log(element.classList)
+            if (element.classList.contains("open")) {
+                document.getElementById("nav-button").click()
+            } else {
+                
+            }
     }).always(function(){
         routeTooltipElement = null;
     });
@@ -1382,6 +1439,9 @@ var contextmenuItems = [
 
 //ol-context callback 함수 줌 레벨을 한단계 확대한다.
 function zoomIn(obj, map) {
+    if(map.getView().getZoom() >= MAX_ZOOM_LEVEL){
+        return alert("줌 인 불가능")
+    }
     map.getView().animate({
         zoom: map.getView().getZoom() + 1,
         center: obj.coordinate,
@@ -1391,6 +1451,9 @@ function zoomIn(obj, map) {
 
 //ol-context callback 함수 줌 레벨을 한단계 축소한다
 function zoomOut(obj, map) {
+    if(map.getView().getZoom() <= MIN_ZOOM_LEVEL){
+        return alert("줌 아웃 불가능")
+    }
     map.getView().animate({
         zoom: map.getView().getZoom() - 1,
         center: obj.coordinate,
@@ -1590,6 +1653,18 @@ function removeExtent(obj){
 
 //ol-context callback 함수 특정 마커를 삭제한다.
 function removeMarker(obj) {
+    if(obj.data.marker.get('attribute') == "start" || obj.data.marker.get('attribute') == "end"){
+        map.getOverlays().getArray().slice(0).forEach(function(overlay) {
+            if (overlay.get('type') === 'route') {
+                map.removeOverlay(overlay) ;
+            }
+        });
+        map.getLayers().getArray().slice().forEach(function(layer) {
+            if (layer.get('type') === 'routeLayer') {
+                map.removeLayer(layer);
+            }
+        });
+    }
     vectorLayer.getSource().removeFeature(obj.data.marker);
 }
 
@@ -1616,6 +1691,16 @@ function marker(obj) {
 }
 
 function startMarker(obj) {
+    map.getOverlays().getArray().slice(0).forEach(function(overlay) {
+        if (overlay.get('type') === 'route') {
+            map.removeOverlay(overlay) ;
+        }
+    });
+    map.getLayers().getArray().slice().forEach(function(layer) {
+        if (layer.get('type') === 'routeLayer') {
+            map.removeLayer(layer);
+        }
+    });
     let coord4326 = ol.proj.transform(obj.coordinate, "EPSG:3857", "EPSG:4326");
     let address = reverseGeoCoding(coord4326[0], coord4326[1])
     var source = vectorLayer.getSource();
@@ -1648,12 +1733,26 @@ function startMarker(obj) {
     var endFeature = features.find(feature => feature.get('attribute') === 'end');
     if (endFeature) {
         var endCoordinates = endFeature.getGeometry().getCoordinates();
-        console.log(endCoordinates);
+        console.log("시작지점 지점 좌표",obj.coordinate)
+        console.log("끝 지점 좌표",endCoordinates);
+        console.log(obj.coordinate.concat(endCoordinates))
+        searchRouteSummury([obj.coordinate, endCoordinates])
         console.log("시작 마커를 찍었고 끝지점의 마커도 존재한다")
     }
 }
 
 function endMarker(obj) {
+    map.getOverlays().getArray().slice(0).forEach(function(overlay) {
+        console.log("@")
+        if (overlay.get('type') === 'route') {
+            map.removeOverlay(overlay) ;
+        }
+    });
+    map.getLayers().getArray().slice().forEach(function(layer) {
+        if (layer.get('type') === 'routeLayer') {
+            map.removeLayer(layer);
+        }
+    });
     let coord4326 = ol.proj.transform(obj.coordinate, "EPSG:3857", "EPSG:4326");
     let address = reverseGeoCoding(coord4326[0], coord4326[1])
     var source = vectorLayer.getSource();
@@ -1686,7 +1785,9 @@ function endMarker(obj) {
     var startFeature = features.find(feature => feature.get('attribute') === 'start');
     if (startFeature) {
         var startCoordinates = startFeature.getGeometry().getCoordinates();
-        console.log(startCoordinates);
+        console.log("시작지점 지점 좌표",startCoordinates);
+        console.log("끝 지점 좌표",obj.coordinate)
+        searchRouteSummury([startCoordinates, obj.coordinate])
         console.log("끝 마커를 찍었고 시작 지점의 마커도 존재한다")
     }
 }
@@ -1846,7 +1947,7 @@ function reverseGeoCoding(coordinateX, coordinateY){
             xhr.setRequestHeader("Authorization",`KakaoAK ${REST_API_KEY}`);
         },
         success: function (res) {
-            console.log(res);
+            //console.log(res);
             if(res.documents.length < 1){
                 result = "주소를 찾을 수 없습니다."
             }else{
@@ -1875,7 +1976,7 @@ function reverseGeoCodingToRegion(coordinateX, coordinateY){
             xhr.setRequestHeader("Authorization",`KakaoAK ${REST_API_KEY}`);
         },
         success: function (res) {
-            console.log(res);
+            //console.log(res);
             addressInfo.innerHTML = `${res.documents[0].address_name}`
         },
         error: function(xhr, status, error){ 
@@ -1961,8 +2062,8 @@ document.getElementById("btn-add-bookmark").addEventListener("click", function (
     
     window.localStorage.setItem(storagedName, objString)
     const container = $("#bookmark-container")
-    let text = `<span class="olControlBookmarkRemove"></span>
-        <span class="olControlBookmarkLink">${storagedName}</span><br>`
+    let text = `<span class="olControlBookmarkRemove" title="삭제"></span>
+        <span class="olControlBookmarkLink" title="${storagedName}">${storagedName}</span><br>`
     container.append(text)
     modal.hide();
 })
@@ -1984,10 +2085,10 @@ $(document).ready(function(){
         const key = window.localStorage.key(i);
         const value = JSON.parse(window.localStorage.getItem(key));
 
-        let text = `<span class="olControlBookmarkRemove"></span>
-        <span class="olControlBookmarkLink">${value.name}</span><br>`
+        let text = `<span class="olControlBookmarkRemove" title="삭제"></span>
+        <span class="olControlBookmarkLink" title="${value.name}">${value.name}</span><br>`
         
-        console.log(value)
+        //console.log(value)
         //console.log(key + " : " + value + "<br />");
         container.append(text)
     }
@@ -2027,34 +2128,34 @@ $('#bookmark-container').on('click', '.olControlBookmarkRemove', function() {
 document.querySelectorAll('input[name="map-layer"]').forEach((elem) => {
     elem.addEventListener("change", function(event) {
     var layerType = event.target.value; // 선택된 레이어 타입
-  
-    var newBaseLayer;
+
+    map.getLayers().getArray().slice().forEach(function(layer) {
+        if (layer.get('type') === 'map') {
+            map.removeLayer(layer);
+        }else{
+            layer.setZIndex(1)
+        }
+    });
+    
     switch (layerType) {
       case 'basic':
-        newBaseLayer = baseLayer
+        map.addLayer(baseLayer);
         break;
-      case 'text':
-        newBaseLayer = textLayer
+      case 'hybrid':
+        map.addLayer(satelliteLayer)
+        map.addLayer(textLayer);
         break;
     case 'satellite':
-        newBaseLayer = satelliteLayer
+        map.addLayer(satelliteLayer)
         break;
     case 'gray':
-        newBaseLayer = greyLayer
+        map.addLayer(greyLayer)
         break;
     case 'night':
-        newBaseLayer = midnightLayer
+        map.addLayer(midnightLayer)
         break;
     }
-
-    if (currentBaseLayer) {
-        map.removeLayer(currentBaseLayer);
-        map.getLayers().getArray().map(layer => {
-            layer.setZIndex(1)
-        });
-    }
-    map.addLayer(newBaseLayer);
-    currentBaseLayer = newBaseLayer;
+    
     map.renderSync()
     });
   });
@@ -2066,3 +2167,55 @@ document.querySelectorAll('input[name="map-layer"]').forEach((elem) => {
     }
     console.log('Value changed to:', $(this).val());
 });
+
+document.getElementById("nav-button").addEventListener("click", function (e) {
+    document.getElementById("sidenav").style.width = "250px";
+    let clickedElementClass = e.target.className; // e.target refers to the clicked element
+    //console.log(clickedElementClass == "sidenav-menu open");
+    if(clickedElementClass == "sidenav-menu open"){
+        e.target.className = "sidenav-menu close"
+        e.target.textContent = "X"
+        document.getElementById("sidenav").style.width = "250px";
+    }else if(clickedElementClass == "sidenav-menu close"){
+        e.target.className = "sidenav-menu open"
+        document.getElementById("sidenav").style.width = "0";
+        e.target.textContent = ">"
+    }
+})
+
+document.querySelector('#sidenav').addEventListener('mouseover', function (event) {
+    if(event.target.tagName === 'A') {
+        var customValue = event.target.getAttribute('data-coordinate');
+
+        const coordinates = customValue.split(',').map(Number);
+        console.log(coordinates)
+        var x = parseFloat(coordinates[0]);
+        var y = parseFloat(coordinates[1]);
+
+        var pointFeature = new ol.Feature(new ol.geom.Point([x, y]));
+    
+        // 기존의 포인트를 지우고 새로운 포인트를 추가합니다.
+        routeVectorSource.clear();
+        routeVectorSource.addFeature(pointFeature);
+    }
+});
+
+document.querySelector('#sidenav').addEventListener('mouseout', function (event) {
+    if(event.target.tagName === 'A') {
+        routeVectorSource.clear();
+    }
+});
+
+document.querySelector('#sidenav').addEventListener('click', function (event) {
+    if(event.target.tagName === 'A') {
+        var customValue = event.target.getAttribute('data-coordinate');
+        console.log('Mouse over: ' + customValue);
+
+        const coords = customValue.split(',').map(Number);
+        map.getView().animate({
+            zoom: map.getView().getZoom(),
+            center: coords,
+            duration: 500,
+        });
+    }
+})
