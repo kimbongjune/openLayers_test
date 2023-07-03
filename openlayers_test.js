@@ -1228,45 +1228,40 @@ $("#color-picker").spectrum({
     },
 });
 
-function searchRouteSummury(routeCoordinates) {
-    console.log("@@@@@@@@@@@@@@@@@@",routeCoordinates)
-    //let osrmUrl = `https://router.project-osrm.org/route/v1/driving/`;
-    let osrmUrl = `http://192.168.10.99:6001/route/v1/driving/`;
-    routeCoordinates.forEach((routeCoordinate, index) =>{
-        //console.log(routeCoordinate)
-        var coord4326 = ol.proj.transform(routeCoordinate, "EPSG:3857", "EPSG:4326")
-        // console.log(coord4326)
-        // console.log(index, routeCoordinates.length)
-        if(index == routeCoordinates.length - 1){
-            osrmUrl += `${coord4326[0]},${coord4326[1]}`
-        }else{
-            osrmUrl += `${coord4326[0]},${coord4326[1]};`
-        }
-    })
+function searchRouteSummury(startFeature, endFeature) {
+    console.log(startFeature)
+    console.log(endFeature)
+    let osrmUrl = `https://router.project-osrm.org/route/v1/driving/`;
+    //let osrmUrl = `http://192.168.10.99:6001/route/v1/driving/`;
+    var startCoordinate = ol.proj.transform(startFeature.getGeometry().getCoordinates(), "EPSG:3857", "EPSG:4326")
+    var endCoordinate = ol.proj.transform(endFeature.getGeometry().getCoordinates(), "EPSG:3857", "EPSG:4326")
+    // console.log(coord4326)
+    // console.log(index, routeCoordinates.length)
+    osrmUrl += `${startCoordinate};${endCoordinate}`
     osrmUrl += `?overview=full&geometries=geojson&steps=true`
     console.log(osrmUrl)
     $.ajax(
         osrmUrl
     ).done(function (data) {
-        console.log(data.routes[0].legs[0].steps)
+        console.log(data)
         let instructions = data.routes[0].legs[0].steps
             .map(step => `<a data-coordinate="${ol.proj.transform(step.maneuver.location, "EPSG:4326", "EPSG:3857")}" href="#">${step.maneuver.type == "depart" ? "시작점" : step.maneuver.type == "arrive" ? "도착점" : ""}${step.maneuver.modifier} ${step.name} ${step.distance}m</a>`) // instruction 추출
             .join('<br>');
         let instructionsElement = document.getElementById('sidenav');
-        instructionsElement.innerHTML = instructions;
+        instructionsElement.innerHTML = `<h2>${startFeature.get("address")} -><br> ${endFeature.get("address")}</h2>`
+        instructionsElement.innerHTML += `<h3>${convertMetersToKilometersAndMeters(data.routes[0].distance)}, ${convertSecondsToHoursAndMinutes(data.routes[0].duration)}</h3>`;
+        instructionsElement.innerHTML += instructions;
         let coordinates = data.routes[0].geometry.coordinates.map(c => ol.proj.transform(c, 'EPSG:4326', 'EPSG:3857'));
         createRouteTooltip()
-        let totalDistance = (data.routes[0].distance / 1000).toFixed(1); // km 단위
-        let totalDuration = (data.routes[0].duration / 60).toFixed(0); // 분 단위
+        
         
         let text = `<div class="tooltip-content">
-        <div class="tooltip-case">자동차 : <span class="tooltip-info-text-line">${totalDuration}</span>분</div>
-        <div class="tooltip-case">경로 길이 : <span class="tooltip-info-text-line">${totalDistance}</span>km</div>
+        <div class="tooltip-case">자동차 : <span class="tooltip-info-text-line">${convertMetersToKilometersAndMeters(data.routes[0].distance)}</span></div>
+        <div class="tooltip-case">경로 길이 : <span class="tooltip-info-text-line">${convertSecondsToHoursAndMinutes(data.routes[0].duration)}</span></div>
         <button id="show-route-btn" class="delete-btn">지우기</button></div>
         </div>`;
-        console.log(routeCoordinates[1])
         routeTooltipElement.innerHTML = text
-        routeTooltip.setPosition(routeCoordinates[1]);
+        routeTooltip.setPosition(endFeature.getGeometry().getCoordinates());
         routeTooltipElement.parentElement.style.pointerEvents = "none";
         var deleteButton = routeTooltipElement.querySelector(".delete-btn");
 
@@ -1323,7 +1318,7 @@ function searchRouteSummury(routeCoordinates) {
 
             map.getView().fit(routeExtent, {
                 size: map.getSize(),
-                padding: [50, 50, 50, 50],  // 상, 우, 하, 좌 방향으로의 패딩
+                padding: [200, 200, 200, 200],  // 상, 우, 하, 좌 방향으로의 패딩
             });
 
             var element = document.getElementById("nav-button");
@@ -1724,7 +1719,8 @@ function startMarker(obj) {
         feature = new ol.Feature({
             type: "removable",
             geometry: new ol.geom.Point(obj.coordinate),
-            attribute : "start"
+            attribute : "start",
+            address : address
         });
 
     feature.setStyle(iconStyle);
@@ -1736,7 +1732,7 @@ function startMarker(obj) {
         console.log("시작지점 지점 좌표",obj.coordinate)
         console.log("끝 지점 좌표",endCoordinates);
         console.log(obj.coordinate.concat(endCoordinates))
-        searchRouteSummury([obj.coordinate, endCoordinates])
+        searchRouteSummury(feature, endFeature)
         console.log("시작 마커를 찍었고 끝지점의 마커도 존재한다")
     }
 }
@@ -1777,17 +1773,15 @@ function endMarker(obj) {
         feature = new ol.Feature({
             type: "removable",
             geometry: new ol.geom.Point(obj.coordinate),
-            attribute : "end"
+            attribute : "end",
+            address : address
         });
 
     feature.setStyle(iconStyle);
     vectorLayer.getSource().addFeature(feature);
     var startFeature = features.find(feature => feature.get('attribute') === 'start');
     if (startFeature) {
-        var startCoordinates = startFeature.getGeometry().getCoordinates();
-        console.log("시작지점 지점 좌표",startCoordinates);
-        console.log("끝 지점 좌표",obj.coordinate)
-        searchRouteSummury([startCoordinates, obj.coordinate])
+        searchRouteSummury(startFeature, feature)
         console.log("끝 마커를 찍었고 시작 지점의 마커도 존재한다")
     }
 }
@@ -1882,6 +1876,13 @@ document.getElementById("remove-measure").addEventListener("click", function () 
             map.removeLayer(layer);
         }
     });
+    vectorLayer.getSource().getFeatures().forEach(function(feature) {
+        if (feature.get('attribute') == "start" || feature.get('attribute') == "end") {
+            vectorLayer.getSource().removeFeature(feature);
+        }
+    });
+    let instructionsElement = document.getElementById('sidenav');
+    instructionsElement.innerHTML = ""
     if (extentInteraction) {
         extentInteraction.setExtent(undefined);
     }
@@ -2219,3 +2220,29 @@ document.querySelector('#sidenav').addEventListener('click', function (event) {
         });
     }
 })
+
+//초를 시간 + 분으로 만들어주는 함수
+function convertSecondsToHoursAndMinutes(totalSeconds) {
+    var hours = Math.floor(totalSeconds / 3600);
+    var minutes = Math.floor((totalSeconds % 3600) / 60);
+
+    if (hours === 0) {
+        if (minutes < 1) {
+            return "1분 미만";
+        }
+        return minutes + "분";
+    } else {
+        return hours + "시간 " + minutes + "분";
+    }
+}
+
+//미터를 키로미터 + 미터로 만들어주는 함수
+function convertMetersToKilometersAndMeters(totalMeters) {
+    var kilometers = totalMeters / 1000;
+    var meters = totalMeters % 1000;
+    if (kilometers < 1) {
+        return meters + "m";
+    } else {
+        return kilometers.toFixed(1) + "km";
+    }
+}
