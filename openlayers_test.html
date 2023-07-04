@@ -390,6 +390,13 @@
 			align-items: center;
 			color: white;
 		}
+
+		.route-select-container{
+			position: absolute;
+			z-index: 2; 
+			top: 10px; 
+			left: 250px;
+		}
 	</style>
 
 	<!-- jquery 라이브러리, 2.x 이후의 버전이 필요 -->
@@ -439,6 +446,13 @@
 <body>
 	<!-- Pointer events polyfill for old browsers, see https://caniuse.com/#feat=pointer -->
 	<div id="map" class="map">
+		<div class="route-select-container">
+			<select class="form-select form-select-sm" aria-label=".form-select-sm example">
+				<option selected value="1">차량 경로탐색</option>
+				<option value="2">도보 경로탐색</option>
+				<option value="3">자전거 경로탐색</option>
+			  </select>
+		</div>
 		<div id="sidenav" class="sidenav"></div>
 		<span class="sidenav-menu open" id="nav-button">></span>
 		<div id="center-marker">+</div>
