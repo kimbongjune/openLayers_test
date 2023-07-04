@@ -309,16 +309,108 @@ map.on('loadend', function () {
     zoomInfo.innerHTML = `level: ${zoomLevel}`;
 });
 
+// var stylep = new ol.style.Style({
+//     stroke: new ol.style.Stroke({
+//         color: [51, 51, 51, .0],
+//         width: 3
+//     }),
+//     fill: new ol.style.Fill({
+//         color: [51, 51, 51, .7]
+//     })
+// });
+
+// var selectInteraction = new ol.interaction.Select({
+//     style: [stylep]
+// });
+// map.getInteractions().extend([selectInteraction]);
+
 //지도 클릭 이벤트
+var clickCurrentLayer;
+var clickCurrentOverlay
 map.on("click", function (evt) {
     if (!ol.events.condition.shiftKeyOnly(evt)) {
         extentInteraction.setExtent(undefined);
         map.removeOverlay(extentInteractionTooltip)
     }
-    var coordinate = ol.proj.transform(evt.coordinate, "EPSG:3857", "EPSG:4326");
-    console.log("4326 좌표", coordinate);
-    console.log("각도", map.getView().getRotation(), "radian");
+
+    if (clickCurrentLayer) {
+        map.removeLayer(clickCurrentLayer);
+    }
+
+    if (clickCurrentOverlay) {
+        map.removeOverlay(clickCurrentOverlay);
+    }
+
+    var url = 'https://api.vworld.kr/req/data?';
+    url += 'service=data';
+    url += '&request=GetFeature';
+    url += '&data=LP_PA_CBND_BUBUN';
+    url += `&key=${VWORLD_API_KEY}`; // Replace with your actual API key
+    url += '&format=json';
+    url += "&crs=EPSG:3857";
+    url += '&geomFilter=POINT(' + evt.coordinate[0] + ' ' + evt.coordinate[1] + ')';
+    url +=  "&domain=http://127.0.0.1:3000/openlayers_test.html"
+
+
+    $.ajax({
+        url: url,
+        type: 'GET',
+        dataType: "jsonp",
+        async : false,
+        jsonpCallback: 'callback',
+        success: function(data) {
+            console.log(data)
+            if(data.response.status != "OK"){
+                return;
+            }
+            var geojsonObject = data.response.result.featureCollection.features[0].geometry;
+             
+            var vectorSource = new ol.source.Vector({
+                features: (new ol.format.GeoJSON()).readFeatures(geojsonObject)
+            });
+            vectorSource.set("ctp_kor_nm",data.response.result.featureCollection.features[0].properties.ctp_kor_nm); 
+            vectorSource.set("ctp_eng_nm",data.response.result.featureCollection.features[0].properties.ctp_eng_nm); 
+            //layer.getSource().getKeys()로 확인
+
+            var vectorStyle = new ol.style.Style({
+                fill: new ol.style.Fill({
+                    color: 'rgba(135,206,250, 0.5)', // Skyblue color fill with opacity
+                }),
+                stroke: new ol.style.Stroke({
+                    color: 'orange', // Orange stroke color
+                    width: 2
+                }),
+            });
+             
+            var vector_layer = new ol.layer.Vector({
+              source: vectorSource,
+              style: vectorStyle
+            })
+            vector_layer.set("ctp_kor_nm_layer",data.response.result.featureCollection.features[0].properties.ctp_kor_nm+"_layer");
+            //layer.getKeys() 로 확인
+             
+            map.addLayer(vector_layer);
+            clickCurrentLayer = vector_layer
+
+            var overlayElement = document.createElement('div');
+            overlayElement.innerHTML = '<div style="background: white; border: 1px solid black; padding: 5px;">' +
+                                        '<p>Clicked at: ' + evt.coordinate + '</p>' +
+                                        '</div>';
+            var overlay = new ol.Overlay({
+                element: overlayElement,
+                position: evt.coordinate
+            });
+            // Add the overlay to the map
+            map.addOverlay(overlay);
+            clickCurrentOverlay = overlay;
+        },
+        beforesend: function(){
+             
+        },
+        error: function(xhr, stat, err) {}
+      });
 });
+
 
 //방위계 아이콘을 변경하고 컨트롤 객체에 추가한다.
 var span = document.createElement("span");
@@ -2359,4 +2451,82 @@ document.querySelector('.form-select-sm').addEventListener('change', function(e)
     }
 
     // 여기에서 원하는 작업을 수행하세요
+});
+
+var cctvLayer;
+
+// Handle checkbox change event
+document.getElementById('cctv-checkbox').addEventListener('change', function(e) {
+    var view = map.getView();
+
+    // Get the size of the current map container
+    var size = map.getSize();
+
+    // Calculate the extent of the current view
+    var extent = view.calculateExtent(size);
+
+    console.log(extent);
+    if (e.target.checked) {
+        var url = 'https://api.vworld.kr/req/data?'; // Replace with actual CCTV API URL
+        url += 'service=data';
+        url += '&version=2.0';
+        url += '&request=GetFeature';
+        url += `&key=${VWORLD_API_KEY}`; // Replace with your actual API key
+        url += '&format=json';
+        url += '&size=1000'; // Modify this as needed
+        url += '&page=2';
+        url += '&data=LT_P_UTISCCTV';
+        url += "&crs=EPSG:3857";
+        url += `&geomFilter=BOX(${extent[0]},${extent[1]},${extent[2]},${extent[3]})`;
+        url +=  "&domain=http://127.0.0.1:3000/openlayers_test.html"
+        console.log(url)
+        // Add geomFilter if you want to limit CCTV data to a certain area
+
+        $.ajax({
+            url: url,
+            type: 'GET',
+            dataType: "jsonp",
+            async : false,
+            success: function(data) {
+                console.log(data)
+                var cctvSource = new ol.source.Vector({});
+
+                for (var i = 0; i < data.response.result.featureCollection.features.length; i++) {
+                    var feature = data.response.result.featureCollection.features[i];
+
+                    console.log(feature)
+                    var cctvFeature = new ol.Feature({
+                        geometry: new ol.geom.Point(feature.geometry.coordinates),
+                        attributes: feature.attributes
+                    });
+
+                    cctvSource.addFeature(cctvFeature);
+                }
+
+                cctvLayer = new ol.layer.Vector({
+                    source: cctvSource,
+                    style: new ol.style.Style({
+                        image: new ol.style.Circle({
+                            radius: 7,
+                            fill: new ol.style.Fill({color: 'yellow'}),
+                            stroke: new ol.style.Stroke({
+                              color: 'red', width: 1
+                            })
+                        })
+                    })
+                });
+
+                map.addLayer(cctvLayer);
+            },
+            error: function(xhr, stat, err) {
+                console.log('Error fetching CCTV data:', err);
+            }
+        });
+    } else {
+        // Checkbox is not checked, remove CCTV layer from map
+        if (cctvLayer) {
+            map.removeLayer(cctvLayer);
+            cctvLayer = null;
+        }
+    }
 });
