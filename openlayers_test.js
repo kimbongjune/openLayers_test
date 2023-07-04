@@ -1228,36 +1228,69 @@ $("#color-picker").spectrum({
     },
 });
 
-function searchRouteSummury(startFeature, endFeature) {
-    console.log(startFeature)
-    console.log(endFeature)
-    let osrmUrl = `https://router.project-osrm.org/route/v1/driving/`;
-    //let osrmUrl = `http://192.168.10.99:6001/route/v1/driving/`;
+function searchRouteSummury(startFeature, endFeature, routeFlag) {
+
+    //let osrmUrl = `https://router.project-osrm.org/route/v1/driving/`;
+    let osrmCarUrl = `http://192.168.10.99:6001/route/v1/driving/`;
+    let osrmFootUrl = `http://192.168.10.99:6002/route/v1/driving/`;
+    let osrBikemUrl = `http://192.168.10.99:6003/route/v1/driving/`;
     var startCoordinate = ol.proj.transform(startFeature.getGeometry().getCoordinates(), "EPSG:3857", "EPSG:4326")
     var endCoordinate = ol.proj.transform(endFeature.getGeometry().getCoordinates(), "EPSG:3857", "EPSG:4326")
     // console.log(coord4326)
     // console.log(index, routeCoordinates.length)
-    osrmUrl += `${startCoordinate};${endCoordinate}`
-    osrmUrl += `?overview=full&geometries=geojson&steps=true`
-    console.log(osrmUrl)
+    osrmCarUrl += `${startCoordinate};${endCoordinate}`
+    osrmFootUrl += `${startCoordinate};${endCoordinate}`
+    osrBikemUrl += `${startCoordinate};${endCoordinate}`
+
+    osrmCarUrl += `?overview=full&geometries=geojson&steps=true`
+    osrmFootUrl += `?overview=full&geometries=geojson&steps=true`
+    osrBikemUrl += `?overview=full&geometries=geojson&steps=true`
+
+    let requestUrl = "";
+    let routeKind = "";
+    if(routeFlag == 1){
+        requestUrl = osrmCarUrl
+        routeKind = "차량"
+    }else if(routeFlag == 2){
+        requestUrl = osrmFootUrl
+        routeKind = "도보"
+    }else{
+        requestUrl = osrBikemUrl
+        routeKind = "자전거"
+    }
+
+    // let carRouteAjax = $.ajax({ url: osrmCarUrl, dataType: 'json', method: 'GET' });
+    // let footRouteAjax = $.ajax({ url: osrmFootUrl, dataType: 'json', method: 'GET' });
+    // let bikeRouteAjax = $.ajax({ url: osrBikemUrl, dataType: 'json', method: 'GET' });
+
+    // $.when(carRouteAjax, footRouteAjax, bikeRouteUrl).done(function(response1, response2, response3){
+    //     console.log(response1, resAjaxse2, response3)
+    //     // 모든 AJAX 호출이 완료된 후에 여기가 실행됩니다.
+    //     // response1, response2, response3은 각각의 AJAX 응답입니다.
+    // }).fail(function(error){
+    //     console.log(error)
+    //     // 하나라도 AJAX 호출에 실패하면 여기가 실행됩니다.
+    //     // error에는 실패한 AJAX 호출의 에러 정보가 들어있습니다.
+    // });
     $.ajax(
-        osrmUrl
+        requestUrl
     ).done(function (data) {
         console.log(data)
         let instructions = data.routes[0].legs[0].steps
             .map(step => `<a data-coordinate="${ol.proj.transform(step.maneuver.location, "EPSG:4326", "EPSG:3857")}" href="#">${step.maneuver.type == "depart" ? "시작점" : step.maneuver.type == "arrive" ? "도착점" : ""}${step.maneuver.modifier} ${step.name} ${step.distance}m</a>`) // instruction 추출
             .join('<br>');
         let instructionsElement = document.getElementById('sidenav');
+        instructionsElement.innerHTML = ""
         instructionsElement.innerHTML = `<h2>${startFeature.get("address")} -><br> ${endFeature.get("address")}</h2>`
         instructionsElement.innerHTML += `<h3>${convertMetersToKilometersAndMeters(data.routes[0].distance)}, ${convertSecondsToHoursAndMinutes(data.routes[0].duration)}</h3>`;
         instructionsElement.innerHTML += instructions;
         let coordinates = data.routes[0].geometry.coordinates.map(c => ol.proj.transform(c, 'EPSG:4326', 'EPSG:3857'));
+
         createRouteTooltip()
         
-        
         let text = `<div class="tooltip-content">
-        <div class="tooltip-case">자동차 : <span class="tooltip-info-text-line">${convertMetersToKilometersAndMeters(data.routes[0].distance)}</span></div>
-        <div class="tooltip-case">경로 길이 : <span class="tooltip-info-text-line">${convertSecondsToHoursAndMinutes(data.routes[0].duration)}</span></div>
+        <div class="tooltip-case">${routeKind} : <span class="tooltip-info-text-line">${convertMetersToKilometersAndMeters(data.routes[0].distance)}</span></div>
+        <div class="tooltip-case">예상 소요시간 : <span class="tooltip-info-text-line">${convertSecondsToHoursAndMinutes(data.routes[0].duration)}</span></div>
         <button id="show-route-btn" class="delete-btn">지우기</button></div>
         </div>`;
         routeTooltipElement.innerHTML = text
@@ -1265,35 +1298,77 @@ function searchRouteSummury(startFeature, endFeature) {
         routeTooltipElement.parentElement.style.pointerEvents = "none";
         var deleteButton = routeTooltipElement.querySelector(".delete-btn");
 
+        var lineStyle = [
+            new ol.style.Style({
+                stroke: new ol.style.Stroke({
+                    color: '#E9E9E8', // 외곽선 색상 (회색)
+                    width: 6 // 외곽선 두께
+                })
+            }),
+            new ol.style.Style({
+                stroke: new ol.style.Stroke({
+                    color: '#969A96', // 내부선 색상 (검은색)
+                    width: 4, // 내부선 두께
+                    lineDash: [6, 10] // 검은색 점선
+                })
+            })
+        ];
+        
+        // OSRM에서 반환한 실제 시작지점
+        const osrmStart = ol.proj.transform(data.routes[0].legs[0].steps[0].geometry.coordinates[0], "EPSG:4326", "EPSG:3857");
+        // OSRM에서 반환한 실제 종료지점
+        const osrmEnd = ol.proj.transform(data.routes[0].legs[0].steps[data.routes[0].legs[0].steps.length-1].geometry.coordinates[0], "EPSG:4326", "EPSG:3857");
+    
+        // 사용자가 선택한 시작지점과 OSRM이 계산한 시작지점 사이에 선을 그림
+        var startLineString = new ol.geom.LineString([osrmStart, startFeature.getGeometry().getCoordinates()]);
+        var startLineFeature = new ol.Feature({
+            geometry: startLineString,
+            name: 'Start Line'
+        });
+        startLineFeature.setStyle(lineStyle)
+
+        console.log(osrmStart, startFeature.getGeometry().getCoordinates())
+        
+        // 사용자가 선택한 종료지점과 OSRM이 계산한 종료지점 사이에 선을 그림
+        var endLineString = new ol.geom.LineString([osrmEnd, endFeature.getGeometry().getCoordinates()]);
+        var endLineFeature = new ol.Feature({
+            geometry: endLineString,
+            name: 'End Line'
+        });
+        endLineFeature.setStyle(lineStyle)
+
         let route = new ol.geom.LineString(coordinates);
 
-            let routeFeature = new ol.Feature({
-                geometry: route,
-                name: 'Route'
-            });
-                
-              let routeSource = new ol.source.Vector({
-                features: [routeFeature]
-            });
-                
-            let routeLayer = new ol.layer.Vector({
-                source: routeSource,
-                style: [
-                    new ol.style.Style({
-                      stroke: new ol.style.Stroke({
-                        color: '#0000ff', // 바깥선 색상 (파랑)
-                        width: 6 // 바깥선 두께
-                      })
-                    }),
-                    new ol.style.Style({
-                      stroke: new ol.style.Stroke({
-                        color: '#6F79BC', // 안쪽 색상 (연한 파랑)
-                        width: 4 // 안쪽 선 두께
-                      })
+        let routeFeature = new ol.Feature({
+            geometry: route,
+            name: 'Route'
+        });
+            
+            let routeSource = new ol.source.Vector({
+            features: [routeFeature]
+        });
+
+        routeSource.addFeature(startLineFeature);
+        routeSource.addFeature(endLineFeature);
+            
+        let routeLayer = new ol.layer.Vector({
+            source: routeSource,
+            style: [
+                new ol.style.Style({
+                    stroke: new ol.style.Stroke({
+                    color: '#0000ff', // 바깥선 색상 (파랑)
+                    width: 6 // 바깥선 두께
                     })
-                  ],
-                  type: 'routeLayer'
-              });
+                }),
+                new ol.style.Style({
+                    stroke: new ol.style.Stroke({
+                    color: '#6F79BC', // 안쪽 색상 (연한 파랑)
+                    width: 4 // 안쪽 선 두께
+                    })
+                })
+                ],
+                type: 'routeLayer'
+            });
                 
             map.addLayer(routeLayer);
             var overlayToRemove = routeTooltip;
@@ -1732,7 +1807,12 @@ function startMarker(obj) {
         console.log("시작지점 지점 좌표",obj.coordinate)
         console.log("끝 지점 좌표",endCoordinates);
         console.log(obj.coordinate.concat(endCoordinates))
-        searchRouteSummury(feature, endFeature)
+
+        var selectElement = document.querySelector('.form-select-sm');
+        var selectedOption = selectElement.value;
+        searchRouteSummury(feature, endFeature, selectedOption)
+        
+        console.log('Current selected option:', selectedOption);
         console.log("시작 마커를 찍었고 끝지점의 마커도 존재한다")
     }
 }
@@ -1781,7 +1861,13 @@ function endMarker(obj) {
     vectorLayer.getSource().addFeature(feature);
     var startFeature = features.find(feature => feature.get('attribute') === 'start');
     if (startFeature) {
-        searchRouteSummury(startFeature, feature)
+
+        var selectElement = document.querySelector('.form-select-sm');
+        var selectedOption = selectElement.value;
+
+        searchRouteSummury(startFeature, feature, selectedOption)
+
+        console.log('Current selected option:', selectedOption);
         console.log("끝 마커를 찍었고 시작 지점의 마커도 존재한다")
     }
 }
@@ -2246,3 +2332,31 @@ function convertMetersToKilometersAndMeters(totalMeters) {
         return kilometers.toFixed(1) + "km";
     }
 }
+
+//경로탐색 셀렉트박스의 값이 변경될 때 발생하는 이벤트
+document.querySelector('.form-select-sm').addEventListener('change', function(e) {
+    var selectedOption = e.target.value;
+    console.log('Selected option:', selectedOption);
+
+    var source = vectorLayer.getSource();
+    var features = source.getFeatures();
+    var startFeature = features.find(feature => feature.get('attribute') === 'start');
+    var endFeature = features.find(feature => feature.get('attribute') === 'end');
+    console.log(startFeature, endFeature)
+    if(startFeature && endFeature){
+        console.log("@@@@@@")
+        map.getOverlays().getArray().slice(0).forEach(function(overlay) {
+            if (overlay.get('type') === 'route') {
+                map.removeOverlay(overlay) ;
+            }
+        });
+        map.getLayers().getArray().slice().forEach(function(layer) {
+            if (layer.get('type') === 'routeLayer') {
+                map.removeLayer(layer);
+            }
+        });
+        searchRouteSummury(startFeature, endFeature, selectedOption)
+    }
+
+    // 여기에서 원하는 작업을 수행하세요
+});
