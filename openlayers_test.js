@@ -429,11 +429,44 @@ map.on('loadend', function () {
 // });
 // map.getInteractions().extend([selectInteraction]);
 
+var cctvPointSource = new ol.source.Vector();
+var cctvPointLayer = new ol.layer.Vector({
+    source: cctvPointSource,
+    style: new ol.style.Style({
+        image: new ol.style.Circle({
+            radius: 4,
+            fill: new ol.style.Fill({
+                color: "rgba(0, 0, 255, 0.1)",
+            }),
+            stroke: new ol.style.Stroke({
+                color: "blue",
+                width: 2,
+            }),
+        }),
+    })
+});
+map.addLayer(cctvPointLayer);
+
+var cctvLineSource = new ol.source.Vector();
+var cctvLineLayer = new ol.layer.Vector({
+    source: cctvLineSource,
+    style: new ol.style.Style({
+        stroke: new ol.style.Stroke({
+            color: 'blue',
+            width: 2
+        })
+    })
+});
+map.addLayer(cctvLineLayer);
+
 //지도 클릭 이벤트
 var clickCurrentLayer;
 var clickCurrentOverlay
 map.on("click", function (evt) {
     let cctvFound = false;
+
+    cctvPointSource.clear();
+    cctvLineSource.clear();
 
     if (!ol.events.condition.shiftKeyOnly(evt)) {
         extentInteraction.setExtent(undefined);
@@ -465,21 +498,33 @@ map.on("click", function (evt) {
 
             let contentHTML = `<a href="#" id="popup-closer" class="ol-popup-closer"></a>
                 <div id="popup-content">
-                    <div class="ol-popup-title">정보</div>
+                    <div class="ol-popup-title">CCTV 정보</div>
                     <code class="code break-line">`;
 
             if(originalFeatures.length > 1){
                 contentHTML += `선택 개수 : ${originalFeatures.length}<br>`;
                 for(var i = 0; i < originalFeatures.length; i++){
-                    contentHTML += `${originalFeatures[i].get('cctvname')} : <a href="#" onclick="stremVideo('${originalFeatures[i].get('cctvurl')}')">CCTV 보기</a><br>`;
-                    if(i == 4){
+                    var cctvPoint = originalFeatures[i].getGeometry().clone(); // clone 메서드를 사용해 원본 데이터를 변경하지 않습니다.
+                    cctvPointSource.addFeature(new ol.Feature(cctvPoint));
+                    var line = new ol.geom.LineString([evt.coordinate, cctvPoint.getCoordinates()]);
+                    cctvLineSource.addFeature(new ol.Feature(line));
+
+                    contentHTML += `<span class="cctv-name" data-coordinate-attribute="${originalFeatures[i].getGeometry().getCoordinates()}">${originalFeatures[i].get('cctvname')}</span> : <a href="#" onclick="stremVideo('${originalFeatures[i].get('cctvurl')}', '${originalFeatures[i].get('cctvname')}')">CCTV 보기</a><br>`;
+                    if(i == 4 && originalFeatures.length > 5){
                         contentHTML += `외 ${originalFeatures.length - i - 1} 곳`
                         break;
                     }
                 }
+
+                for(var i = 0; i < originalFeatures.length; i++){
+                    var cctvPoint = originalFeatures[i].getGeometry().clone(); // clone 메서드를 사용해 원본 데이터를 변경하지 않습니다.
+                    cctvPointSource.addFeature(new ol.Feature(cctvPoint));
+                    var line = new ol.geom.LineString([evt.coordinate, cctvPoint.getCoordinates()]);
+                    cctvLineSource.addFeature(new ol.Feature(line));
+                }
             } else {
                 contentHTML += `CCTV 이름 : ${originalFeatures[0].get('cctvname')}<br>
-                    영상 : <a href="#" onclick="stremVideo('${originalFeatures[0].get('cctvurl')}')">CCTV 보기</a>`;
+                    영상 : <a href="#" onclick="stremVideo('${originalFeatures[0].get('cctvurl')}, '${originalFeatures[i].get('cctvname')}')">CCTV 보기</a>`;
             }
 
             contentHTML += `</code></div>`;
@@ -496,6 +541,8 @@ map.on("click", function (evt) {
             var deleteButton = overlayElement.querySelector(".ol-popup-closer");
             deleteButton.addEventListener("click", function () {
                 map.removeOverlay(clickCurrentOverlay);
+                cctvPointSource.clear();
+                cctvLineSource.clear();
             });
         }
     });
@@ -563,7 +610,7 @@ map.on("click", function (evt) {
             overlayElement.className = "ol-popup";
             overlayElement.innerHTML += `<a href="#" id="popup-closer" class="ol-popup-closer"></a>`
             overlayElement.innerHTML += `<div id="popup-content">
-                                            <div class="ol-popup-title">정보</div>
+                                            <div class="ol-popup-title">연속 지적도 정보</div>
                                                 <code class="code">${evt.coordinate}<br>주소<br>
                                                     <div class="leftBottom__etcBtn">
                                                         <ul>
@@ -2645,13 +2692,14 @@ var cctvLayer;
 // Handle checkbox change event
 document.getElementById('cctv-checkbox').addEventListener('change', function(e) {
     if (e.target.checked) {
-        addCctvLayer()
+        e.target.disabled = true;
+        addCctvLayer(e)
     }else{
         removeCctvLayer()
     }
 });
 
-function addCctvLayer(){
+function addCctvLayer(e){
     var view = map.getView();
 
     // Get the size of the current map container
@@ -2696,6 +2744,7 @@ function addCctvLayer(){
             // dataType: "jsonp",
             // async : false,
             success: function(data) {
+                e.target.disabled = false;
                 console.log(data.response.datacount)
                 if(data.response.datacount <= 0){
                     return;
@@ -2753,7 +2802,7 @@ function addCctvLayer(){
                 };
                 
                 var clusterSource = new ol.source.Cluster({
-                    distance: 40,
+                    distance: 100,
                     source: cctvSource,
                 });
 
@@ -2768,6 +2817,7 @@ function addCctvLayer(){
             },
             error: function(xhr, stat, err) {
                 console.log('Error fetching CCTV data:', err);
+                e.target.disabled = false;
             }
         });
 }
@@ -2779,7 +2829,21 @@ function removeCctvLayer(){
     }
 }
 
-function stremVideo(videoSrc){
+function stremVideo(videoSrc, videoName){
+    var modal = document.getElementById('videoModal');
+
+    var modalTitle = document.getElementById('videoModalLabel');
+    modalTitle.innerText = `${videoName} CCTV 영상`
+
+    // 비디오 플레이어 요소 선택
+    var videoPlayer = document.getElementById('video');
+
+    // 비디오 소스 업데이트
+    videoPlayer.src = videoSrc;
+
+    // 모달 열기
+    $(modal).modal('show');
+
     var player = videojs('video');
     
     // Update the source
@@ -2790,4 +2854,15 @@ function stremVideo(videoSrc){
 
     // Play the video
     player.play();
+
+    $(modal).on('hidden.bs.modal', function () {
+        player.pause();
+    });
 }
+
+$(document).on('mouseenter', 'span.cctv-name', function() {
+    var customAttribute = $(this).data('coordinate-attribute');
+    console.log('마우스가 올라갔습니다!');
+    console.log('Custom 속성 값:', customAttribute);
+    // 원하는 동작을 수행하세요
+  });
