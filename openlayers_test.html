@@ -397,6 +397,91 @@
 			top: 10px; 
 			left: 250px;
 		}
+
+		.ol-popup{
+			position: absolute;
+			background-color: rgba(255, 255, 255, 0.7);
+			filter: drop-shadow(0 1px 4px rgba(0,0,0,0.2));
+			padding: 0px 2px 5px 2px;
+			border-radius: 5px;
+			border: 1px solid #cccccc;
+			bottom: 12px;
+			left: -50px;
+			min-width: 150px;
+			min-height: 60px;
+			color: #474747;
+			font-size: 13px;
+			font-weight: bold;
+			font-family: sans-serif;
+		}
+		.ol-popup:before {
+			border-top-color: #cccccc;
+			border-width: 11px;
+			left: 48px;
+			margin-left: -11px;
+		}
+
+		.ol-popup:after, .ol-popup:before {
+			top: 100%;
+			border: solid transparent;
+			content: " ";
+			height: 0;
+			width: 0;
+			position: absolute;
+			pointer-events: none;
+		}
+
+		.ol-popup-closer{
+			position: absolute;
+			top: 2px;
+			right: 2px;
+		}
+		.ol-popup-closer:after {
+			content: url(./resources/img/Btn_Close.png);
+		}
+		.ol-popup-title {
+			color: #000000;
+			font-size: 15px;
+			height: 23px;
+			text-align: center;
+			padding: 0px;
+			padding-right: 20px;
+			margin: 1px;
+			border: 1px solid #BBB;
+			background: rgba(0,60,136,0.2);
+		}
+
+		.leftBottom__etcBtn {
+			padding: 0px 15px 0px 0px;
+			margin: 0;
+			white-space: nowrap;
+			position: absolute;
+		}
+
+		.leftBottom__etcBtn > ul > li {
+			float: left;
+			position: relative;
+			padding: 0px;
+		}
+
+		.leftBottom__etcBtn > ul > li a, .leftBottom__etcBtn > ul > li p {
+			font-size: 14px;
+			color: #337ab7;
+			letter-spacing: -.5px;
+			cursor: pointer;
+		}
+		.code{
+			font-size: 1em;
+			color : black;
+		}
+		.code.break-line{
+			display: inline-block;
+    		white-space: nowrap;
+		}
+		ul, ol {
+			list-style: none;
+			padding-left: 0px;
+		}
 	</style>
 
 	<!-- jquery 라이브러리, 2.x 이후의 버전이 필요 -->
@@ -439,6 +524,12 @@
 	<link href="./lib/bootstrap.min.css" rel="stylesheet">
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
 
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/video.js/7.20.1/video-js.min.css"
+    integrity="sha512-D/n19dhr+LY8HOoGuybX+bJYsZOFKb0r7YpAWBMPg5Hnke6lxdHl6q21d7qiwIsMgdSnBG9pSMQlwTtZ+6ISmw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/7.20.1/video.min.js"
+    integrity="sha512-xT61DWoPRoAa4ir+LqER5L4/zzuO5tQOQywZYqU8BaZVqolq78bRobozDxozcCZ6tmo92zetGVQHRp+sQHIi/g=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 	<!-- <script src="https://map.vworld.kr/js/apis.do?type=Base&apiKey=A5C5E9FF-F9FC-3012-9D01-41A62F369AA7&domain=http://127.0.0.1:3000/openlayers_test.html"></script> -->
 	
 </head>
@@ -562,6 +653,8 @@
 	<input type="text" id="sample4_roadAddress" placeholder="도로명주소" disabled>
 	<input type="text" id="sample4_jibunAddress" placeholder="지번주소" disabled>
 	<br>
+	<video id="video" class="video-js vjs-default-skin" preload="none" crossorigin="true" controls width="640" height="268" controls>
+	</video>
 	<!-- <form id="options-form" autocomplete="off">
 		<div class="radio">
 			<label>Mode  &nbsp;</label> 
