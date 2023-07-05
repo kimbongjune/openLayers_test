@@ -118,6 +118,111 @@ map.addLayer(routeVectorLayer);
 const info = document.getElementById("info");
 const addressInfo = document.getElementById("address");
 
+// a DragBox interaction used to select features by drawing boxes
+const dragBox = new ol.interaction.DragBox({
+  condition: ol.events.condition.platformModifierKeyOnly,
+});
+
+map.addInteraction(dragBox);
+
+dragBox.on('boxend', function (evt) {
+    const boxExtent = dragBox.getGeometry().getExtent();
+    console.log("박스 그리기 끝", boxExtent)
+    // var url = 'https://api.vworld.kr/req/data?';
+    // url += 'service=data';
+    // url += '&request=GetFeature';
+    // url += '&data=LP_PA_CBND_BUBUN';
+    // url += `&key=${VWORLD_API_KEY}`; // Replace with your actual API key
+    // url += '&format=json';
+    // url += "&crs=EPSG:3857";
+    // url += "&size=1000";
+    // url += `&geomFilter=BOX(${boxExtent[0]},${boxExtent[1]},${boxExtent[2]},${boxExtent[3]})`;
+    // url +=  "&domain=http://127.0.0.1:3000/openlayers_test.html"
+
+
+    // $.ajax({
+    //     url: url,
+    //     type: 'GET',
+    //     dataType: "jsonp",
+    //     async : false,
+    //     jsonpCallback: 'callback',
+    //     success: function(data) {
+    //         console.log(data)
+    //         if(data.response.status != "OK"){
+    //             return;
+    //         }
+    //         var geoInfoObject = data.response.result.featureCollection.features[0];
+    //         var geojsonObject = geoInfoObject.geometry;
+             
+    //         var vectorSource = new ol.source.Vector({
+    //             features: (new ol.format.GeoJSON()).readFeatures(geojsonObject)
+    //         });
+    //         vectorSource.set("ctp_kor_nm",data.response.result.featureCollection.features[0].properties.ctp_kor_nm); 
+    //         vectorSource.set("ctp_eng_nm",data.response.result.featureCollection.features[0].properties.ctp_eng_nm); 
+    //         //layer.getSource().getKeys()로 확인
+
+    //         var vectorStyle = new ol.style.Style({
+    //             fill: new ol.style.Fill({
+    //                 color: 'rgba(135,206,250, 0.5)', // Skyblue color fill with opacity
+    //             }),
+    //             stroke: new ol.style.Stroke({
+    //                 color: 'orange', // Orange stroke color
+    //                 width: 2
+    //             }),
+    //         });
+             
+    //         var vector_layer = new ol.layer.Vector({
+    //           source: vectorSource,
+    //           style: vectorStyle
+    //         })
+    //         vector_layer.set("ctp_kor_nm_layer",data.response.result.featureCollection.features[0].properties.ctp_kor_nm+"_layer");
+    //         //layer.getKeys() 로 확인
+             
+    //         map.addLayer(vector_layer);
+    //         clickCurrentLayer = vector_layer
+
+    //         var overlayElement = document.createElement('div');
+    //         overlayElement.className = "ol-popup";
+    //         overlayElement.innerHTML += `<a href="#" id="popup-closer" class="ol-popup-closer"></a>`
+    //         overlayElement.innerHTML += `<div id="popup-content">
+    //                                         <div class="ol-popup-title">정보</div>
+    //                                             <code class="code">${evt.coordinate}<br>주소<br>
+    //                                                 <div class="leftBottom__etcBtn">
+    //                                                     <ul>
+    //                                                         <li class="select customSelect">
+    //                                                             <p>${geoInfoObject.properties.addr}</p>
+    //                                                         </li>
+    //                                                     </ul>
+    //                                                 </div>
+    //                                             </code>
+    //                                             <br>
+    //                                             <div>공시지가 : ${geoInfoObject.properties.jiga != "" ? geoInfoObject.properties.jiga.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : "--"}&#8361;, 지목 : ${geoInfoObject.properties.jibun.slice(-1)}</div>
+    //                                         </div>`
+    //         var overlay = new ol.Overlay({
+    //             element: overlayElement,
+    //             position: evt.coordinate
+    //         });
+    //         // Add the overlay to the map
+    //         map.addOverlay(overlay);
+    //         clickCurrentOverlay = overlay;
+
+    //         var deleteButton = overlayElement.querySelector(".ol-popup-closer");
+    //         deleteButton.addEventListener("click", function () {
+    //             map.removeLayer(vector_layer);
+    //             map.removeOverlay(clickCurrentOverlay);
+    //         });
+    //     },
+    //     beforesend: function(){
+             
+    //     },
+    //     error: function(xhr, stat, err) {}
+    //   });
+})
+
+dragBox.on('boxstart', function () {
+    console.log("박스 그리기 시작")
+});
+
 var customCondition = function(mapBrowserEvent) {
     if($(areaCheckbox).is(":checked") || $(measureCheckbox).is(":checked") || $(areaCircleCheckbox).is(":checked")){
         return false
@@ -328,6 +433,8 @@ map.on('loadend', function () {
 var clickCurrentLayer;
 var clickCurrentOverlay
 map.on("click", function (evt) {
+    let cctvFound = false;
+
     if (!ol.events.condition.shiftKeyOnly(evt)) {
         extentInteraction.setExtent(undefined);
         map.removeOverlay(extentInteractionTooltip)
@@ -340,6 +447,65 @@ map.on("click", function (evt) {
     if (clickCurrentOverlay) {
         map.removeOverlay(clickCurrentOverlay);
     }
+
+    map.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
+        // 'cctvFeature'를 CCTV 피처를 구별하는 데 사용하는 속성이라고 가정합니다.
+        if (feature.get('features')) {
+            // It's a cluster, so check the original features within.
+            var originalFeatures = feature.get('features');
+            for (var i = 0; i < originalFeatures.length; i++) {
+                if (originalFeatures[i].get('cctvFeature')) {
+                    cctvFound == false ? cctvFound = true : cctvFound = true
+                    console.log(originalFeatures[i]);
+                }
+            }
+
+            var overlayElement = document.createElement('div');
+            overlayElement.className = "ol-popup";
+
+            let contentHTML = `<a href="#" id="popup-closer" class="ol-popup-closer"></a>
+                <div id="popup-content">
+                    <div class="ol-popup-title">정보</div>
+                    <code class="code break-line">`;
+
+            if(originalFeatures.length > 1){
+                contentHTML += `선택 개수 : ${originalFeatures.length}<br>`;
+                for(var i = 0; i < originalFeatures.length; i++){
+                    contentHTML += `${originalFeatures[i].get('cctvname')} : <a href="#" onclick="stremVideo('${originalFeatures[i].get('cctvurl')}')">CCTV 보기</a><br>`;
+                    if(i == 4){
+                        contentHTML += `외 ${originalFeatures.length - i - 1} 곳`
+                        break;
+                    }
+                }
+            } else {
+                contentHTML += `CCTV 이름 : ${originalFeatures[0].get('cctvname')}<br>
+                    영상 : <a href="#" onclick="stremVideo('${originalFeatures[0].get('cctvurl')}')">CCTV 보기</a>`;
+            }
+
+            contentHTML += `</code></div>`;
+
+            overlayElement.innerHTML = contentHTML;
+            var overlay = new ol.Overlay({
+                element: overlayElement,
+                position: evt.coordinate
+            });
+            // Add the overlay to the map
+            map.addOverlay(overlay);
+            clickCurrentOverlay = overlay;
+
+            var deleteButton = overlayElement.querySelector(".ol-popup-closer");
+            deleteButton.addEventListener("click", function () {
+                map.removeOverlay(clickCurrentOverlay);
+            });
+        }
+    });
+
+    if (cctvFound) {
+        evt.stopPropagation();
+        return;
+    }
+
+    console.log("?????")
 
     var url = 'https://api.vworld.kr/req/data?';
     url += 'service=data';
@@ -363,7 +529,8 @@ map.on("click", function (evt) {
             if(data.response.status != "OK"){
                 return;
             }
-            var geojsonObject = data.response.result.featureCollection.features[0].geometry;
+            var geoInfoObject = data.response.result.featureCollection.features[0];
+            var geojsonObject = geoInfoObject.geometry;
              
             var vectorSource = new ol.source.Vector({
                 features: (new ol.format.GeoJSON()).readFeatures(geojsonObject)
@@ -393,9 +560,22 @@ map.on("click", function (evt) {
             clickCurrentLayer = vector_layer
 
             var overlayElement = document.createElement('div');
-            overlayElement.innerHTML = '<div style="background: white; border: 1px solid black; padding: 5px;">' +
-                                        '<p>Clicked at: ' + evt.coordinate + '</p>' +
-                                        '</div>';
+            overlayElement.className = "ol-popup";
+            overlayElement.innerHTML += `<a href="#" id="popup-closer" class="ol-popup-closer"></a>`
+            overlayElement.innerHTML += `<div id="popup-content">
+                                            <div class="ol-popup-title">정보</div>
+                                                <code class="code">${evt.coordinate}<br>주소<br>
+                                                    <div class="leftBottom__etcBtn">
+                                                        <ul>
+                                                            <li class="select customSelect">
+                                                                <p>${geoInfoObject.properties.addr}</p>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </code>
+                                                <br>
+                                                <div>공시지가 : ${geoInfoObject.properties.jiga != "" ? geoInfoObject.properties.jiga.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : "--"}&#8361;, 지목 : ${geoInfoObject.properties.jibun.slice(-1)}</div>
+                                            </div>`
             var overlay = new ol.Overlay({
                 element: overlayElement,
                 position: evt.coordinate
@@ -403,6 +583,12 @@ map.on("click", function (evt) {
             // Add the overlay to the map
             map.addOverlay(overlay);
             clickCurrentOverlay = overlay;
+
+            var deleteButton = overlayElement.querySelector(".ol-popup-closer");
+            deleteButton.addEventListener("click", function () {
+                map.removeLayer(vector_layer);
+                map.removeOverlay(clickCurrentOverlay);
+            });
         },
         beforesend: function(){
              
@@ -2271,6 +2457,7 @@ $(document).ready(function(){
         //console.log(key + " : " + value + "<br />");
         container.append(text)
     }
+
 });
 
 $('#bookmark-container').on('click', '.olControlBookmarkLink', function() {
@@ -2457,6 +2644,14 @@ var cctvLayer;
 
 // Handle checkbox change event
 document.getElementById('cctv-checkbox').addEventListener('change', function(e) {
+    if (e.target.checked) {
+        addCctvLayer()
+    }else{
+        removeCctvLayer()
+    }
+});
+
+function addCctvLayer(){
     var view = map.getView();
 
     // Get the size of the current map container
@@ -2464,57 +2659,110 @@ document.getElementById('cctv-checkbox').addEventListener('change', function(e) 
 
     // Calculate the extent of the current view
     var extent = view.calculateExtent(size);
+    
 
+    const extent4326 = ol.proj.transformExtent(extent, 'EPSG:3857', 'EPSG:4326')
+    console.log(extent4326)
+
+    //https://openapi.its.go.kr:9443/cctvInfo?type=all&cctvType=1&minX=119.3219444&maxX=132.4414210&minY=32.8071488&maxY=39.4632423&getType=json&apiKey=12a08608b49a43f0a4f4a6fb1d838d8b
     console.log(extent);
-    if (e.target.checked) {
-        var url = 'https://api.vworld.kr/req/data?'; // Replace with actual CCTV API URL
-        url += 'service=data';
-        url += '&version=2.0';
-        url += '&request=GetFeature';
-        url += `&key=${VWORLD_API_KEY}`; // Replace with your actual API key
-        url += '&format=json';
-        url += '&size=1000'; // Modify this as needed
-        url += '&page=2';
-        url += '&data=LT_P_UTISCCTV';
-        url += "&crs=EPSG:3857";
-        url += `&geomFilter=BOX(${extent[0]},${extent[1]},${extent[2]},${extent[3]})`;
-        url +=  "&domain=http://127.0.0.1:3000/openlayers_test.html"
+        // var url = 'https://api.vworld.kr/req/data?'; // Replace with actual CCTV API URL
+        // url += 'service=data';
+        // url += '&version=2.0';
+        // url += '&request=GetFeature';
+        // url += `&key=${VWORLD_API_KEY}`; // Replace with your actual API key
+        // url += '&format=json';
+        // url += '&size=1000'; // Modify this as needed
+        // url += '&page=1';
+        // url += '&data=LT_P_UTISCCTV';
+        // url += "&crs=EPSG:3857";
+        // url += `&geomFilter=BOX(${extent[0]},${extent[1]},${extent[2]},${extent[3]})`;
+        // url +=  "&domain=http://127.0.0.1:3000/openlayers_test.html"
+        var url = `https://openapi.its.go.kr:9443/cctvInfo?`;
+        url += `type=all`;
+        url += `&cctvType=1`;
+        url += `&minX=${extent4326[0]}`;
+        url += `&maxX=${extent4326[2]}`;
+        url += `&minY=${extent4326[1]}`;
+        url += `&maxY=${extent4326[3]}`;
+        url += `&getType=json`;
+        url += `&apiKey=12a08608b49a43f0a4f4a6fb1d838d8b`
         console.log(url)
         // Add geomFilter if you want to limit CCTV data to a certain area
 
         $.ajax({
             url: url,
             type: 'GET',
-            dataType: "jsonp",
-            async : false,
+            // dataType: "jsonp",
+            // async : false,
             success: function(data) {
-                console.log(data)
+                console.log(data.response.datacount)
+                if(data.response.datacount <= 0){
+                    return;
+                }
                 var cctvSource = new ol.source.Vector({});
 
-                for (var i = 0; i < data.response.result.featureCollection.features.length; i++) {
-                    var feature = data.response.result.featureCollection.features[i];
+                for (var i = 0; i < data.response.data.length; i++) {
+                    var feature = data.response.data[i];
 
                     console.log(feature)
                     var cctvFeature = new ol.Feature({
-                        geometry: new ol.geom.Point(feature.geometry.coordinates),
-                        attributes: feature.attributes
+                        geometry: new ol.geom.Point(ol.proj.transform([feature.coordx, feature.coordy], 'EPSG:4326', 'EPSG:3857')),
+                        cctvname : feature.cctvname,
+                        cctvformat : feature.cctvformat,
+                        cctvurl : feature.cctvurl,
+                        cctvFeature : true
                     });
 
                     cctvSource.addFeature(cctvFeature);
                 }
 
-                cctvLayer = new ol.layer.Vector({
+                var styleCache = {};
+
+                var styleFunction = function (feature) {
+                    var size = feature.get('features').length;
+                    var style = styleCache[size];
+                    if (!style) {
+                        var color = 'green';
+                        if (size > 50) {
+                            color = 'red';
+                        } else if (size > 30) {
+                            color = 'orange';
+                        }
+                
+                        style = new ol.style.Style({
+                            image: new ol.style.Circle({
+                                radius: 10,
+                                stroke: new ol.style.Stroke({
+                                    color: '#fff',
+                                }),
+                                fill: new ol.style.Fill({
+                                    color: color,
+                                }),
+                            }),
+                            text: new ol.style.Text({
+                                text: size.toString(),
+                                fill: new ol.style.Fill({
+                                    color: '#fff',
+                                }),
+                            }),
+                        });
+                        styleCache[size] = style;
+                    }
+                    return style;
+                };
+                
+                var clusterSource = new ol.source.Cluster({
+                    distance: 40,
                     source: cctvSource,
-                    style: new ol.style.Style({
-                        image: new ol.style.Circle({
-                            radius: 7,
-                            fill: new ol.style.Fill({color: 'yellow'}),
-                            stroke: new ol.style.Stroke({
-                              color: 'red', width: 1
-                            })
-                        })
-                    })
                 });
+
+                cctvLayer = new ol.layer.Vector({
+                    source: clusterSource,
+                    style: styleFunction,
+                });
+
+                console.log(cctvSource)
 
                 map.addLayer(cctvLayer);
             },
@@ -2522,11 +2770,24 @@ document.getElementById('cctv-checkbox').addEventListener('change', function(e) 
                 console.log('Error fetching CCTV data:', err);
             }
         });
-    } else {
-        // Checkbox is not checked, remove CCTV layer from map
-        if (cctvLayer) {
-            map.removeLayer(cctvLayer);
-            cctvLayer = null;
-        }
+}
+
+function removeCctvLayer(){
+    if (cctvLayer) {
+        map.removeLayer(cctvLayer);
+        cctvLayer = null;
     }
-});
+}
+
+function stremVideo(videoSrc){
+    var player = videojs('video');
+    
+    // Update the source
+    player.src({
+        src: videoSrc,
+        type: 'application/x-mpegURL'
+    });
+
+    // Play the video
+    player.play();
+}
