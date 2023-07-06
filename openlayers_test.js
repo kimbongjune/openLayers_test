@@ -2885,3 +2885,84 @@ $(document).on('mouseenter', 'span.cctv-name', function() {
     console.log('Custom 속성 값:', customAttribute);
     // 원하는 동작을 수행하세요
   });
+
+document.getElementById('radar-checkbox').addEventListener('change', function() {
+    if (this.checked) {
+        var size = map.getSize();
+        var extent = map.getView().calculateExtent(size);
+        var transformedExtent  = ol.proj.transformExtent(extent, 'EPSG:3857', 'EPSG:4326');
+        // Ajax 요청을 이용해 레이더 이미지 URL을 가져옵니다.
+        var currentDate = new Date();
+        var minutes = currentDate.getMinutes();
+        // 분을 5분 단위로 반올림
+        minutes = Math.floor(minutes / 5) * 5;
+
+        var time = currentDate.getFullYear().toString() +
+            ("0" + (currentDate.getMonth() + 1)).slice(-2) +
+            ("0" + currentDate.getDate()).slice(-2) +
+            ("0" + currentDate.getHours()).slice(-2) +
+            ("0" + minutes).slice(-2);
+        console.log(time)
+        console.log(transformedExtent)
+        var url = 'http://www.wamis.go.kr:8080/wamis/openapi/radar/radar_rainfall'
+        var params = {
+            width: document.getElementById('map').offsetWidth,
+            height: document.getElementById('map').offsetHeight,
+            minx : transformedExtent[0],
+            miny : transformedExtent[1],
+            maxx : transformedExtent[2],
+            maxy : transformedExtent[3],
+            time : "202307062100"
+        };
+        var queryString = $.param(params);
+        var radarLayer = new ol.layer.Image({
+            source: new ol.source.ImageStatic({
+                url: url + '?' + queryString,
+                imageExtent: extent
+            }),
+            zIndex: 9999
+        });
+        console.log('URL of the request: ' + url + '?' + queryString)
+        console.log(radarLayer)
+        map.addLayer(radarLayer);
+        // $.ajax({
+        //     url: url,
+        //     type: "GET",
+        //     data: params,
+        //     success: function(data) {
+        //         //console.log(data)
+        //         var queryString = $.param(params);
+        //         console.log('URL of the request: ' + url + '?' + queryString);
+        //         var imageUrl = data;
+        //         console.log(imageUrl)
+        //         var radarLayer = new ol.layer.Image({
+        //             source: new ol.source.ImageStatic({
+        //                 url: url + '?' + queryString,
+        //                 imageExtent: transformedExtent
+        //             }),
+        //             zIndex: 9999
+        //         });
+        //         console.log(radarLayer)
+        //         map.addLayer(radarLayer);
+        //     }
+        // });
+    } else {
+        // 체크박스가 체크 해제된 경우, 레이더 레이어를 비웁니다.
+        //radarLayer.setSource(null);
+    }
+});
+
+
+function decodeCAPPIData(cappiCompressData) {
+    // BASE64 디코딩
+    var decodedData = atob(cappiCompressData);
+  
+    // 압축 해제
+    var compressedData = Uint8Array.from(decodedData, c => c.charCodeAt(0));
+    var decompressedData = pako.inflate(compressedData, { to: 'string' });
+  
+    // CSV 데이터로 변환
+    var csvData = decompressedData.split('\n').map(row => row.split(','));
+  
+    return csvData;
+}
