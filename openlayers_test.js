@@ -429,49 +429,152 @@ map.on('loadend', function () {
 // });
 // map.getInteractions().extend([selectInteraction]);
 
-var cctvPointSource = new ol.source.Vector();
-var cctvPointLayer = new ol.layer.Vector({
-    source: cctvPointSource,
-    style: new ol.style.Style({
-        image: new ol.style.Circle({
-            radius: 4,
-            fill: new ol.style.Fill({
-                color: "rgba(0, 0, 255, 0.1)",
+var styleCache = {};
+
+function getStyle (feature, resolution) {    
+    var size = feature.get('features').length;
+    var style = styleCache[size];
+    if (!style)
+    {    
+        var color = size>25 ? '192,0,0' : size>8 ? '255,128,0' : '0,128,0';
+        var radius = Math.max(8, Math.min(size*0.75, 20));
+        var dash = 2*Math.PI*radius/6;
+        var dash = [ 0, dash, dash, dash, dash, dash, dash ];
+        style = styleCache[size] = new ol.style.Style({    
+            image: new ol.style.Circle({    
+                radius: radius,
+                stroke: new ol.style.Stroke({
+                    color: 'rgba('+color+',0.5)', 
+                    width: 15,
+                    lineDash: dash,
+                    lineCap: 'butt'
+                }),
+                fill: new ol.style.Fill({
+                    color:'rgba('+color+',1)'
+                })
             }),
-            stroke: new ol.style.Stroke({
-                color: "blue",
-                width: 2,
-            }),
-        }),
+            text: new ol.style.Text({
+                text: size.toString(),
+                fill: new ol.style.Fill({
+                    color: '#fff'
+                }),
+                font: '10px Arial',
+            })
+        });
+    }
+    return [style];
+}
+
+var img = new ol.style.Circle({    
+    radius: 5,
+    stroke: new ol.style.Stroke({
+        color: 'rgba(0,255,255,1)', 
+        width: 1 
+    }),
+    fill: new ol.style.Fill({
+        color: 'rgba(0,255,255,0.3)'
     })
 });
-map.addLayer(cctvPointLayer);
-
-var cctvLineSource = new ol.source.Vector();
-var cctvLineLayer = new ol.layer.Vector({
-    source: cctvLineSource,
-    style: new ol.style.Style({
-        stroke: new ol.style.Stroke({
-            color: 'blue',
-            width: 2
-        })
-    })
+// 자식 포인트와 부모 피쳐 사이에 그릴 선에 대한 스타일
+var linkStyle = new ol.style.Style({
+    image: img,
+    stroke: new ol.style.Stroke({
+        color: '#fff', 
+        width: 1 
+    }) 
 });
-map.addLayer(cctvLineLayer);
 
-//지도 클릭 이벤트
+var selectCluster = new ol.interaction.SelectCluster({    
+    // 부모를 클릭하여 자식이 표시될때 부모와 자식간의 거리(px 단위)
+    pointRadius:7,
+    animate: true,
+    // 부모와 자식 사이에 그려질 선에 대한 스타일
+    featureStyle: function() {
+        return [ linkStyle ];
+    },
+    // 부모가 선택된 상태에서 다시 부모와 자식이 선택될때 선택된 요소의 스타일
+    style: function(f, res) {
+        var cluster = f.get('features');
+        if(!cluster){
+            return;
+        }
+        if (cluster.length>1) {     // 부모 스타일
+            return getStyle(f,res);
+        } else { // 자식 스타일
+            return [
+                new ol.style.Style({    
+                    image: new ol.style.Circle({    
+                        stroke: new ol.style.Stroke({ color: 'rgba(0,0,192,0.5)', width:2 }),
+                        fill: new ol.style.Fill({ color: 'rgba(0,0,192,0.3)' }),
+                        radius: 5
+                    })
+                })
+            ];
+        }
+    }
+});
 var clickCurrentLayer;
 var clickCurrentOverlay
+
+selectCluster.on('select', function(e) {
+    console.log("?")
+});
+
+selectCluster.getFeatures().on(['add'], function (e)
+{
+    var originalFeatures = e.element.get('features');
+    if(!originalFeatures){
+        e.stopPropagation()
+        return;
+    }
+    console.log("@", originalFeatures)
+    var overlayElement = document.createElement('div');
+    overlayElement.className = "ol-popup";
+
+    let contentHTML = `<a href="#" id="popup-closer" class="ol-popup-closer"></a>
+        <div id="popup-content">
+            <div class="ol-popup-title">CCTV 정보</div>
+            <code class="code break-line">`;
+
+    if(originalFeatures.length > 1){
+        contentHTML += `선택 개수 : ${originalFeatures.length}<br>`;
+        for(var i = 0; i < originalFeatures.length; i++){
+            contentHTML += `<span class="cctv-name" data-coordinate-attribute="${originalFeatures[i].getGeometry().getCoordinates()}">${originalFeatures[i].get('cctvname')}</span> : <a href="#" onclick="stremVideo('${originalFeatures[i].get('cctvurl').toString()}', '${originalFeatures[i].get('cctvname').toString()}');">CCTV 보기</a><br>`;
+            if(i == 4 && originalFeatures.length > 5){
+                contentHTML += `외 ${originalFeatures.length - i - 1} 곳`
+                break;
+            }
+        }
+    } else {
+        contentHTML += `CCTV 이름 : ${originalFeatures[0].get('cctvname')}<br>
+            영상 : <a href="#" onclick="stremVideo('${originalFeatures[0].get('cctvurl').toString()}', '${originalFeatures[0].get('cctvname').toString()}');">CCTV 보기</a>`;
+    }
+    contentHTML += `</code></div>`;
+
+    overlayElement.innerHTML = contentHTML;
+    var overlay = new ol.Overlay({
+        element: overlayElement,
+        position: e.element.getGeometry().getCoordinates()
+    });
+    // Add the overlay to the map
+    map.addOverlay(overlay);
+    clickCurrentOverlay = overlay;
+
+    var deleteButton = overlayElement.querySelector(".ol-popup-closer");
+    deleteButton.addEventListener("click", function () {
+        if(selectCluster){
+            selectCluster.clear()
+        }
+        map.removeOverlay(clickCurrentOverlay);
+    });
+});
+
+map.addInteraction(selectCluster);
+
+
+//지도 클릭 이벤트
 map.on("click", function (evt) {
     let cctvFound = false;
-
-    cctvPointSource.clear();
-    cctvLineSource.clear();
-
-    if (!ol.events.condition.shiftKeyOnly(evt)) {
-        extentInteraction.setExtent(undefined);
-        map.removeOverlay(extentInteractionTooltip)
-    }
 
     if (clickCurrentLayer) {
         map.removeLayer(clickCurrentLayer);
@@ -479,6 +582,11 @@ map.on("click", function (evt) {
 
     if (clickCurrentOverlay) {
         map.removeOverlay(clickCurrentOverlay);
+    }
+
+    if (!ol.events.condition.shiftKeyOnly(evt)) {
+        extentInteraction.setExtent(undefined);
+        map.removeOverlay(extentInteractionTooltip)
     }
 
     map.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
@@ -492,58 +600,6 @@ map.on("click", function (evt) {
                     console.log(originalFeatures[i]);
                 }
             }
-
-            var overlayElement = document.createElement('div');
-            overlayElement.className = "ol-popup";
-
-            let contentHTML = `<a href="#" id="popup-closer" class="ol-popup-closer"></a>
-                <div id="popup-content">
-                    <div class="ol-popup-title">CCTV 정보</div>
-                    <code class="code break-line">`;
-
-            if(originalFeatures.length > 1){
-                contentHTML += `선택 개수 : ${originalFeatures.length}<br>`;
-                for(var i = 0; i < originalFeatures.length; i++){
-                    var cctvPoint = originalFeatures[i].getGeometry().clone(); // clone 메서드를 사용해 원본 데이터를 변경하지 않습니다.
-                    cctvPointSource.addFeature(new ol.Feature(cctvPoint));
-                    var line = new ol.geom.LineString([evt.coordinate, cctvPoint.getCoordinates()]);
-                    cctvLineSource.addFeature(new ol.Feature(line));
-
-                    contentHTML += `<span class="cctv-name" data-coordinate-attribute="${originalFeatures[i].getGeometry().getCoordinates()}">${originalFeatures[i].get('cctvname')}</span> : <a href="#" onclick="stremVideo('${originalFeatures[i].get('cctvurl')}', '${originalFeatures[i].get('cctvname')}')">CCTV 보기</a><br>`;
-                    if(i == 4 && originalFeatures.length > 5){
-                        contentHTML += `외 ${originalFeatures.length - i - 1} 곳`
-                        break;
-                    }
-                }
-
-                for(var i = 0; i < originalFeatures.length; i++){
-                    var cctvPoint = originalFeatures[i].getGeometry().clone(); // clone 메서드를 사용해 원본 데이터를 변경하지 않습니다.
-                    cctvPointSource.addFeature(new ol.Feature(cctvPoint));
-                    var line = new ol.geom.LineString([evt.coordinate, cctvPoint.getCoordinates()]);
-                    cctvLineSource.addFeature(new ol.Feature(line));
-                }
-            } else {
-                contentHTML += `CCTV 이름 : ${originalFeatures[0].get('cctvname')}<br>
-                    영상 : <a href="#" onclick="stremVideo('${originalFeatures[0].get('cctvurl')}, '${originalFeatures[i].get('cctvname')}')">CCTV 보기</a>`;
-            }
-
-            contentHTML += `</code></div>`;
-
-            overlayElement.innerHTML = contentHTML;
-            var overlay = new ol.Overlay({
-                element: overlayElement,
-                position: evt.coordinate
-            });
-            // Add the overlay to the map
-            map.addOverlay(overlay);
-            clickCurrentOverlay = overlay;
-
-            var deleteButton = overlayElement.querySelector(".ol-popup-closer");
-            deleteButton.addEventListener("click", function () {
-                map.removeOverlay(clickCurrentOverlay);
-                cctvPointSource.clear();
-                cctvLineSource.clear();
-            });
         }
     });
 
@@ -551,8 +607,6 @@ map.on("click", function (evt) {
         evt.stopPropagation();
         return;
     }
-
-    console.log("?????")
 
     var url = 'https://api.vworld.kr/req/data?';
     url += 'service=data';
@@ -2687,7 +2741,7 @@ document.querySelector('.form-select-sm').addEventListener('change', function(e)
     // 여기에서 원하는 작업을 수행하세요
 });
 
-var cctvLayer;
+var clusterLayer
 
 // Handle checkbox change event
 document.getElementById('cctv-checkbox').addEventListener('change', function(e) {
@@ -2708,11 +2762,11 @@ function addCctvLayer(e){
     // Calculate the extent of the current view
     var extent = view.calculateExtent(size);
     
-
-    const extent4326 = ol.proj.transformExtent(extent, 'EPSG:3857', 'EPSG:4326')
+    //대한민국 전역을 Extent로 잡기 위해 좌표를 고정하였음
+    const extent4326 = ol.proj.transformExtent([12135411.855562285, 3470787.4316931707, 15481519.205774158, 5197652.774711872], 'EPSG:3857', 'EPSG:4326')
     console.log(extent4326)
 
-    //https://openapi.its.go.kr:9443/cctvInfo?type=all&cctvType=1&minX=119.3219444&maxX=132.4414210&minY=32.8071488&maxY=39.4632423&getType=json&apiKey=12a08608b49a43f0a4f4a6fb1d838d8b
+
     console.log(extent);
         // var url = 'https://api.vworld.kr/req/data?'; // Replace with actual CCTV API URL
         // url += 'service=data';
@@ -2766,54 +2820,19 @@ function addCctvLayer(e){
                     cctvSource.addFeature(cctvFeature);
                 }
 
-                var styleCache = {};
-
-                var styleFunction = function (feature) {
-                    var size = feature.get('features').length;
-                    var style = styleCache[size];
-                    if (!style) {
-                        var color = 'green';
-                        if (size > 50) {
-                            color = 'red';
-                        } else if (size > 30) {
-                            color = 'orange';
-                        }
-                
-                        style = new ol.style.Style({
-                            image: new ol.style.Circle({
-                                radius: 10,
-                                stroke: new ol.style.Stroke({
-                                    color: '#fff',
-                                }),
-                                fill: new ol.style.Fill({
-                                    color: color,
-                                }),
-                            }),
-                            text: new ol.style.Text({
-                                text: size.toString(),
-                                fill: new ol.style.Fill({
-                                    color: '#fff',
-                                }),
-                            }),
-                        });
-                        styleCache[size] = style;
-                    }
-                    return style;
-                };
-                
                 var clusterSource = new ol.source.Cluster({
-                    distance: 100,
+                    distance: 30,
                     source: cctvSource,
                 });
 
-                cctvLayer = new ol.layer.Vector({
+                clusterLayer = new ol.layer.AnimatedCluster({    
+                    name: 'Cluster',
                     source: clusterSource,
-                    style: styleFunction,
+                    animationDuration: 400,
+                    style: getStyle
                 });
 
-                console.log(cctvSource)
-
-                map.addLayer(cctvLayer);
+                map.addLayer(clusterLayer);
             },
             error: function(xhr, stat, err) {
                 console.log('Error fetching CCTV data:', err);
@@ -2823,9 +2842,9 @@ function addCctvLayer(e){
 }
 
 function removeCctvLayer(){
-    if (cctvLayer) {
-        map.removeLayer(cctvLayer);
-        cctvLayer = null;
+    if (clusterLayer) {
+        map.removeLayer(clusterLayer);
+        clusterLayer = null;
     }
 }
 
