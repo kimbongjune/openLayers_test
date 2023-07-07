@@ -489,6 +489,60 @@
 			list-style: none;
 			padding-left: 0px;
 		}
+
+		.legend {
+			float: right;
+			padding: 3px;
+			margin-top: -6px;
+			border: 1px solid #ccc;
+			border-radius: 5px;
+			box-shadow: 1px 1px 1px #999;
+			background: rgba(220, 220, 220, 0.8);
+		}
+		.legend .legendWrap {
+			display: flex;
+		}
+		.legend .co {
+			height: 100%;
+		}
+
+
+		.legend-position {
+			display: none;
+			position: absolute;
+			right: 3px;
+			top: 50px;
+			user-select: none;
+			cursor: pointer;
+			z-index: 2;
+			top: 230px;
+		}
+
+		.legend .no.dense {
+			line-height: 0.8em;
+		}
+
+		.legend .legendWrap > div {
+			flex: auto;
+		}
+		.legend .no {
+			display: flex;
+			flex-direction: column;
+			margin-left: 1px;
+		}
+
+		.legend .no>span {
+			flex: auto;
+			display: block;
+			font-size: 0.8em;
+			text-align: center;
+		}
+
+		.legend .unit {
+			border-top: 1px dotted #ccc;
+			font-size: 0.7em;
+			text-align: center;
+		}
 	</style>
 
 	<!-- jquery 라이브러리, 2.x 이후의 버전이 필요 -->
@@ -538,17 +592,22 @@
     integrity="sha512-xT61DWoPRoAa4ir+LqER5L4/zzuO5tQOQywZYqU8BaZVqolq78bRobozDxozcCZ6tmo92zetGVQHRp+sQHIi/g=="
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-	<script src="https://cdn.rawgit.com/Viglino/ol-ext/master/dist/ol-ext.js"></script>
-	<link rel="stylesheet" href="https://cdn.rawgit.com/Viglino/ol-ext/master/dist/ol-ext.css">
+	<!-- <script src="https://cdn.rawgit.com/Viglino/ol-ext/master/dist/ol-ext.js"></script>
+	<link rel="stylesheet" href="https://cdn.rawgit.com/Viglino/ol-ext/master/dist/ol-ext.css"> -->
+
+	<script src="./lib/ol-ext.js"></script>
+	<link rel="stylesheet" href="./lib/ol-ext.css">
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.4/pako.min.js"></script>
 	<!-- <script src="https://map.vworld.kr/js/apis.do?type=Base&apiKey=A5C5E9FF-F9FC-3012-9D01-41A62F369AA7&domain=http://127.0.0.1:3000/openlayers_test.html"></script> -->
+	
 	
 </head>
 
 <body>
 	<!-- Pointer events polyfill for old browsers, see https://caniuse.com/#feat=pointer -->
 	<div id="map" class="map">
+		<div id="legend" class="legend-position"><!----><!----><!----><!----><!----><!----><!----><!----><div class="legend"><div class="legendWrap"><div class="co"><div style="width: 10px; height: 14.5833px; background: rgb(51, 51, 51);"></div><div style="width: 10px; height: 14.5833px; background: rgb(0, 3, 144);"></div><div style="width: 10px; height: 14.5833px; background: rgb(76, 78, 177);"></div><div style="width: 10px; height: 14.5833px; background: rgb(179, 180, 222);"></div><div style="width: 10px; height: 14.5833px; background: rgb(147, 0, 228);"></div><div style="width: 10px; height: 14.5833px; background: rgb(179, 41, 255);"></div><div style="width: 10px; height: 14.5833px; background: rgb(201, 105, 255);"></div><div style="width: 10px; height: 14.5833px; background: rgb(224, 169, 255);"></div><div style="width: 10px; height: 14.5833px; background: rgb(180, 0, 0);"></div><div style="width: 10px; height: 14.5833px; background: rgb(210, 0, 0);"></div><div style="width: 10px; height: 14.5833px; background: rgb(255, 50, 0);"></div><div style="width: 10px; height: 14.5833px; background: rgb(255, 102, 0);"></div><div style="width: 10px; height: 14.5833px; background: rgb(204, 170, 0);"></div><div style="width: 10px; height: 14.5833px; background: rgb(224, 185, 0);"></div><div style="width: 10px; height: 14.5833px; background: rgb(249, 205, 0);"></div><div style="width: 10px; height: 14.5833px; background: rgb(255, 220, 31);"></div><div style="width: 10px; height: 14.5833px; background: rgb(255, 225, 0);"></div><div style="width: 10px; height: 14.5833px; background: rgb(0, 90, 0);"></div><div style="width: 10px; height: 14.5833px; background: rgb(0, 140, 0);"></div><div style="width: 10px; height: 14.5833px; background: rgb(0, 190, 0);"></div><div style="width: 10px; height: 14.5833px; background: rgb(0, 255, 0);"></div><div style="width: 10px; height: 14.5833px; background: rgb(0, 51, 245);"></div><div style="width: 10px; height: 14.5833px; background: rgb(0, 155, 245);"></div><div style="width: 10px; height: 14.5833px; background: rgb(0, 200, 255);"></div></div> <div class="no dense"><span>110</span><span>90</span><span>80</span><span>70</span><span>60</span><span>50</span><span>40</span><span>30</span><span>25</span><span>20</span><span>15</span><span>10</span><span>9</span><span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span><span>0.5</span><span>0.1</span><span>0</span></div></div> <div class="unit">mm/h</div></div><!----><!----> <div class="legend-btn" style="display: none;"></div></div>
 		<div class="route-select-container">
 			<select class="form-select form-select-sm" aria-label=".form-select-sm example">
 				<option selected value="1">차량 경로탐색</option>
@@ -578,8 +637,8 @@
 				<div class="modal-body" style="padding: 0.5rem 0.5rem;">
 					<form>
 						<div class="mb-3" style="margin-bottom: 0px !important;">
-						  <input type="text" class="form-control" id="recipient-name" placeholder="북마크에 등록할 이름을 작성해주세요" style="font-size: 0.7rem;">
-						  <div id="form-control-address">s</div>
+						  <input type="text" class="form-control" id="recipient-name" placeholder="북마크 기본값은 아래 주소입니다." style="font-size: 0.7rem;">
+						  <div id="form-control-address"></div>
 						</div>
 					</form>
 				</div>
@@ -617,6 +676,9 @@
 
 		<input type="checkbox" id="radar-checkbox" name="radar-checkbox">
 		<label for="radar-checkbox">레이더</label>
+
+		<input type="checkbox" id="building-checkbox" name="building-checkbox">
+		<label for="building-checkbox">건물</label>
 		
 		<div id="address"></div>
 	</div>

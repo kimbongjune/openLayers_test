@@ -33,9 +33,19 @@ var map = new ol.Map({
 // var map = map1._getMap();
 // map.setView(view)
 
+//선택된 지도 레이어를 담을 변수
 var currentBaseLayer;
 
-const VWORLD_API_KEY = "A5C5E9FF-F9FC-3012-9D01-41A62F369AA7";
+//레이더 레이어를 담을 변수
+var radarLayer;
+
+let VWORLD_API_KEY;
+if(window.location.href.includes("127")){
+    VWORLD_API_KEY = "A5C5E9FF-F9FC-3012-9D01-41A62F369AA7";
+}else{
+    VWORLD_API_KEY = "055CF644-B04A-3772-BF8A-B31B9CDD6364";
+}
+
 
 //vworld 기본 타일
 const baseLayer = new ol.layer.Tile({
@@ -299,6 +309,8 @@ extentInteraction.on('extentchanged', function (event) {
 
         extentInteractionTooltip.setPosition(bottomRight);
         extentInteractionTooltipElement.parentElement.style.pointerEvents = "none";
+        // var transformedExtent  = ol.proj.transformExtent(extent, 'EPSG:3857', 'EPSG:4326');
+        // console.log(transformedExtent)
     }
 });
 
@@ -468,8 +480,8 @@ function getStyle (feature, resolution) {
 var img = new ol.style.Circle({    
     radius: 5,
     stroke: new ol.style.Stroke({
-        color: 'rgba(0,255,255,1)', 
-        width: 1 
+        color: 'blue', 
+        width: 3
     }),
     fill: new ol.style.Fill({
         color: 'rgba(0,255,255,0.3)'
@@ -479,7 +491,7 @@ var img = new ol.style.Circle({
 var linkStyle = new ol.style.Style({
     image: img,
     stroke: new ol.style.Stroke({
-        color: '#fff', 
+        color: 'rgba(0, 0, 255, 1)', 
         width: 1 
     }) 
 });
@@ -752,9 +764,11 @@ var circleLayer = new ol.layer.Vector({
 
 map.addLayer(circleLayer);
 
+var buildingLayer;
 //지도의 이동이 종료되었을 때 발생하는 이벤트 지도 중앙좌표와 줌 레벨을 표시한다.
 var currZoom = map.getView().getZoom();
 map.on("moveend", function (evt) {
+    var view = map.getView();
     const center = view.getCenter();
     var coordinate = ol.proj.transform(center , "EPSG:3857", "EPSG:4326");
     reverseGeoCodingToRegion(coordinate[0], coordinate[1])
@@ -763,6 +777,40 @@ map.on("moveend", function (evt) {
         //console.log("zoom end, new zoom: " + newZoom);
         currZoom = newZoom;
         zoomInfo.innerHTML = `level: ${newZoom}`;
+    }
+
+    var buildingCheckbox = document.getElementById('building-checkbox');
+
+    // Check if the checkbox is checked and if the zoom level is 17 or greater
+    if (buildingCheckbox.checked) {
+        if(buildingLayer){
+            map.removeLayer(buildingLayer)
+        }
+        buildingLayer = new ol.layer.Tile({
+            name: "wms_theme", //vmap 올린 레이어를 삭제하거나 수정,변경할때 접근할 name 속성
+            projection: "EPSG:3857",
+            extent: map.getView().getProjection().getExtent(), //[-20037508.34, -20037508.34, 20037508.34, 20037508.34]
+            maxZoom: 20,
+            minZoom: 10,
+            tilePixelRatio: 1,
+            tileSize: [512, 512],
+            source: new ol.source.TileWMS({
+                url: "http://api.vworld.kr/req/wms?",
+                params: {
+                    LAYERS: "lt_c_spbd",
+                    STYLES: "lt_c_spbd",
+                    CRS: "EPSG:3857",
+                    apikey: VWORLD_API_KEY,
+                    DOMAIN:"http://127.0.0.1:3000/openlayers_test.html",
+                    FORMAT: "image/png",
+                }
+            })
+            });
+        buildingLayer.setZIndex(5);
+        map.addLayer(buildingLayer);
+        // Get the size of the current map container
+        //requestBuildingData(1)
+    }else{
     }
 });
 
@@ -1979,6 +2027,7 @@ contextmenu.on('open', function (evt) {
         captureItem[2].data = { extent: extentInteraction.getExtent() };
         contextmenu.extend(captureItem);
     } else {
+        console.log(evt.coordinate)
         let coord4326 = ol.proj.transform(evt.coordinate, "EPSG:3857", "EPSG:4326");
         let address = reverseGeoCoding(coord4326[0], coord4326[1])
         contextmenu.clear();
@@ -2508,10 +2557,9 @@ document.getElementById("olcontrolBookmarkMaximizeDiv").addEventListener("click"
 document.getElementById("btn-add-bookmark").addEventListener("click", function (e) {
     const myModalEl = document.getElementById("bookmark-modal")
     const modal = bootstrap.Modal.getInstance(myModalEl)
-    const storagedName = document.getElementById("recipient-name").value;
-    
+    let storagedName = document.getElementById("recipient-name").value;
     if(storagedName.length < 1){
-        return alert("북마크 이름은 필수입니다")
+        storagedName = document.getElementById("form-control-address").innerHTML
     }
     const existsValueFlat = window.localStorage.getItem(storagedName)
     if(existsValueFlat){
@@ -2836,6 +2884,8 @@ function addCctvLayer(e){
             },
             error: function(xhr, stat, err) {
                 console.log('Error fetching CCTV data:', err);
+                alert("CCTV 데이터 호출 에러가 발생하였습니다.")
+                e.target.checked = false;
                 e.target.disabled = false;
             }
         });
@@ -2881,13 +2931,16 @@ function stremVideo(videoSrc, videoName){
 
 $(document).on('mouseenter', 'span.cctv-name', function() {
     var customAttribute = $(this).data('coordinate-attribute');
-    console.log('마우스가 올라갔습니다!');
-    console.log('Custom 속성 값:', customAttribute);
-    // 원하는 동작을 수행하세요
+    //console.log('Custom 속성 값:', customAttribute);
   });
 
 document.getElementById('radar-checkbox').addEventListener('change', function() {
     if (this.checked) {
+        if(map.getView().getZoom() <= 7){
+            this.checked = false;
+            return alert("레이더 정보는 줌레벨 7 이하에서는 조회할 수 없습니다.")
+        }
+        $("#legend").css("display", "block")
         var size = map.getSize();
         var extent = map.getView().calculateExtent(size);
         var transformedExtent  = ol.proj.transformExtent(extent, 'EPSG:3857', 'EPSG:4326');
@@ -2912,43 +2965,29 @@ document.getElementById('radar-checkbox').addEventListener('change', function() 
             miny : transformedExtent[1],
             maxx : transformedExtent[2],
             maxy : transformedExtent[3],
-            time : "202307062100"
+            time : "202307071320"
         };
+
         var queryString = $.param(params);
-        var radarLayer = new ol.layer.Image({
+
+        let imgUrl = url + '?' + queryString;
+
+        console.log(imgUrl)
+        
+        radarLayer = new ol.layer.Image({
             source: new ol.source.ImageStatic({
-                url: url + '?' + queryString,
+                url: imgUrl,
                 imageExtent: extent
             }),
+            opacity: 0.6,
             zIndex: 9999
         });
-        console.log('URL of the request: ' + url + '?' + queryString)
-        console.log(radarLayer)
         map.addLayer(radarLayer);
-        // $.ajax({
-        //     url: url,
-        //     type: "GET",
-        //     data: params,
-        //     success: function(data) {
-        //         //console.log(data)
-        //         var queryString = $.param(params);
-        //         console.log('URL of the request: ' + url + '?' + queryString);
-        //         var imageUrl = data;
-        //         console.log(imageUrl)
-        //         var radarLayer = new ol.layer.Image({
-        //             source: new ol.source.ImageStatic({
-        //                 url: url + '?' + queryString,
-        //                 imageExtent: transformedExtent
-        //             }),
-        //             zIndex: 9999
-        //         });
-        //         console.log(radarLayer)
-        //         map.addLayer(radarLayer);
-        //     }
-        // });
     } else {
-        // 체크박스가 체크 해제된 경우, 레이더 레이어를 비웁니다.
-        //radarLayer.setSource(null);
+        $("#legend").css("display", "none")
+        if (radarLayer) {
+            map.removeLayer(radarLayer);
+        }
     }
 });
 
@@ -2965,4 +3004,98 @@ function decodeCAPPIData(cappiCompressData) {
     var csvData = decompressedData.split('\n').map(row => row.split(','));
   
     return csvData;
+}
+
+document.getElementById('building-checkbox').addEventListener('change', function() {
+    if (this.checked) {
+        if(buildingLayer){
+            map.removeLayer(buildingLayer)
+        }
+        buildingLayer = new ol.layer.Tile({
+            name: "wms_theme", //vmap 올린 레이어를 삭제하거나 수정,변경할때 접근할 name 속성
+            projection: "EPSG:3857",
+            extent: map.getView().getProjection().getExtent(), //[-20037508.34, -20037508.34, 20037508.34, 20037508.34]
+            maxZoom: 20,
+            minZoom: 10,
+            tilePixelRatio: 1,
+            tileSize: [512, 512],
+            source: new ol.source.TileWMS({
+                url: "http://api.vworld.kr/req/wms?",
+                params: {
+                    LAYERS: "lt_c_spbd",
+                    STYLES: "lt_c_spbd",
+                    CRS: "EPSG:3857",
+                    apikey: VWORLD_API_KEY,
+                    DOMAIN:"http://127.0.0.1:3000/openlayers_test.html",
+                    FORMAT: "image/png",
+                }
+            })
+            });
+        buildingLayer.setZIndex(5);
+        map.addLayer(buildingLayer);
+    }else{
+        if(buildingLayer){
+            map.removeLayer(buildingLayer)
+        }
+    }
+})
+
+
+function requestBuildingData(page) {
+    var view = map.getView();
+    var size = map.getSize();
+    var extent = view.calculateExtent(size);
+  
+    var url = 'https://api.vworld.kr/req/data?';
+    url += 'service=data';
+    url += '&request=GetFeature';
+    url += '&data=lt_c_spbd';
+    url += `&key=${VWORLD_API_KEY}`; // Replace with your actual API key
+    url += '&format=json';
+    url += "&crs=EPSG:3857";
+    url += "&size=1000";
+    url += `&page=${page}`; // Add page parameter
+    url += `&geomFilter=BOX(${extent[0]},${extent[1]},${extent[2]},${extent[3]})`;
+    url +=  "&domain=http://127.0.0.1:3000/openlayers_test.html"
+
+    console.log(url)
+
+    $.ajax({
+        url: url,
+        type: 'GET',
+        dataType: "jsonp",
+        async : false,
+        jsonpCallback: 'callback',
+        success: function(data) {
+            if(data.response.status != "OK"){
+                return;
+            }
+            console.log(data)
+            var dataFeatures = data.response.result.featureCollection.features;
+
+            // Loop through each feature in the array
+            for (var i = 0; i < dataFeatures.length; i++) {
+                // Parse the current feature
+                var feature = new ol.format.GeoJSON().readFeature(dataFeatures[i]);
+
+                // Add the feature to the vector source
+                buildingVectorSource.addFeature(feature);
+            }
+
+            // Add the vector source to the global vector layer
+            buildingLayer.setSource(buildingVectorSource);
+
+            // Check total pages and call requestData function recursively if necessary
+            if (data.response.page.total > page) {
+                requestBuildingData(page + 1);
+            } else {
+                // Only add the vector layer to the map after fetching all pages
+                map.addLayer(buildingLayer);
+            }
+        },
+        beforesend: function(){
+            
+        },
+        error: function(xhr, stat, err) {}
+    });
 }
