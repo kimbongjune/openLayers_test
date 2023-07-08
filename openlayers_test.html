@@ -552,11 +552,14 @@
 
 	<!-- openlayers 라이브러리, 국토정보 플랫폼 API를 사용하기 위해선 6.x 버전이 필요 -->
 	<!-- <script src="https://cdn.jsdelivr.net/npm/ol@v7.4.0/dist/ol.js"></script> -->
-	<script src="./lib/ol.js"></script>
+	<!-- <script src="./lib/ol.js"></script> -->
 
 	<!-- openlayers css, 국토정보 플랫폼 API를 사용하기 위해선 6.x 버전이 필요 -->
 	<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v7.4.0/ol.css"> -->
-	<link rel="stylesheet" href="./lib/ol.css">
+	<!-- <link rel="stylesheet" href="./lib/ol.css"> -->
+
+	<script src="https://cdn.jsdelivr.net/npm/ol@v7.4.0/dist/ol.min.js"></script>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v7.4.0/ol.css">
 	<!-- polyfill 라이브러리, 지원이 끝난 브라우저의 지원을 위해 필요함 -->
 	<script
 		src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
@@ -601,7 +604,10 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.4/pako.min.js"></script>
 	<!-- <script src="https://map.vworld.kr/js/apis.do?type=Base&apiKey=A5C5E9FF-F9FC-3012-9D01-41A62F369AA7&domain=http://127.0.0.1:3000/openlayers_test.html"></script> -->
 	
-	
+	<script src="https://cdn.jsdelivr.net/npm/tokml@0.4.0/tokml.min.js"></script>
+
+
+	<script src="https://cdn.jsdelivr.net/npm/@turf/turf/turf.min.js"></script>
 </head>
 
 <body>
@@ -671,6 +677,7 @@
 		<input type="checkbox" id="areaCircleCheckbox" name="areaCircleCheckbox" class="measure">
 		<label for="areaCircleCheckbox">원형 면적 측정</label>
 
+		<br>
 		<input type="checkbox" id="cctv-checkbox" name="cctv-checkbox">
 		<label for="cctv-checkbox">cctv</label>
 
@@ -680,6 +687,28 @@
 		<input type="checkbox" id="building-checkbox" name="building-checkbox">
 		<label for="building-checkbox">건물</label>
 		
+		<input type="checkbox" id="sido-checkbox" name="sido-checkbox">
+		<label for="sido-checkbox">시/도 경계</label>
+
+		<input type="checkbox" id="sigungu-checkbox" name="sigungu-checkbox">
+		<label for="sigungu-checkbox">시/군/구 경계</label>
+
+		<input type="checkbox" id="myeondong-checkbox" name="myeondong-checkbox">
+		<label for="myeondong-checkbox">읍/면/동 경계</label>
+
+		<input type="checkbox" id="ri-checkbox" name="ri-checkbox">
+		<label for="ri-checkbox">리 경계</label>
+
+		<input type="checkbox" id="road-checkbox" name="road-checkbox">
+		<label for="road-checkbox">도로</label>
+
+		<input type="checkbox" id="cadastral-map-checkbox" name="cadastral-map-checkbox">
+		<label for="cadastral-map-checkbox">연속 지적도</label>
+
+		<input type="checkbox" id="mountaion-file-map-checkbox" name="mountaion-file-map-checkbox">
+		<label for="mountaion-file-map-checkbox">산불위험 예측지도</label>
+
+
 		<div id="address"></div>
 	</div>
 	<input type="radio" id="basic-layer" name="map-layer" value="basic" checked="true">
