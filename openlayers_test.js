@@ -18,7 +18,12 @@ const ROAD_LAYER_ID = "lt_l_moctlink"
 //연속지적도 API 요청 아이디
 const CADASTRAL_MAP_LAYER_ID = "lp_pa_cbnd_bubun"
 //산불위험 예측지도 API 요청 아이디
-const MOUNTAIN_FILE_MAP_LAYER_ID = "lt_c_kfdrssigugrade"
+const MOUNTAIN_FIRE_MAP_LAYER_ID = "lt_c_kfdrssigugrade"
+//소방서관할구역 API 요청 아이디
+const FIRESTATION_JURISDICTION = "lt_c_usfsffb"
+//재해위험지구 API 요청 아이디
+const DISASTER_DANGER_LAYER_ID = "lt_c_up201"
+
 
 var view = new ol.View({
     center: [14128579.82, 4512570.74],
@@ -797,6 +802,10 @@ var roadLayer;
 var cadastralMapLayer;
 //산불위험 예측지도 레이어 변수
 var mountaionFireMapLayer;
+//소방서 관할구역 레이어 변수
+var firestationJurisdictionLayer
+//재해 위험지구 레이어 변수
+var disasterDangerLayer;
 //api 파싱하기위한 geoJson
 var geojsonFormat = new ol.format.GeoJSON();
 //레이더 레이어 변수
@@ -2887,7 +2896,7 @@ function addCctvLayer(e){
             },
             error: function(xhr, stat, err) {
                 console.log('Error fetching CCTV data:', err);
-                alert("CCTV 데이터 호출 에러가 발생하였습니다.")
+                alert("CCTV api 호출에 실패하였습니다.")
                 e.target.checked = false;
                 e.target.disabled = false;
             }
@@ -2939,8 +2948,9 @@ $(document).on('mouseenter', 'span.cctv-name', function() {
 
 
 //기상 레이더 레이어 체크박스 이벤트
-document.getElementById('radar-checkbox').addEventListener('change', function() {
+document.getElementById('radar-checkbox').addEventListener('change', function(e) {
     if (this.checked) {
+        e.target.disabled = true;
         var url = 'http://apis.data.go.kr/1360000/RadarObsInfoService/getNationalRadarRn';
     
         // 파라미터 설정
@@ -3003,9 +3013,12 @@ document.getElementById('radar-checkbox').addEventListener('change', function() 
                     blur: 2,
                 });
                 map.addLayer(webGlVectorLayer);
+                e.target.disabled = false;
             },
             error: function(error) {
                 // 오류 처리
+                e.target.disabled = false;
+                alert("레이더 api 호출에 실패하였습니다.")
                 console.log(error);
             }
         });
@@ -3227,17 +3240,47 @@ document.getElementById('cadastral-map-checkbox').addEventListener('change', fun
     }
 })
 
-document.getElementById('mountaion-file-map-checkbox').addEventListener('change', function() {
+document.getElementById('mountaion-fire-map-checkbox').addEventListener('change', function() {
     if (this.checked) {
         if(mountaionFireMapLayer){
             map.removeLayer(mountaionFireMapLayer)
             mountaionFireMapLayer = null;
         }
-        mountaionFireMapLayer = requestWmsLayer(MOUNTAIN_FILE_MAP_LAYER_ID)
+        mountaionFireMapLayer = requestWmsLayer(MOUNTAIN_FIRE_MAP_LAYER_ID)
     }else{
         if(mountaionFireMapLayer){
             map.removeLayer(mountaionFireMapLayer)
             mountaionFireMapLayer = null;
+        }
+    }
+})
+
+document.getElementById('firestation-jurisdiction-checkbox').addEventListener('change', function() {
+    if (this.checked) {
+        if(firestationJurisdictionLayer){
+            map.removeLayer(firestationJurisdictionLayer)
+            firestationJurisdictionLayer = null;
+        }
+        firestationJurisdictionLayer = requestWmsLayer(FIRESTATION_JURISDICTION)
+    }else{
+        if(firestationJurisdictionLayer){
+            map.removeLayer(firestationJurisdictionLayer)
+            firestationJurisdictionLayer = null;
+        }
+    }
+})
+
+document.getElementById('disaster-danger-checkbox').addEventListener('change', function() {
+    if (this.checked) {
+        if(disasterDangerLayer){
+            map.removeLayer(disasterDangerLayer)
+            disasterDangerLayer = null;
+        }
+        disasterDangerLayer = requestWmsLayer(DISASTER_DANGER_LAYER_ID)
+    }else{
+        if(disasterDangerLayer){
+            map.removeLayer(disasterDangerLayer)
+            disasterDangerLayer = null;
         }
     }
 })
@@ -3266,6 +3309,7 @@ function requestWmsLayer(layerId, layerIndex = 5){
         })
     });
     layer.setZIndex(layerIndex);
+    console.log(layer)
     map.addLayer(layer);
 
     return layer;
@@ -3285,3 +3329,4 @@ function getTwentyMinutesBefore() {
     var twentyMinutesBefore = year + month + day + hours + minutes;
     return twentyMinutesBefore;
   }
+  
