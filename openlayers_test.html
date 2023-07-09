@@ -224,7 +224,8 @@
 		}
 		.olControlBookmark {
 			position: absolute;
-			top: 190px;
+			z-index: 5;
+			top: 8rem;
 			right: 0px;
 			width: 175px;
 		}
@@ -543,6 +544,39 @@
 			font-size: 0.7em;
 			text-align: center;
 		}
+
+		.ol-fullscreen-control {
+			top: 4em;
+    		right: 0.5em;
+		}
+
+		.map .ol-custom-overviewmap,
+		.map .ol-custom-overviewmap.ol-uncollapsible {
+			bottom: auto;
+			left: auto;
+			top: 6em;
+    		right: 0.5em;
+		}
+
+		.map .ol-custom-overviewmap:not(.ol-collapsed)  {
+			border: 1px solid black;
+		}
+
+		.map .ol-custom-overviewmap .ol-overviewmap-map {
+			border: none;
+			width: 300px;
+		}
+
+		.map .ol-custom-overviewmap .ol-overviewmap-box {
+			border: 2px solid red;
+		}
+
+		.map .ol-custom-overviewmap:not(.ol-collapsed) button{
+			bottom: auto;
+			left: auto;
+			right: 1px;
+			top: 1px;
+		}
 	</style>
 
 	<!-- jquery 라이브러리, 2.x 이후의 버전이 필요 -->
@@ -655,17 +689,17 @@
 			  </div>
 			</div>
 		  </div>
-	</div>
-	<div id="olcontrolBookmark" class="olControlBookmark">
-		<div id="olControlBookmarkContent" class="olControlBookmarkContent">
-			<div id="olControlBookmarkTitle" class="olControlBookmarkTitle">북마크 목록</div>
-			<div id="olControlBookmarkElements" class="olControlBookmarkElements">
-				<div class="olControlBookmarkRow" id="bookmark-container">
+		  <div id="olcontrolBookmark" class="olControlBookmark">
+			<div id="olControlBookmarkContent" class="olControlBookmarkContent">
+				<div id="olControlBookmarkTitle" class="olControlBookmarkTitle">북마크 목록</div>
+				<div id="olControlBookmarkElements" class="olControlBookmarkElements">
+					<div class="olControlBookmarkRow" id="bookmark-container">
+					</div>
 				</div>
 			</div>
+			<div id="olcontrolBookmarkMaximizeDiv" class="olControlBookmarkMaximizeButton" ></div>
+			<div id="olcontrolBookmarkMinimizeDiv" class="olControlBookmarkMinimizeButton"></div>
 		</div>
-		<div id="olcontrolBookmarkMaximizeDiv" class="olControlBookmarkMaximizeButton" ></div>
-		<div id="olcontrolBookmarkMinimizeDiv" class="olControlBookmarkMinimizeButton"></div>
 	</div>
 	<div>
 		<input type="checkbox" id="measureCheckbox" name="measureCheckbox" class="measure">

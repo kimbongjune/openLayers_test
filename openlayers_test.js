@@ -69,7 +69,7 @@ if(window.location.href.includes("192")){
 
 //vworld 기본 타일
 const baseLayer = new ol.layer.Tile({
-    source: new ol.source.OSM({
+    source: new ol.source.XYZ({
         url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Base/{z}/{y}/{x}.png`,
         serverType: "geoserver",
         crossOrigin: "anonymous",
@@ -427,6 +427,38 @@ map.addControl(scaleControl);
 
 //맵에 줌 슬라이더 추가
 map.addControl(new ol.control.ZoomSlider());
+
+//맵에 풀 스크린 컨트롤러 추가
+map.addControl(new ol.control.FullScreen({
+    className: 'ol-fullscreen-control',
+}));
+
+//맵에 오버뷰맵 추가
+var overviewMapControl = new ol.control.OverviewMap({
+    className: 'ol-overviewmap ol-custom-overviewmap',
+    view: new ol.View({
+        projection:"EPSG:3857",
+        center: view.getCenter(),
+        maxZoom: MAX_ZOOM_LEVEL,
+        zoom: view.getZoom(),
+        minZoom : MIN_ZOOM_LEVEL,
+        constrainResolution: true,
+    }),
+    // see in overviewmap-custom.html to see the custom CSS used
+    layers: [
+      new ol.layer.Tile({
+        source: new ol.source.XYZ({
+            url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Base/{z}/{y}/{x}.png`,
+            serverType: "geoserver",
+            crossOrigin: "anonymous",
+        }),
+        type : "map"
+      }),
+    ],
+    rotateWithView : true,
+    collapsed: localStorage.getItem("overviewMapCollapsed") === "true" ? true : false,
+  })
+map.addControl(overviewMapControl);
 
 //대각선 좌표를 기준으로 지도를 바운드 시키는 함수
 map.addControl(
@@ -2994,7 +3026,9 @@ document.getElementById('radar-checkbox').addEventListener('change', function(e)
                 var xdim = data.response.body.items.item[0].xdim;
                 var ydim = data.response.body.items.item[0].ydim
 
-                var dataWithCoords = assignCoordinates(startLon, startLat, gridKm, csvData, xdim, ydim);
+                var altitude = data.response.body.items.item[0].altitudeKm
+
+                var dataWithCoords = assignCoordinates(startLon, startLat, gridKm, csvData, xdim, ydim, altitude);
 
                 var geojsonData = toGeoJSON(dataWithCoords);
 
@@ -3050,7 +3084,6 @@ var webGlStyle = {
     symbol: {
       symbolType: 'circle',
       size: 2,
-      offset: [-10, 10],
       color: [
         'case',
         ['>=', ['get', 'value'], 110], '#333333',
@@ -3084,7 +3117,7 @@ var webGlStyle = {
   };
 
 //레이더 좌표를 4326 좌표계로 변환하는 함수. api 응답객체의 값을 이용해 2진 좌표계에 실제 좌표계를 대입한다.
-function assignCoordinates(startLon, startLat, gridKm, csvData, xdim, ydim) {
+function assignCoordinates(startLon, startLat, gridKm, csvData, xdim, ydim, altitude) {
     var dataWithCoords = [];
     for (var i = 0; i < ydim; i++) {
         var row = csvData[i];
@@ -3092,8 +3125,10 @@ function assignCoordinates(startLon, startLat, gridKm, csvData, xdim, ydim) {
             if(row[j] == -127 || row[j] == -128){
                 continue;
             }
+            //cappi 고도를 고려하여 피타고라스 정리를 이용해 거리를 재 계산한다.
+            var realDistance = Math.sqrt(Math.pow(gridKm*j, 2) + Math.pow(altitude, 2));
             // 좌표 할당
-            var point = turf.destination([startLon, startLat], gridKm*j, 90, {units: 'kilometers'});
+            var point = turf.destination([startLon, startLat], realDistance, 90, {units: 'kilometers'});
             var lon = point.geometry.coordinates[0];
             // 좌표와 함께 데이터 저장
             dataWithCoords.push({
@@ -3102,6 +3137,7 @@ function assignCoordinates(startLon, startLat, gridKm, csvData, xdim, ydim) {
                 value: row[j]
             });
         }
+        var realDistance = Math.sqrt(Math.pow(gridKm*i, 2) + Math.pow(altitude, 2));
         var point = turf.destination([startLon, startLat], gridKm, 0, {units: 'kilometers'});
         startLat = point.geometry.coordinates[1];
     }
@@ -3330,3 +3366,10 @@ function getTwentyMinutesBefore() {
     return twentyMinutesBefore;
   }
   
+  //오버뷰 맵이 클릭되었을 때 발생하는 이벤트
+  $(".ol-overviewmap button").click(function() {
+    setTimeout(function() {
+        var isCollapsed = overviewMapControl.getCollapsed();
+        localStorage.setItem("overviewMapCollapsed", isCollapsed);
+    }, 0);
+});
