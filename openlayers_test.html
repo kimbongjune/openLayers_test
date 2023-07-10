@@ -633,6 +633,8 @@
 
 
 	<script src="https://cdn.jsdelivr.net/npm/@turf/turf/turf.min.js"></script>
+
+	<script src="https://unpkg.com/shpjs@latest/dist/shp.js"></script>
 </head>
 
 <body>
@@ -768,6 +770,7 @@
 	<label for="night-layer">야간 지도 레이어</label><br>
 	<br>
 	<div id="info"></div>
+	<input type="file" id="inputShapefile" accept=".shp"/>
 	<a id="export-png" class="btn btn-outline-dark" role="button"><i class="fa fa-download"></i> Download PNG</a>
 	<a id="image-download" download="map.png"></a>
 	<input id="color-picker" type='button' value='#000000' />
