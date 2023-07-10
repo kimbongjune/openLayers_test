@@ -47,15 +47,6 @@ var map = new ol.Map({
       })
 });
 
-//국토정보 플랫폼 API를 사용하기 위한 맵 객체
-// var map1 = new ngii_wmts.map("map", {
-// 		// center : [960551.04896058,1919735.5150606],
-// 		// maxZoom : 19,
-// 		// zoom : 19
-// });
-// var map = map1._getMap();
-// map.setView(view)
-
 //선택된 지도 레이어를 담을 변수
 var currentBaseLayer;
 
@@ -66,6 +57,7 @@ if(window.location.href.includes("192")){
     VWORLD_API_KEY = "A5C5E9FF-F9FC-3012-9D01-41A62F369AA7";
 }
 
+let swipeLayer;
 
 //vworld 기본 타일
 const baseLayer = new ol.layer.Tile({
@@ -119,7 +111,10 @@ const midnightLayer = new ol.layer.Tile({
 map.addLayer(baseLayer);
 
 //맵의 객체를 컨트롤하기 위한 빈 벡터 레이어
-var vectorLayer = new ol.layer.Vector({ source: new ol.source.Vector() });
+var vectorLayer = new ol.layer.Vector({
+     source: new ol.source.Vector() 
+});
+vectorLayer.setZIndex(5)
 
 //경로탐색 결과에 마우스를 호버 하였을 때 포인트를 찍기위한 벡터 레이어
 let pointStyle = new ol.style.Style({
@@ -147,6 +142,56 @@ map.addLayer(routeVectorLayer);
 
 const info = document.getElementById("info");
 const addressInfo = document.getElementById("address");
+const swipe = document.getElementById('swipe');
+
+let dragAndDropInteraction;
+var koreaExtent = ol.proj.transformExtent([123.75, 33.55, 131.88, 39.44], 'EPSG:4326', 'EPSG:3857');
+
+function setInteraction() {
+  if (dragAndDropInteraction) {
+    map.removeInteraction(dragAndDropInteraction);
+  }
+  dragAndDropInteraction = new ol.interaction.DragAndDrop({
+    formatConstructors: [
+        ol.format.GPX,
+        ol.format.GeoJSON,
+        ol.format.IGC,
+        // use constructed format to set options
+        new ol.format.KML({extractStyles: false}),
+        ol.format.TopoJSON,
+    ],
+  });
+
+  dragAndDropInteraction.on('addfeatures', function (event) {
+    const vectorSource = new ol.source.Vector ({
+      features: event.features,
+    });
+
+    let layerExtent = vectorSource.getExtent();
+    console.log(event.features)
+
+    for(var i = 0 ; i < event.features.length; i ++){
+        event.features[i].set("attribute", "import")
+        event.features[i].getKeys().forEach(key =>{
+            console.log(key,":", event.features[i].get(key))
+        })
+    }
+    // Check if the layer is within Korea
+    if (!ol.extent.intersects(layerExtent, koreaExtent)) {
+        alert("한국이 아닌 지형의 파일은 레이어를 추가할 수 없습니다.")
+        return 
+    }
+
+    map.addLayer(
+      new ol.layer.Vector({
+        source: vectorSource,
+      })
+    );
+    map.getView().fit(vectorSource.getExtent());
+  });
+  map.addInteraction(dragAndDropInteraction);
+}
+setInteraction();
 
 // a DragBox interaction used to select features by drawing boxes
 const dragBox = new ol.interaction.DragBox({
@@ -459,6 +504,15 @@ var overviewMapControl = new ol.control.OverviewMap({
     collapsed: localStorage.getItem("overviewMapCollapsed") === "true" ? true : false,
   })
 map.addControl(overviewMapControl);
+
+//지도의 센터 타겟 추가
+map.addControl(new ol.control.Target({
+    style : [	
+        new ol.style.Style({ image: new ol.style.RegularShape ({ points: 4, radius: 11, radius1: 0, radius2: 0, snapToPixel:true, stroke: new ol.style.Stroke({ color: "#fff", width:3 }) }) }),
+        new ol.style.Style({ image: new ol.style.RegularShape ({ points: 4, radius: 11, radius1: 0, radius2: 0, snapToPixel:true, stroke: new ol.style.Stroke({ color: "black", width:2 }) }) })
+      ],
+    composite : ""
+}))
 
 //대각선 좌표를 기준으로 지도를 바운드 시키는 함수
 map.addControl(
@@ -780,6 +834,7 @@ var sourceLayer = new ol.layer.Vector({
     source: source,
 });
 
+sourceLayer.setZIndex(5)
 map.addLayer(sourceLayer);
 
 var polygonSource = new ol.source.Vector();
@@ -797,6 +852,7 @@ var polygonLayer = new ol.layer.Vector({
     }),
 });
 
+polygonLayer.setZIndex(5)
 map.addLayer(polygonLayer);
 
 var cricleSource = new ol.source.Vector();
@@ -814,6 +870,7 @@ var circleLayer = new ol.layer.Vector({
     }),
 });
 
+circleLayer.setZIndex(5)
 map.addLayer(circleLayer);
 
 //건물 레이어 변수
@@ -838,6 +895,8 @@ var mountaionFireMapLayer;
 var firestationJurisdictionLayer
 //재해 위험지구 레이어 변수
 var disasterDangerLayer;
+//재해 위험지구 레이어 변수
+var graticuleLayer;
 //api 파싱하기위한 geoJson
 var geojsonFormat = new ol.format.GeoJSON();
 //레이더 레이어 변수
@@ -1194,7 +1253,6 @@ function addPolygonInteraction() {
         var coordinateLength = sketch.getGeometry().getCoordinates()[0].length;
         if (coordinateLength < 4) {
             setTimeout(function () {
-                console.log("@@@");
                 polygonSource.removeFeature(evt.feature);
                 map.removeOverlay(areaTooltip);
                 return;
@@ -3013,7 +3071,14 @@ document.getElementById('radar-checkbox').addEventListener('change', function(e)
             success: function(data) {
                 // API 응답 데이터 처리
                 console.log(data);
+                if(data.response.header == undefined){
+                    e.target.checked = false;
+                    e.target.disabled = false;
+                    return alert("api 호출 에러")
+                }
                 if(data.response.header.resultCode != "00"){
+                    e.target.checked = false;
+                    e.target.disabled = false;
                     return alert("api 호출 에러")
                 }
                 $("#legend").css("display", "block")
@@ -3051,6 +3116,7 @@ document.getElementById('radar-checkbox').addEventListener('change', function(e)
             },
             error: function(error) {
                 // 오류 처리
+                e.target.checked = false;
                 e.target.disabled = false;
                 alert("레이더 api 호출에 실패하였습니다.")
                 console.log(error);
@@ -3082,8 +3148,12 @@ function decodeCAPPIData(cappiCompressData) {
 //API응답의 가중치에 따라 webGL 객체의 색을 변환하는 함수
 var webGlStyle = {
     symbol: {
-      symbolType: 'circle',
-      size: 2,
+      symbolType: 'square',
+      size: [
+        'case',
+        ['>', ['zoom'], 8], 0,
+        ['interpolate', ['exponential', 2.5], ['zoom'], 6, 3, 9, 5]
+      ],
       color: [
         'case',
         ['>=', ['get', 'value'], 110], '#333333',
@@ -3321,6 +3391,30 @@ document.getElementById('disaster-danger-checkbox').addEventListener('change', f
     }
 })
 
+document.getElementById('map-graticule-checkbox').addEventListener('change', function() {
+    if (this.checked) {
+        if(graticuleLayer){
+            map.removeLayer(graticuleLayer)
+            graticuleLayer = null;
+        }
+        graticuleLayer = new ol.layer.Graticule({
+            strokeStyle: new ol.style.Stroke({
+                color: 'rgba(255,120,0,0.9)',
+                width: 2,
+                lineDash: [0.5, 4],
+              }),
+              showLabels: true,
+              wrapX: false,
+        })
+        map.addLayer(graticuleLayer)
+    }else{
+        if(graticuleLayer){
+            map.removeLayer(graticuleLayer)
+            graticuleLayer = null;
+        }
+    }
+})
+
 //vworld wms api 호출 공통 함수
 function requestWmsLayer(layerId, layerIndex = 5){
     console.log(document.getElementById('map').offsetWidth, document.getElementById('map').offsetHeight)
@@ -3372,4 +3466,92 @@ function getTwentyMinutesBefore() {
         var isCollapsed = overviewMapControl.getCollapsed();
         localStorage.setItem("overviewMapCollapsed", isCollapsed);
     }, 0);
+});
+
+document.getElementById('mapLayerSelect').addEventListener('change', function() {
+    const selectedLayer = this.value;
+    switch (selectedLayer) {
+      case 'default':
+        swipeLayer = new ol.layer.Tile({
+            source: new ol.source.XYZ({
+                url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Base/{z}/{y}/{x}.png`,
+                serverType: "geoserver",
+                crossOrigin: "anonymous",
+            }),
+            type : "submap",
+            zIndex : 0
+        });
+        $(swipe).css("visibility", "visible")
+        break;
+      case 'aerial':
+        // 항공 사진 레이어 표시 로직
+        swipeLayer = new ol.layer.Tile({
+            source: new ol.source.XYZ({
+                url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Satellite/{z}/{y}/{x}.jpeg`,
+                crossOrigin: "anonymous",
+            }),
+            type : "submap",
+            zIndex : 0
+        });
+        $(swipe).css("visibility", "visible")
+        break;
+      case 'gray':
+        // 회색 지도 레이어 표시 로직
+        swipeLayer = new ol.layer.Tile({
+            source: new ol.source.XYZ({
+                url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/gray/{z}/{y}/{x}.png`,
+                crossOrigin: "anonymous",
+            }),
+            type : "submap",
+            zIndex : 0
+        });
+        $(swipe).css("visibility", "visible")
+        break;
+      case 'night':
+        // 야간 지도 레이어 표시 로직
+        swipeLayer = new ol.layer.Tile({
+            source: new ol.source.XYZ({
+                url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/midnight/{z}/{y}/{x}.png`,
+                crossOrigin: "anonymous",
+            }),
+            type : "submap",
+            zIndex : 0
+        });
+        $(swipe).css("visibility", "visible")
+        break;
+      default:
+        // 데이터 없음 선택 시 로직
+        map.removeLayer(swipeLayer)
+        $(swipe).css("visibility", "hidden")
+        return;
+    }
+    map.addLayer(swipeLayer)
+    console.log(swipeLayer.getZIndex())
+    swipeLayer.on('prerender', function (event) {
+        const ctx = event.context;
+        const mapSize = map.getSize();
+        const width = mapSize[0] * (swipe.value / 100);
+        const tl = ol.render.getRenderPixel(event, [width, 0]);
+        const tr = ol.render.getRenderPixel(event, [mapSize[0], 0]);
+        const bl = ol.render.getRenderPixel(event, [width, mapSize[1]]);
+        const br = ol.render.getRenderPixel(event, mapSize);
+        
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(tl[0], tl[1]);
+        ctx.lineTo(bl[0], bl[1]);
+        ctx.lineTo(br[0], br[1]);
+        ctx.lineTo(tr[0], tr[1]);
+        ctx.closePath();
+        ctx.clip();
+    });
+    swipeLayer.on('postrender', function (event) {
+        const ctx = event.context;
+        ctx.restore();
+    });
+});
+
+swipe.addEventListener('input', function () {
+    console.log("?")
+    map.render();
 });
