@@ -530,28 +530,17 @@ map.addControl(
     })
 );
 
+map.on('loadstart', function () {
+    map.getTargetElement().classList.add('spinner');
+});
 //지도 객체가 로드가 완료되었을때 동작하는 이벤트
 map.on('loadend', function () {
     const center = view.getCenter();
     info.innerHTML = formatCoordinate(center, null);
     var zoomLevel = map.getView().getZoom();
     zoomInfo.innerHTML = `level: ${zoomLevel}`;
+    map.getTargetElement().classList.remove('spinner');
 });
-
-// var stylep = new ol.style.Style({
-//     stroke: new ol.style.Stroke({
-//         color: [51, 51, 51, .0],
-//         width: 3
-//     }),
-//     fill: new ol.style.Fill({
-//         color: [51, 51, 51, .7]
-//     })
-// });
-
-// var selectInteraction = new ol.interaction.Select({
-//     style: [stylep]
-// });
-// map.getInteractions().extend([selectInteraction]);
 
 var styleCache = {};
 
@@ -699,7 +688,9 @@ map.addInteraction(selectCluster);
 //지도 클릭 이벤트
 map.on("click", function (evt) {
     let cctvFound = false;
-
+    if(printControl.isOpen()){
+        return;
+    }
     if (clickCurrentLayer) {
         map.removeLayer(clickCurrentLayer);
     }
@@ -1561,187 +1552,6 @@ window.addEventListener("keydown", function (event) {
     }
 });
 
-//이미지 저장 함수
-document.getElementById("export-png").addEventListener("click", function () {
-    //툴팁까지 포함해서 이미지를 다운로드함
-    // map.once("rendercomplete", function () {
-    //     html2canvas(document.querySelector("#map"), {
-    //         onclone: function(document) {
-    //             // let controls = document.querySelectorAll('.ol-control');
-    //             // controls.forEach(function(control) {
-    //             //     control.style.display = 'none';
-    //             // });
-    //         }
-    //     }).then(canvas => {
-    //         const link = document.createElement('a');
-    //         link.download = 'map.png';
-    //         link.href = canvas.toDataURL();
-    //         link.click();
-    //     });
-    // })
-    // map.renderSync();
-
-    map.once('rendercomplete', function () {
-        const mapCanvas = document.createElement('canvas');
-        const size = map.getSize();
-        mapCanvas.width = size[0];
-        mapCanvas.height = size[1];
-        const mapContext = mapCanvas.getContext('2d');
-        Array.prototype.forEach.call(
-          map.getViewport().querySelectorAll('.ol-layer canvas, canvas.ol-layer'),
-          function (canvas) {
-            if (canvas.width > 0) {
-              const opacity =
-                canvas.parentNode.style.opacity || canvas.style.opacity;
-              mapContext.globalAlpha = opacity === '' ? 1 : Number(opacity);
-              let matrix;
-              const transform = canvas.style.transform;
-              if (transform) {
-                // Get the transform parameters from the style's transform matrix
-                matrix = transform
-                  .match(/^matrix\(([^\(]*)\)$/)[1]
-                  .split(',')
-                  .map(Number);
-              } else {
-                matrix = [
-                  parseFloat(canvas.style.width) / canvas.width,
-                  0,
-                  0,
-                  parseFloat(canvas.style.height) / canvas.height,
-                  0,
-                  0,
-                ];
-              }
-              // Apply the transform to the export map context
-              CanvasRenderingContext2D.prototype.setTransform.apply(
-                mapContext,
-                matrix
-              );
-              const backgroundColor = canvas.parentNode.style.backgroundColor;
-              if (backgroundColor) {
-                mapContext.fillStyle = backgroundColor;
-                mapContext.fillRect(0, 0, canvas.width, canvas.height);
-              }
-              mapContext.drawImage(canvas, 0, 0);
-            }
-          }
-        );
-        mapContext.globalAlpha = 1;
-        mapContext.setTransform(1, 0, 0, 1, 0, 0);
-        const link = document.getElementById('image-download');
-        link.href = mapCanvas.toDataURL();
-        link.click();
-      });
-      map.renderSync();
-})
-
-//인쇄 함수
-document.getElementById("export-pdf").addEventListener("click", function (e) {
-    const dims = {
-        a0: [1189, 841],
-        a1: [841, 594],
-        a2: [594, 420],
-        a3: [420, 297],
-        a4: [297, 210],
-        a5: [210, 148],
-      };
-
-    e.target.disabled = true;
-    document.body.style.cursor = 'progress';
-  
-      const format = document.getElementById('format').value;
-      const resolution = document.getElementById('resolution').value;
-      const dim = dims[format];
-      const width = Math.round((dim[0] * resolution) / 25.4);
-      const height = Math.round((dim[1] * resolution) / 25.4);
-      const size = map.getSize();
-      const viewResolution = map.getView().getResolution();
-
-      //툴팁까지 포함해서 pdf로 내보냄
-        // html2canvas(document.querySelector("#map"), {
-        //     onclone: function(document) {
-        //         let controls = document.querySelectorAll('.ol-control');
-        //         controls.forEach(function(control) {
-        //             control.style.display = 'none';
-        //         });
-        //     }
-        // }).then(canvas => {
-        //     // 캔버스를 이미지 데이터 URL로 변환
-        //     const imgData = canvas.toDataURL('image/png');
-            
-        //     // 이미지 데이터 URL을 PDF에 추가
-        //     const pdf = new jspdf.jsPDF('landscape', undefined, format);
-        //     pdf.addImage(
-        //         imgData,
-        //         'JPEG',
-        //         0,
-        //         0,
-        //         dim[0],
-        //         dim[1]
-        //     );
-        //     pdf.save("map.pdf");
-        //     map.setSize(size);
-        //     map.getView().setResolution(viewResolution);
-        //     e.target.disabled = false;
-        //     document.body.style.cursor = 'auto';
-        // });
-        // const printSize = [width, height];
-        // map.setSize(printSize);
-        // const scaling = Math.min(width / size[0], height / size[1]);
-        // map.getView().setResolution(viewResolution / scaling);
-
-        map.once('rendercomplete', function () {
-            const mapCanvas = document.createElement('canvas');
-            mapCanvas.width = width;
-            mapCanvas.height = height;
-            const mapContext = mapCanvas.getContext('2d');
-            Array.prototype.forEach.call(
-              document.querySelectorAll('.ol-layer canvas'),
-              function (canvas) {
-                if (canvas.width > 0) {
-                  const opacity = canvas.parentNode.style.opacity;
-                  mapContext.globalAlpha = opacity === '' ? 1 : Number(opacity);
-                  const transform = canvas.style.transform;
-                  // Get the transform parameters from the style's transform matrix
-                  const matrix = transform
-                    .match(/^matrix\(([^\(]*)\)$/)[1]
-                    .split(',')
-                    .map(Number);
-                  // Apply the transform to the export map context
-                  CanvasRenderingContext2D.prototype.setTransform.apply(
-                    mapContext,
-                    matrix
-                  );
-                  mapContext.drawImage(canvas, 0, 0);
-                }
-              }
-            );
-            mapContext.globalAlpha = 1;
-            mapContext.setTransform(1, 0, 0, 1, 0, 0);
-            const pdf = new jspdf.jsPDF('landscape', undefined, format);
-            pdf.addImage(
-              mapCanvas.toDataURL('image/jpeg'),
-              'JPEG',
-              0,
-              0,
-              dim[0],
-              dim[1]
-            );
-            pdf.save('map.pdf');
-            // Reset original map size
-            map.setSize(size);
-            map.getView().setResolution(viewResolution);
-            e.target.disabled = false;
-            document.body.style.cursor = 'auto';
-          });
-      
-          // Set print size
-          const printSize = [width, height];
-          map.setSize(printSize);
-          const scaling = Math.min(width / size[0], height / size[1]);
-          map.getView().setResolution(viewResolution / scaling);
-}, false);
-
 //spectrum 라이브러리 호출 함수
 $("#color-picker").spectrum({
     flat: false,
@@ -2082,6 +1892,13 @@ map.addControl(contextmenu);
 
 //ol-context 메뉴가 열리기 전에 발생하는 이벤트 면적/길이 측정을 진행하는 동안에는 메뉴를 열지 않는다.
 contextmenu.on('beforeopen', function (evt) {
+    if(printControl.isOpen()){
+        $(document).on('contextmenu', function (e) {
+            e.preventDefault();
+        });
+        contextmenu.disable();
+        return;
+    }
     if ($(areaCheckbox).is(":checked") ||$(measureCheckbox).is(":checked") ||$(areaCircleCheckbox).is(":checked")){
         contextmenu.disable();
         if (draw) {
@@ -2756,9 +2573,9 @@ document.querySelectorAll('input[name="map-layer"]').forEach((elem) => {
         if (layer.get('type') === 'map') {
             map.removeLayer(layer);
         }else if(layer.get('type') === 'submap'){
-            layer.setZIndex(0)
-        }else{
             layer.setZIndex(1)
+        }else{
+            layer.setZIndex(2)
         }
     });
     
@@ -2990,6 +2807,7 @@ function addCctvLayer(e){
                     style: getStyle
                 });
 
+                clusterLayer.setZIndex(5)
                 map.addLayer(clusterLayer);
             },
             error: function(xhr, stat, err) {
@@ -3115,6 +2933,7 @@ document.getElementById('radar-checkbox').addEventListener('change', function(e)
                 });
 
                 webGlVectorLayer = new ol.layer.WebGLPoints({
+                    preload: Infinity,
                     source: getJsonSource,
                     style: webGlStyle,
                     blur: 2,
@@ -3569,3 +3388,69 @@ swipe.addEventListener('input', function () {
     console.log("?")
     map.render();
 });
+
+var printControl = new ol.control.PrintDialog({ 
+    lang : "ko",
+    scales : false,
+});
+
+printControl.setSize('A4');
+map.addControl(printControl);
+
+printControl.on("show", function(){
+    console.log("?")
+    extentInteraction.setActive(false)
+    map.removeInteraction(dragBox);
+
+    console.log(map.getView().getZoom())
+    console.log(map.getView().getCenter())
+    console.log(map.getView().getRotation())
+
+    const storageObject = {
+        zoomLevel : map.getView().getZoom(),
+        centerCoordinate : map.getView().getCenter(),
+        rotate : map.getView().getRotation(),
+    }
+    const objString = JSON.stringify(storageObject);
+    
+    window.localStorage.setItem("beforeState", objString)
+})
+
+printControl.on("hide", function(){
+    console.log("@")
+    extentInteraction.setActive(true)
+    map.addInteraction(dragBox);
+    contextmenu.enable();
+    const value = JSON.parse(window.localStorage.getItem("beforeState"));
+    map.getView().setCenter(value.centerCoordinate);
+    map.getView().setZoom(value.zoomLevel)
+    map.getView().setRotation(value.rotate);
+    window.localStorage.removeItem("beforeState");
+})
+  
+  /* On print > save image file */
+printControl.on(['print', 'error'], function(e) {
+    console.log("?")
+    // Print success
+    if (e.image) {
+      if (e.pdf) {
+        // Export pdf using the print info
+        var pdf = new jsPDF({
+          orientation: e.print.orientation,
+          unit: e.print.unit,
+          format: e.print.size
+        });
+        pdf.addImage(e.image, 'JPEG', e.print.position[0], e.print.position[0], e.print.imageWidth, e.print.imageHeight);
+        pdf.save(e.print.legend ? 'legend.pdf' : 'map.pdf');
+      } else  {
+        // Save image as file
+        e.canvas.toBlob(function(blob) {
+          var name = (e.print.legend ? 'legend.' : 'map.')+e.imageType.replace('image/','');
+          saveAs(blob, name);
+        }, e.imageType, e.quality);
+      }
+    } else {
+      console.warn('No canvas to export');
+    }
+  });
+  
