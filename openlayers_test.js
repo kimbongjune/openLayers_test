@@ -107,6 +107,12 @@ const midnightLayer = new ol.layer.Tile({
     type : "map"
   });
 
+baseLayer.setZIndex(0)
+satelliteLayer.setZIndex(0)
+textLayer.setZIndex(0)
+midnightLayer.setZIndex(0)
+greyLayer.setZIndex(0)
+
 //맵에 기본 맵 레이어 추가
 map.addLayer(baseLayer);
 
@@ -2749,6 +2755,8 @@ document.querySelectorAll('input[name="map-layer"]').forEach((elem) => {
     map.getLayers().getArray().slice().forEach(function(layer) {
         if (layer.get('type') === 'map') {
             map.removeLayer(layer);
+        }else if(layer.get('type') === 'submap'){
+            layer.setZIndex(0)
         }else{
             layer.setZIndex(1)
         }
@@ -3111,6 +3119,7 @@ document.getElementById('radar-checkbox').addEventListener('change', function(e)
                     style: webGlStyle,
                     blur: 2,
                 });
+                webGlVectorLayer.setZIndex(5)
                 map.addLayer(webGlVectorLayer);
                 e.target.disabled = false;
             },
@@ -3470,6 +3479,9 @@ function getTwentyMinutesBefore() {
 
 document.getElementById('mapLayerSelect').addEventListener('change', function() {
     const selectedLayer = this.value;
+    if(swipeLayer){
+        map.removeLayer(swipeLayer)
+    }   
     switch (selectedLayer) {
       case 'default':
         swipeLayer = new ol.layer.Tile({
@@ -3521,7 +3533,9 @@ document.getElementById('mapLayerSelect').addEventListener('change', function() 
         break;
       default:
         // 데이터 없음 선택 시 로직
-        map.removeLayer(swipeLayer)
+        if(swipeLayer){
+            map.removeLayer(swipeLayer)
+        }   
         $(swipe).css("visibility", "hidden")
         return;
     }
