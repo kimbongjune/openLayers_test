@@ -24,7 +24,6 @@ const FIRESTATION_JURISDICTION = "lt_c_usfsffb"
 //재해위험지구 API 요청 아이디
 const DISASTER_DANGER_LAYER_ID = "lt_c_up201"
 
-
 var view = new ol.View({
     center: [14128579.82, 4512570.74],
     maxZoom: MAX_ZOOM_LEVEL,
@@ -66,6 +65,7 @@ const baseLayer = new ol.layer.Tile({
         serverType: "geoserver",
         crossOrigin: "anonymous",
     }),
+    preload: Infinity,
     type : "map"
 });
 
@@ -77,6 +77,7 @@ const textLayer = new ol.layer.Tile({
         url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Hybrid/{z}/{y}/{x}.png`,
         crossOrigin: "anonymous",
     }),
+    preload: Infinity,
     type : "map"
 });
 
@@ -86,6 +87,7 @@ const satelliteLayer = new ol.layer.Tile({
         url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Satellite/{z}/{y}/{x}.jpeg`,
         crossOrigin: "anonymous",
     }),
+    preload: Infinity,
     type : "map"
   });
 
@@ -95,6 +97,7 @@ const greyLayer = new ol.layer.Tile({
         url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/gray/{z}/{y}/{x}.png`,
         crossOrigin: "anonymous",
     }),
+    preload: Infinity,
     type : "map"
   });
 
@@ -104,6 +107,7 @@ const midnightLayer = new ol.layer.Tile({
         url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/midnight/{z}/{y}/{x}.png`,
         crossOrigin: "anonymous",
     }),
+    preload: Infinity,
     type : "map"
   });
 
@@ -503,6 +507,7 @@ var overviewMapControl = new ol.control.OverviewMap({
             serverType: "geoserver",
             crossOrigin: "anonymous",
         }),
+        preload: Infinity,
         type : "map"
       }),
     ],
@@ -688,6 +693,9 @@ map.addInteraction(selectCluster);
 //지도 클릭 이벤트
 map.on("click", function (evt) {
     let cctvFound = false;
+    if(draw || drawPolygon || circle){
+        return;
+    }
     if(printControl.isOpen()){
         return;
     }
@@ -2783,7 +2791,6 @@ function addCctvLayer(e){
                 for (var i = 0; i < data.response.data.length; i++) {
                     var feature = data.response.data[i];
 
-                    console.log(feature)
                     var cctvFeature = new ol.Feature({
                         geometry: new ol.geom.Point(ol.proj.transform([feature.coordx, feature.coordy], 'EPSG:4326', 'EPSG:3857')),
                         cctvname : feature.cctvname,
@@ -3309,6 +3316,7 @@ document.getElementById('mapLayerSelect').addEventListener('change', function() 
                 serverType: "geoserver",
                 crossOrigin: "anonymous",
             }),
+            preload: Infinity,
             type : "submap",
             zIndex : 0
         });
@@ -3321,6 +3329,7 @@ document.getElementById('mapLayerSelect').addEventListener('change', function() 
                 url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Satellite/{z}/{y}/{x}.jpeg`,
                 crossOrigin: "anonymous",
             }),
+            preload: Infinity,
             type : "submap",
             zIndex : 0
         });
@@ -3333,6 +3342,7 @@ document.getElementById('mapLayerSelect').addEventListener('change', function() 
                 url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/gray/{z}/{y}/{x}.png`,
                 crossOrigin: "anonymous",
             }),
+            preload: Infinity,
             type : "submap",
             zIndex : 0
         });
@@ -3345,6 +3355,7 @@ document.getElementById('mapLayerSelect').addEventListener('change', function() 
                 url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/midnight/{z}/{y}/{x}.png`,
                 crossOrigin: "anonymous",
             }),
+            preload: Infinity,
             type : "submap",
             zIndex : 0
         });
@@ -3442,7 +3453,7 @@ printControl.on(['print', 'error'], function(e) {
         });
         pdf.addImage(e.image, 'JPEG', e.print.position[0], e.print.position[0], e.print.imageWidth, e.print.imageHeight);
         pdf.save(e.print.legend ? 'legend.pdf' : 'map.pdf');
-      } else  {
+      } else {
         // Save image as file
         e.canvas.toBlob(function(blob) {
           var name = (e.print.legend ? 'legend.' : 'map.')+e.imageType.replace('image/','');
@@ -3453,4 +3464,20 @@ printControl.on(['print', 'error'], function(e) {
       console.warn('No canvas to export');
     }
   });
-  
+
+  //TODO 체크박스를 하나 생성하고 체크박스 체크 시 magnify 오버레이를 넣으면 될듯, layer에는 현재 지도의 레이어를 전부 순회해서 type이 map인 애들만 가져다가 넣으면 될듯 함
+  var magnify = new ol.Overlay.Magnify({
+    layers: [
+        new ol.layer.Tile({
+            source: new ol.source.XYZ({
+                url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Base/{z}/{y}/{x}.png`,
+                serverType: "geoserver",
+                crossOrigin: "anonymous",
+            }),
+            preload: Infinity,
+        }),
+    ],
+    zoomOffset: 1
+  });
+
+  map.addOverlay(magnify);
