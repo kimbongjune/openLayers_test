@@ -68,450 +68,667 @@
     <!-- font-awesome 4.7.0 CDN -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 
-    <!-- hummingbird-treeview 2.1.7 css CDN -->
-    <link href="https://cdn.jsdelivr.net/gh/hummingbird-dev/hummingbird-treeview@v2.1.7/hummingbird-treeview.min.css" rel="stylesheet">
-    <!-- hummingbird-treeview 2.1.7 js CDN -->
-    <script src="https://cdn.jsdelivr.net/gh/hummingbird-dev/hummingbird-treeview@v2.1.7/hummingbird-treeview.min.js"></script>
+    <!-- hummingbird-treeview 2.1.7 css -->
+    <link href="./lib/hummingbird-treeview-2.1.7.css" rel="stylesheet">
+    <!-- hummingbird-treeview 2.1.7 js -->
+    <script src="./lib/hummingbird-treeview-2.1.7.js"></script>
 </head>
 <body>
     <div class="container-fluid">
         <div class="row flex-nowrap">
             <div class="col-auto px-0">
-                <div id="sidebar" class="collapse collapse-horizontal show border-end vh-100 shadow-sm">
-                    <div class="top-area">top area</div>
-                    
+                <div class="top-area collapse collapse-horizontal show" id="top-sidebar">
+                    <div id="top-sidebar-content">헤?더</div>
+                </div>
+                <div id="sidebar" class="collapse collapse-horizontal show border-end vh-90 shadow-sm">
                     <div id="sidebar-nav" class="list-group border-0 rounded-0">
                         <div class="p-2">
-                            <h4>test....</h4>
+                            <h4>큰 제목?</h4>
                         </div>
-                        <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#first-treeview" aria-expanded="false" aria-controls="first-treeview">
-                            첫번째 대 항목
-                          </button>
-                          <div class="collapse" id="first-treeview">
-                            <div class="card card-body" id="first-treeview-card">
-                              <ul>
-                                <div class="container">
-                                    <div id="treeview_container" class="hummingbird-treeview well h-scroll-large">
-                                        <!-- <div id="treeview_container" class="hummingbird-treeview"> -->
-                                        <ul id="treeview" class="hummingbird-base">
-        
-                                            <li><i class="fa fa-minus"></i> <label> <input id="node-0" data-id="custom-0"
-                                                        type="checkbox"> node-0</label>
-                                                <ul style="display: block;">
-                                                    <li><i class="fa fa-plus"></i> <label> <input id="node-0-1"
-                                                                data-id="custom-1" type="checkbox"> node-0-1</label>
-                                                        <ul>
-                                                            <li><i class="fa fa-plus"></i> <label> <input id="node-0-1-1"
-                                                                        data-id="custom-1-1" type="checkbox">
-                                                                    node-0-1-1</label>
-                                                                <ul>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-1-1-1" data-id="custom-1-1-1"
-                                                                                type="checkbox"> node-0-1-1-1</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-1-1-2" data-id="custom-1-1-2"
-                                                                                type="checkbox"> node-0-1-1-2</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-1-1-3" data-id="custom-1-1-3"
-                                                                                type="checkbox"> node-0-1-1-3</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent" id="double1"
-                                                                                data-id="custom-1-1-3" type="checkbox">
-                                                                            node-0-1-1-3</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent" id="double2"
-                                                                                data-id="custom-1-1-3" type="checkbox">
-                                                                            node-0-1-1-3</label>
-                                                                    </li>
-                                                                </ul>
-                                                            </li>
-                                                            <li><i class="fa fa-plus"></i> <label> <input id="node-0-1-2"
-                                                                        data-id="custom-1-2" type="checkbox">
-                                                                    node-0-1-2</label>
-                                                                <ul>
-                                                                    <li style="color: rgb(200, 200, 200);"><label> <input
-                                                                                class="hummingbirdNoParent" id="node-0-1-2-1"
-                                                                                data-id="custom-1-2-1" type="checkbox"
-                                                                                disabled="">
-                                                                            node-0-1-2-1</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-1-2-2" data-id="custom-1-2-2"
-                                                                                type="checkbox"> node-0-1-2-2</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-1-2-3" data-id="custom-1-2-3"
-                                                                                type="checkbox"> node-0-1-2-3</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent" id="double3"
-                                                                                data-id="custom-1-1-3" type="checkbox">
-                                                                            node-0-1-1-3</label>
-                                                                    </li>
-                                                                </ul>
-                                                            </li>
-                                                        </ul>
-                                                    </li>
-                                                    <li><i class="fa fa-plus"></i> <label> <input id="node-0-2"
-                                                                data-id="custom-2" type="checkbox"> node-0-2</label>
-                                                        <ul>
-                                                            <li><i class="fa fa-plus"></i> <label> <input id="node-0-2-1"
-                                                                        data-id="custom-2-1" type="checkbox">
-                                                                    node-0-2-1</label>
-                                                                <ul>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-2-1-1" data-id="custom-2-1-1"
-                                                                                type="checkbox"> node-0-2-1-1</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-2-1-2" data-id="custom-2-1-2"
-                                                                                type="checkbox"> node-0-2-1-2</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-2-1-3" data-id="custom-2-1-3"
-                                                                                type="checkbox"> node-0-2-1-3</label>
-                                                                    </li>
-                                                                </ul>
-                                                            </li>
-                                                            <li><i class="fa fa-plus"></i> <label> <input id="node-0-2-2"
-                                                                        data-id="custom-2-2" type="checkbox">
-                                                                    node-0-2-2</label>
-                                                                <ul>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-2-2-1" data-id="custom-2-2-1"
-                                                                                type="checkbox"> node-0-2-2-1</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-2-2-2" data-id="custom-2-2-2"
-                                                                                type="checkbox"> node-0-2-2-2</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-2-2-3" data-id="custom-2-2-3"
-                                                                                type="checkbox"> node-0-2-2-3</label>
-                                                                    </li>
-                                                                </ul>
-                                                            </li>
-                                                            <li><i class="fa fa-plus"></i> <label> <input id="node-0-2-3"
-                                                                        data-id="custom-2-3" type="checkbox">
-                                                                    node-0-2-3</label>
-                                                                <ul>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-2-3-1" data-id="custom-2-3-1"
-                                                                                type="checkbox"> node-0-2-3-1</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-2-3-2" data-id="custom-2-3-2"
-                                                                                type="checkbox"> node-0-2-3-2</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-2-3-3" data-id="custom-2-3-3"
-                                                                                type="checkbox"> node-0-2-3-3</label>
-                                                                    </li>
-                                                                </ul>
-                                                            </li>
-                                                            <li><i class="fa fa-plus"></i> <label> <input id="node-0-2-4"
-                                                                        data-id="custom-2-4" type="checkbox">
-                                                                    node-0-2-4</label>
-                                                                <ul>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-2-4-1" data-id="custom-2-4-1"
-                                                                                type="checkbox"> node-0-2-4-1</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-2-4-2" data-id="custom-2-4-2"
-                                                                                type="checkbox"> node-0-2-4-2</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-2-4-3" data-id="custom-2-4-3"
-                                                                                type="checkbox"> node-0-2-4-3</label>
-                                                                    </li>
-                                                                </ul>
-                                                            </li>
-                                                        </ul>
-                                                    </li>
-                                                    <li><i class="fa fa-plus"></i> <label> <input id="node-0-3"
-                                                                data-id="custom-3" type="checkbox"> node-0-3</label>
-                                                        <ul>
-                                                            <li><i class="fa fa-plus"></i> <label> <input id="node-0-3-1"
-                                                                        data-id="custom-3-1" type="checkbox">
-                                                                    node-0-3-1</label>
-                                                                <ul>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-3-1-1" data-id="custom-3-1-1"
-                                                                                type="checkbox"> node-0-3-1-1</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-3-1-2" data-id="custom-3-1-2"
-                                                                                type="checkbox"> node-0-3-1-2</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-3-1-3" data-id="custom-3-1-3"
-                                                                                type="checkbox"> node-0-3-1-3</label>
-                                                                    </li>
-                                                                </ul>
-                                                            </li>
-                                                            <li><i class="fa fa-plus"></i> <label> <input id="node-0-3-2"
-                                                                        data-id="custom-3-2" type="checkbox">
-                                                                    node-0-3-2</label>
-                                                                <ul>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-3-2-1" data-id="custom-3-2-1"
-                                                                                type="checkbox"> node-0-3-2-1</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-3-2-2" data-id="custom-3-2-2"
-                                                                                type="checkbox"> node-0-3-2-2</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-3-2-3" data-id="custom-3-2-3"
-                                                                                type="checkbox"> node-0-3-2-3</label>
-                                                                    </li>
-                                                                </ul>
-                                                            </li>
-                                                            <li><i class="fa fa-plus"></i> <label> <input id="node-0-3-3"
-                                                                        data-id="custom-3-3" type="checkbox">
-                                                                    node-0-3-3</label>
-                                                                <ul>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-3-3-1" data-id="custom-3-3-1"
-                                                                                type="checkbox"> node-0-3-3-1</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-3-3-2" data-id="custom-3-3-2"
-                                                                                type="checkbox"> node-0-3-3-2</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-3-3-3" data-id="custom-3-3-3"
-                                                                                type="checkbox"> node-0-3-3-3</label>
-                                                                    </li>
-                                                                </ul>
-                                                            </li>
-                                                            <li><i class="fa fa-plus"></i> <label> <input id="node-0-3-4"
-                                                                        data-id="custom-3-4" type="checkbox">
-                                                                    node-0-3-4</label>
-                                                                <ul>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-3-4-1" data-id="custom-3-4-1"
-                                                                                type="checkbox"> node-0-3-4-1</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-3-4-2" data-id="custom-3-4-2"
-                                                                                type="checkbox"> node-0-3-4-2</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-3-4-3" data-id="custom-3-4-3"
-                                                                                type="checkbox"> node-0-3-4-3</label>
-                                                                    </li>
-                                                                </ul>
-                                                            </li>
-                                                        </ul>
-                                                    </li>
-                                                    <li><i class="fa fa-plus"></i> <label> <input id="node-0-4"
-                                                                data-id="custom-4" type="checkbox"> node-0-4</label>
-                                                        <ul>
-                                                            <li><i class="fa fa-plus"></i> <label> <input id="node-0-4-1"
-                                                                        data-id="custom-4-1" type="checkbox">
-                                                                    node-0-4-1</label>
-                                                                <ul>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-4-1-1" data-id="custom-4-1-1"
-                                                                                type="checkbox"> node-0-4-1-1</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-4-1-2" data-id="custom-4-1-2"
-                                                                                type="checkbox"> node-0-4-1-2</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-4-1-3" data-id="custom-4-1-3"
-                                                                                type="checkbox"> node-0-4-1-3</label>
-                                                                    </li>
-                                                                </ul>
-                                                            </li>
-                                                            <li><i class="fa fa-plus"></i> <label> <input id="node-0-4-2"
-                                                                        data-id="custom-4-2" type="checkbox">
-                                                                    node-0-4-2</label>
-                                                                <ul>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-4-2-1" data-id="custom-4-2-1"
-                                                                                type="checkbox"> node-0-4-2-1</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-4-2-2" data-id="custom-4-2-2"
-                                                                                type="checkbox"> node-0-4-2-2</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-4-2-3" data-id="custom-4-2-3"
-                                                                                type="checkbox"> node-0-4-2-3</label>
-                                                                    </li>
-                                                                </ul>
-                                                            </li>
-                                                            <li><i class="fa fa-plus"></i> <label> <input id="node-0-4-3"
-                                                                        data-id="custom-4-3" type="checkbox">
-                                                                    node-0-4-3</label>
-                                                                <ul>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-4-3-1" data-id="custom-4-3-1"
-                                                                                type="checkbox"> node-0-4-3-1</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-4-3-2" data-id="custom-4-3-2"
-                                                                                type="checkbox"> node-0-4-3-2</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-4-3-3" data-id="custom-4-3-3"
-                                                                                type="checkbox"> node-0-4-3-3</label>
-                                                                    </li>
-                                                                </ul>
-                                                            </li>
-                                                            <li><i class="fa fa-plus"></i> <label> <input id="node-0-4-4"
-                                                                        data-id="custom-4-4" type="checkbox">
-                                                                    node-0-4-4</label>
-                                                                <ul>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-4-4-1" data-id="custom-4-4-1"
-                                                                                type="checkbox"> node-0-4-4-1</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-4-4-2" data-id="custom-4-4-2"
-                                                                                type="checkbox"> node-0-4-4-2</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-4-4-3" data-id="custom-4-4-3"
-                                                                                type="checkbox"> node-0-4-4-3</label>
-                                                                    </li>
-                                                                </ul>
-                                                            </li>
-                                                        </ul>
-                                                    </li>
-                                                    <li><i class="fa fa-plus"></i> <label> <input id="node-0-5"
-                                                                data-id="custom-5" type="checkbox"> node-0-5</label>
-                                                        <ul>
-                                                            <li><i class="fa fa-plus"></i> <label> <input id="node-0-5-1"
-                                                                        data-id="custom-5-1" type="checkbox">
-                                                                    node-0-5-1</label>
-                                                                <ul>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-5-1-1" data-id="custom-5-1-1"
-                                                                                type="checkbox"> node-0-5-1-1</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-5-1-2" data-id="custom-5-1-2"
-                                                                                type="checkbox"> node-0-5-1-2</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-5-1-3" data-id="custom-5-1-3"
-                                                                                type="checkbox"> node-0-5-1-3</label>
-                                                                    </li>
-                                                                </ul>
-                                                            </li>
-                                                            <li><i class="fa fa-plus"></i> <label> <input id="node-0-5-2"
-                                                                        data-id="custom-5-2" type="checkbox">
-                                                                    node-0-5-2</label>
-                                                                <ul>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-5-2-1" data-id="custom-5-2-1"
-                                                                                type="checkbox"> node-0-5-2-1</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-5-2-2" data-id="custom-5-2-2"
-                                                                                type="checkbox"> node-0-5-2-2</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-5-2-3" data-id="custom-5-2-3"
-                                                                                type="checkbox"> node-0-5-2-3</label>
-                                                                    </li>
-                                                                </ul>
-                                                            </li>
-                                                            <li><i class="fa fa-plus"></i> <label> <input id="node-0-5-3"
-                                                                        data-id="custom-5-3" type="checkbox">
-                                                                    node-0-5-3</label>
-                                                                <ul>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-5-3-1" data-id="custom-5-3-1"
-                                                                                type="checkbox"> node-0-5-3-1</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-5-3-2" data-id="custom-5-3-2"
-                                                                                type="checkbox"> node-0-5-3-2</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-5-3-3" data-id="custom-5-3-3"
-                                                                                type="checkbox"> node-0-5-3-3</label>
-                                                                    </li>
-                                                                </ul>
-                                                            </li>
-                                                            <li><i class="fa fa-plus"></i> <label> <input id="node-0-5-4"
-                                                                        data-id="custom-5-4" type="checkbox">
-                                                                    node-0-5-4</label>
-                                                                <ul>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-5-4-1" data-id="custom-5-4-1"
-                                                                                type="checkbox"> node-0-5-4-1</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-5-4-2" data-id="custom-5-4-2"
-                                                                                type="checkbox"> node-0-5-4-2</label>
-                                                                    </li>
-                                                                    <li><label> <input class="hummingbirdNoParent"
-                                                                                id="node-0-5-4-3" data-id="custom-5-4-3"
-                                                                                type="checkbox"> node-0-5-4-3</label>
-                                                                    </li>
-                                                                </ul>
-                                                            </li>
-                                                        </ul>
-                                                    </li>
-                                                </ul>
-                                            </li>
-                                            <li><i class="fa fa-plus"></i> <label> <input id="node-1" data-id="custom-1"
-                                                        type="checkbox"> node-1</label>
-                                                <ul>
-                                                    <li><label> <input class="hummingbirdNoParent" id="node-1-1"
-                                                                data-id="custom-1-1" type="checkbox"> node-1-1</label>
-                                                    </li>
-                                                    <li><label> <input class="hummingbirdNoParent" id="node-1-2"
-                                                                data-id="custom-1-2" type="checkbox"> node-1-2</label>
-                                                    </li>
-                                                    <li><label> <input class="hummingbirdNoParent" id="node-1-3"
-                                                                data-id="custom-1-3" type="checkbox"> node-1-3</label>
-                                                    </li>
-                                                    <li><label> <input class="hummingbirdNoParent" id="node-1-4"
-                                                                data-id="custom-1-4" type="checkbox"> node-1-4</label>
-                                                    </li>
-                                                    <li><label> <input class="hummingbirdNoParent" id="node-1-5"
-                                                                data-id="custom-1-5" type="checkbox"> node-1-5</label>
-                                                    </li>
-                                                </ul>
-                                            </li>
+                        <div class="accordion accordion-flush" id="accordionFlushExample">
+                            <div class="accordion-item">
+                                <h3 class="accordion-header" id="flush-headingOne">
+                                    <button class="accordion-button collapsed treeview-button" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#first-treeview" aria-expanded="false"
+                                        aria-controls="first-treeview">항목1</button>
+                                </h3>
+                                <div class="collapse" id="first-treeview">
+                                    <div class="card card-body" id="first-treeview-card">
+                                        <ul>
+                                            <div class="container">
+                                                <div id="treeview_container"
+                                                    class="hummingbird-treeview well h-scroll-large">
+                                                    <!-- <div id="treeview_container" class="hummingbird-treeview"> -->
+                                                    <ul id="treeview" class="hummingbird-base">
+    
+                                                        <li><i class="fa fa-minus"></i> <label> <input id="node-0"
+                                                                    data-id="custom-0" type="checkbox"> node-0</label>
+                                                            <ul style="display: block;">
+                                                                <li><i class="fa fa-plus"></i> <label> <input id="node-0-1"
+                                                                            data-id="custom-1" type="checkbox">
+                                                                        node-0-1</label>
+                                                                    <ul>
+                                                                        <li><i class="fa fa-plus"></i> <label> <input
+                                                                                    id="node-0-1-1" data-id="custom-1-1"
+                                                                                    type="checkbox">
+                                                                                node-0-1-1</label>
+                                                                            <ul>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-1-1-1"
+                                                                                            data-id="custom-1-1-1"
+                                                                                            type="checkbox">
+                                                                                        node-0-1-1-1</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-1-1-2"
+                                                                                            data-id="custom-1-1-2"
+                                                                                            type="checkbox">
+                                                                                        node-0-1-1-2</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-1-1-3"
+                                                                                            data-id="custom-1-1-3"
+                                                                                            type="checkbox">
+                                                                                        node-0-1-1-3</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="double1"
+                                                                                            data-id="custom-1-1-3"
+                                                                                            type="checkbox">
+                                                                                        node-0-1-1-3</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="double2"
+                                                                                            data-id="custom-1-1-3"
+                                                                                            type="checkbox">
+                                                                                        node-0-1-1-3</label>
+                                                                                </li>
+                                                                            </ul>
+                                                                        </li>
+                                                                        <li><i class="fa fa-plus"></i> <label> <input
+                                                                                    id="node-0-1-2" data-id="custom-1-2"
+                                                                                    type="checkbox">
+                                                                                node-0-1-2</label>
+                                                                            <ul>
+                                                                                <li style="color: rgb(200, 200, 200);">
+                                                                                    <label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-1-2-1"
+                                                                                            data-id="custom-1-2-1"
+                                                                                            type="checkbox" disabled="">
+                                                                                        node-0-1-2-1</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-1-2-2"
+                                                                                            data-id="custom-1-2-2"
+                                                                                            type="checkbox">
+                                                                                        node-0-1-2-2</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-1-2-3"
+                                                                                            data-id="custom-1-2-3"
+                                                                                            type="checkbox">
+                                                                                        node-0-1-2-3</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="double3"
+                                                                                            data-id="custom-1-1-3"
+                                                                                            type="checkbox">
+                                                                                        node-0-1-1-3</label>
+                                                                                </li>
+                                                                            </ul>
+                                                                        </li>
+                                                                    </ul>
+                                                                </li>
+                                                                <li><i class="fa fa-plus"></i> <label> <input id="node-0-2"
+                                                                            data-id="custom-2" type="checkbox">
+                                                                        node-0-2</label>
+                                                                    <ul>
+                                                                        <li><i class="fa fa-plus"></i> <label> <input
+                                                                                    id="node-0-2-1" data-id="custom-2-1"
+                                                                                    type="checkbox">
+                                                                                node-0-2-1</label>
+                                                                            <ul>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-2-1-1"
+                                                                                            data-id="custom-2-1-1"
+                                                                                            type="checkbox">
+                                                                                        node-0-2-1-1</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-2-1-2"
+                                                                                            data-id="custom-2-1-2"
+                                                                                            type="checkbox">
+                                                                                        node-0-2-1-2</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-2-1-3"
+                                                                                            data-id="custom-2-1-3"
+                                                                                            type="checkbox">
+                                                                                        node-0-2-1-3</label>
+                                                                                </li>
+                                                                            </ul>
+                                                                        </li>
+                                                                        <li><i class="fa fa-plus"></i> <label> <input
+                                                                                    id="node-0-2-2" data-id="custom-2-2"
+                                                                                    type="checkbox">
+                                                                                node-0-2-2</label>
+                                                                            <ul>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-2-2-1"
+                                                                                            data-id="custom-2-2-1"
+                                                                                            type="checkbox">
+                                                                                        node-0-2-2-1</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-2-2-2"
+                                                                                            data-id="custom-2-2-2"
+                                                                                            type="checkbox">
+                                                                                        node-0-2-2-2</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-2-2-3"
+                                                                                            data-id="custom-2-2-3"
+                                                                                            type="checkbox">
+                                                                                        node-0-2-2-3</label>
+                                                                                </li>
+                                                                            </ul>
+                                                                        </li>
+                                                                        <li><i class="fa fa-plus"></i> <label> <input
+                                                                                    id="node-0-2-3" data-id="custom-2-3"
+                                                                                    type="checkbox">
+                                                                                node-0-2-3</label>
+                                                                            <ul>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-2-3-1"
+                                                                                            data-id="custom-2-3-1"
+                                                                                            type="checkbox">
+                                                                                        node-0-2-3-1</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-2-3-2"
+                                                                                            data-id="custom-2-3-2"
+                                                                                            type="checkbox">
+                                                                                        node-0-2-3-2</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-2-3-3"
+                                                                                            data-id="custom-2-3-3"
+                                                                                            type="checkbox">
+                                                                                        node-0-2-3-3</label>
+                                                                                </li>
+                                                                            </ul>
+                                                                        </li>
+                                                                        <li><i class="fa fa-plus"></i> <label> <input
+                                                                                    id="node-0-2-4" data-id="custom-2-4"
+                                                                                    type="checkbox">
+                                                                                node-0-2-4</label>
+                                                                            <ul>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-2-4-1"
+                                                                                            data-id="custom-2-4-1"
+                                                                                            type="checkbox">
+                                                                                        node-0-2-4-1</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-2-4-2"
+                                                                                            data-id="custom-2-4-2"
+                                                                                            type="checkbox">
+                                                                                        node-0-2-4-2</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-2-4-3"
+                                                                                            data-id="custom-2-4-3"
+                                                                                            type="checkbox">
+                                                                                        node-0-2-4-3</label>
+                                                                                </li>
+                                                                            </ul>
+                                                                        </li>
+                                                                    </ul>
+                                                                </li>
+                                                                <li><i class="fa fa-plus"></i> <label> <input id="node-0-3"
+                                                                            data-id="custom-3" type="checkbox">
+                                                                        node-0-3</label>
+                                                                    <ul>
+                                                                        <li><i class="fa fa-plus"></i> <label> <input
+                                                                                    id="node-0-3-1" data-id="custom-3-1"
+                                                                                    type="checkbox">
+                                                                                node-0-3-1</label>
+                                                                            <ul>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-3-1-1"
+                                                                                            data-id="custom-3-1-1"
+                                                                                            type="checkbox">
+                                                                                        node-0-3-1-1</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-3-1-2"
+                                                                                            data-id="custom-3-1-2"
+                                                                                            type="checkbox">
+                                                                                        node-0-3-1-2</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-3-1-3"
+                                                                                            data-id="custom-3-1-3"
+                                                                                            type="checkbox">
+                                                                                        node-0-3-1-3</label>
+                                                                                </li>
+                                                                            </ul>
+                                                                        </li>
+                                                                        <li><i class="fa fa-plus"></i> <label> <input
+                                                                                    id="node-0-3-2" data-id="custom-3-2"
+                                                                                    type="checkbox">
+                                                                                node-0-3-2</label>
+                                                                            <ul>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-3-2-1"
+                                                                                            data-id="custom-3-2-1"
+                                                                                            type="checkbox">
+                                                                                        node-0-3-2-1</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-3-2-2"
+                                                                                            data-id="custom-3-2-2"
+                                                                                            type="checkbox">
+                                                                                        node-0-3-2-2</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-3-2-3"
+                                                                                            data-id="custom-3-2-3"
+                                                                                            type="checkbox">
+                                                                                        node-0-3-2-3</label>
+                                                                                </li>
+                                                                            </ul>
+                                                                        </li>
+                                                                        <li><i class="fa fa-plus"></i> <label> <input
+                                                                                    id="node-0-3-3" data-id="custom-3-3"
+                                                                                    type="checkbox">
+                                                                                node-0-3-3</label>
+                                                                            <ul>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-3-3-1"
+                                                                                            data-id="custom-3-3-1"
+                                                                                            type="checkbox">
+                                                                                        node-0-3-3-1</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-3-3-2"
+                                                                                            data-id="custom-3-3-2"
+                                                                                            type="checkbox">
+                                                                                        node-0-3-3-2</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-3-3-3"
+                                                                                            data-id="custom-3-3-3"
+                                                                                            type="checkbox">
+                                                                                        node-0-3-3-3</label>
+                                                                                </li>
+                                                                            </ul>
+                                                                        </li>
+                                                                        <li><i class="fa fa-plus"></i> <label> <input
+                                                                                    id="node-0-3-4" data-id="custom-3-4"
+                                                                                    type="checkbox">
+                                                                                node-0-3-4</label>
+                                                                            <ul>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-3-4-1"
+                                                                                            data-id="custom-3-4-1"
+                                                                                            type="checkbox">
+                                                                                        node-0-3-4-1</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-3-4-2"
+                                                                                            data-id="custom-3-4-2"
+                                                                                            type="checkbox">
+                                                                                        node-0-3-4-2</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-3-4-3"
+                                                                                            data-id="custom-3-4-3"
+                                                                                            type="checkbox">
+                                                                                        node-0-3-4-3</label>
+                                                                                </li>
+                                                                            </ul>
+                                                                        </li>
+                                                                    </ul>
+                                                                </li>
+                                                                <li><i class="fa fa-plus"></i> <label> <input id="node-0-4"
+                                                                            data-id="custom-4" type="checkbox">
+                                                                        node-0-4</label>
+                                                                    <ul>
+                                                                        <li><i class="fa fa-plus"></i> <label> <input
+                                                                                    id="node-0-4-1" data-id="custom-4-1"
+                                                                                    type="checkbox">
+                                                                                node-0-4-1</label>
+                                                                            <ul>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-4-1-1"
+                                                                                            data-id="custom-4-1-1"
+                                                                                            type="checkbox">
+                                                                                        node-0-4-1-1</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-4-1-2"
+                                                                                            data-id="custom-4-1-2"
+                                                                                            type="checkbox">
+                                                                                        node-0-4-1-2</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-4-1-3"
+                                                                                            data-id="custom-4-1-3"
+                                                                                            type="checkbox">
+                                                                                        node-0-4-1-3</label>
+                                                                                </li>
+                                                                            </ul>
+                                                                        </li>
+                                                                        <li><i class="fa fa-plus"></i> <label> <input
+                                                                                    id="node-0-4-2" data-id="custom-4-2"
+                                                                                    type="checkbox">
+                                                                                node-0-4-2</label>
+                                                                            <ul>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-4-2-1"
+                                                                                            data-id="custom-4-2-1"
+                                                                                            type="checkbox">
+                                                                                        node-0-4-2-1</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-4-2-2"
+                                                                                            data-id="custom-4-2-2"
+                                                                                            type="checkbox">
+                                                                                        node-0-4-2-2</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-4-2-3"
+                                                                                            data-id="custom-4-2-3"
+                                                                                            type="checkbox">
+                                                                                        node-0-4-2-3</label>
+                                                                                </li>
+                                                                            </ul>
+                                                                        </li>
+                                                                        <li><i class="fa fa-plus"></i> <label> <input
+                                                                                    id="node-0-4-3" data-id="custom-4-3"
+                                                                                    type="checkbox">
+                                                                                node-0-4-3</label>
+                                                                            <ul>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-4-3-1"
+                                                                                            data-id="custom-4-3-1"
+                                                                                            type="checkbox">
+                                                                                        node-0-4-3-1</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-4-3-2"
+                                                                                            data-id="custom-4-3-2"
+                                                                                            type="checkbox">
+                                                                                        node-0-4-3-2</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-4-3-3"
+                                                                                            data-id="custom-4-3-3"
+                                                                                            type="checkbox">
+                                                                                        node-0-4-3-3</label>
+                                                                                </li>
+                                                                            </ul>
+                                                                        </li>
+                                                                        <li><i class="fa fa-plus"></i> <label> <input
+                                                                                    id="node-0-4-4" data-id="custom-4-4"
+                                                                                    type="checkbox">
+                                                                                node-0-4-4</label>
+                                                                            <ul>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-4-4-1"
+                                                                                            data-id="custom-4-4-1"
+                                                                                            type="checkbox">
+                                                                                        node-0-4-4-1</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-4-4-2"
+                                                                                            data-id="custom-4-4-2"
+                                                                                            type="checkbox">
+                                                                                        node-0-4-4-2</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-4-4-3"
+                                                                                            data-id="custom-4-4-3"
+                                                                                            type="checkbox">
+                                                                                        node-0-4-4-3</label>
+                                                                                </li>
+                                                                            </ul>
+                                                                        </li>
+                                                                    </ul>
+                                                                </li>
+                                                                <li><i class="fa fa-plus"></i> <label> <input id="node-0-5"
+                                                                            data-id="custom-5" type="checkbox">
+                                                                        node-0-5</label>
+                                                                    <ul>
+                                                                        <li><i class="fa fa-plus"></i> <label> <input
+                                                                                    id="node-0-5-1" data-id="custom-5-1"
+                                                                                    type="checkbox">
+                                                                                node-0-5-1</label>
+                                                                            <ul>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-5-1-1"
+                                                                                            data-id="custom-5-1-1"
+                                                                                            type="checkbox">
+                                                                                        node-0-5-1-1</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-5-1-2"
+                                                                                            data-id="custom-5-1-2"
+                                                                                            type="checkbox">
+                                                                                        node-0-5-1-2</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-5-1-3"
+                                                                                            data-id="custom-5-1-3"
+                                                                                            type="checkbox">
+                                                                                        node-0-5-1-3</label>
+                                                                                </li>
+                                                                            </ul>
+                                                                        </li>
+                                                                        <li><i class="fa fa-plus"></i> <label> <input
+                                                                                    id="node-0-5-2" data-id="custom-5-2"
+                                                                                    type="checkbox">
+                                                                                node-0-5-2</label>
+                                                                            <ul>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-5-2-1"
+                                                                                            data-id="custom-5-2-1"
+                                                                                            type="checkbox">
+                                                                                        node-0-5-2-1</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-5-2-2"
+                                                                                            data-id="custom-5-2-2"
+                                                                                            type="checkbox">
+                                                                                        node-0-5-2-2</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-5-2-3"
+                                                                                            data-id="custom-5-2-3"
+                                                                                            type="checkbox">
+                                                                                        node-0-5-2-3</label>
+                                                                                </li>
+                                                                            </ul>
+                                                                        </li>
+                                                                        <li><i class="fa fa-plus"></i> <label> <input
+                                                                                    id="node-0-5-3" data-id="custom-5-3"
+                                                                                    type="checkbox">
+                                                                                node-0-5-3</label>
+                                                                            <ul>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-5-3-1"
+                                                                                            data-id="custom-5-3-1"
+                                                                                            type="checkbox">
+                                                                                        node-0-5-3-1</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-5-3-2"
+                                                                                            data-id="custom-5-3-2"
+                                                                                            type="checkbox">
+                                                                                        node-0-5-3-2</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-5-3-3"
+                                                                                            data-id="custom-5-3-3"
+                                                                                            type="checkbox">
+                                                                                        node-0-5-3-3</label>
+                                                                                </li>
+                                                                            </ul>
+                                                                        </li>
+                                                                        <li><i class="fa fa-plus"></i> <label> <input
+                                                                                    id="node-0-5-4" data-id="custom-5-4"
+                                                                                    type="checkbox">
+                                                                                node-0-5-4</label>
+                                                                            <ul>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-5-4-1"
+                                                                                            data-id="custom-5-4-1"
+                                                                                            type="checkbox">
+                                                                                        node-0-5-4-1</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-5-4-2"
+                                                                                            data-id="custom-5-4-2"
+                                                                                            type="checkbox">
+                                                                                        node-0-5-4-2</label>
+                                                                                </li>
+                                                                                <li><label> <input
+                                                                                            class="hummingbirdNoParent"
+                                                                                            id="node-0-5-4-3"
+                                                                                            data-id="custom-5-4-3"
+                                                                                            type="checkbox">
+                                                                                        node-0-5-4-3</label>
+                                                                                </li>
+                                                                            </ul>
+                                                                        </li>
+                                                                    </ul>
+                                                                </li>
+                                                            </ul>
+                                                        </li>
+                                                        <li><i class="fa fa-plus"></i> <label> <input id="node-1"
+                                                                    data-id="custom-1" type="checkbox"> node-1</label>
+                                                            <ul>
+                                                                <li><label> <input class="hummingbirdNoParent" id="node-1-1"
+                                                                            data-id="custom-1-1" type="checkbox">
+                                                                        node-1-1</label>
+                                                                </li>
+                                                                <li><label> <input class="hummingbirdNoParent" id="node-1-2"
+                                                                            data-id="custom-1-2" type="checkbox">
+                                                                        node-1-2</label>
+                                                                </li>
+                                                                <li><label> <input class="hummingbirdNoParent" id="node-1-3"
+                                                                            data-id="custom-1-3" type="checkbox">
+                                                                        node-1-3</label>
+                                                                </li>
+                                                                <li><label> <input class="hummingbirdNoParent" id="node-1-4"
+                                                                            data-id="custom-1-4" type="checkbox">
+                                                                        node-1-4</label>
+                                                                </li>
+                                                                <li><label> <input class="hummingbirdNoParent" id="node-1-5"
+                                                                            data-id="custom-1-5" type="checkbox">
+                                                                        node-1-5</label>
+                                                                </li>
+                                                            </ul>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                                <button class="btn btn-primary" id="checkAll">Check All</button>
+                                                <button class="btn btn-primary" id="uncheckAll">Uncheck All</button>
+                                                <button class="btn btn-primary" id="collapseAll">Collapse All</button>
+                                                <button class="btn btn-danger" id="expendAll">Expend All</button>
+                                            </div>
                                         </ul>
                                     </div>
-                                    <button class="btn btn-primary" id="checkAll">Check All</button>
-                                    <button class="btn btn-primary" id="uncheckAll">Uncheck All</button>
-                                    <button class="btn btn-primary" id="collapseAll">Collapse All</button>
-                                    <button class="btn btn-danger" id="expendAll">Expend All</button>
                                 </div>
-                              </ul>
+                                <h3 class="accordion-header" id="flush-headingTwo">
+                                    <button class="accordion-button collapsed treeview-button" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#second-treeview" aria-expanded="false"
+                                        aria-controls="second-treeview">항목2</button>
+                                </h3>
+                                <div class="collapse" id="second-treeview">
+                                    <div class="card card-body">
+                                        <ul>
+                                            <li><a href="#">Menu 4</a></li>
+                                            <li><a href="#">Menu 5</a></li>
+                                            <li><a href="#">Menu 6</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
-                          </div>
-                          <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#second-treeview" aria-expanded="false" aria-controls="second-treeview">
-                            두번째 대 항목(이후 동일...)
-                          </button>
-                          <div class="collapse" id="second-treeview">
-                            <div class="card card-body">
-                              <ul>
-                                  <li><a href="#">Menu 4</a></li>
-                                  <li><a href="#">Menu 5</a></li>
-                                  <li><a href="#">Menu 6</a></li>
-                              </ul>
-                            </div>
-                          </div>
+                        </div>
                     </div>
-                    <div class="bottom-area">bottom area</div>
+                </div>
+                <div class="bottom-area collapse collapse-horizontal show" id="bottom-sidebar">
+                    <div id="bottom-sidebar-content">푸?터</div>
                 </div>
             </div>
             <div class="col flex-fill flex-grow-1" id="map-container">
-                <a href="#" data-bs-target="#sidebar" data-bs-toggle="collapse" class="border text-decoration-none" id="sidebar-toggle-button"><i class="fa fa-angle-left" aria-hidden="true"></i></a>
-                <div id="map"></div>
+                <a href="#" data-bs-target="#sidebar" data-bs-toggle="collapse" class="border text-decoration-none"
+                    id="sidebar-toggle-button"><i class="fa fa-angle-left" aria-hidden="true"></i></a>
+                <div id="map-body">
+                    <div id="map"></div>
+                    <div id="map-info-container">
+                        <div id="map-info-coordinate"><span>14123658.12, 4513950.36</span></div>
+                        <div id="map-info-address"><span>서울특별시 양천구 목동</span></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -521,6 +738,11 @@
         $('#sidebar').on('shown.bs.collapse', function () {
             $("#sidebar-toggle-button i").removeClass('fa fa-angle-right').addClass('fa fa-angle-left');
         });
+
+        $("#sidebar-toggle-button").on("click", function(){
+            $("#bottom-sidebar").collapse('toggle')
+            $("#top-sidebar").collapse('toggle')
+        })
 
         $('#sidebar').on('hidden.bs.collapse', function () {
             $("#sidebar-toggle-button i").removeClass('fa fa-angle-left').addClass('fa fa-angle-right');

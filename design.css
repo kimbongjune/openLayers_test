@@ -1,7 +1,31 @@
 #sidebar-nav {
     width: 300px;
-    margin-bottom: 5vh;
     padding-right: 15px;
+    height: auto;
+    position: relative;
+    min-height: 90vh;
+}
+
+#bottom-sidebar-content,#top-sidebar-content{
+    width: 300px;
+}
+
+.hummingbird-treeview {
+    font-size: 15px;
+}
+
+#treeview_container *{
+    font-size: 15px;
+}
+
+#treeview_container > .hummingbird-base{
+    padding: 0px;
+    margin-top: 0.3rem;
+    margin-bottom: 0.3rem;
+}
+
+.vh-90{
+    height: 90vh !important;
 }
 
 .collapse-horizontal{
@@ -30,17 +54,17 @@
 
 .top-area{
     height: 5vh !important;
-    position: sticky;
+    position: relative;
     top: 0;
 }
 
 .bottom-area{
     height: 5vh !important;
-    position: fixed;
-    bottom: 0;
+    position: relative;
 }
 
 #sidebar-toggle-button{
+    background: var(--bs-light);
     position: absolute;
     width: 20px;
     display: block;
@@ -51,18 +75,48 @@
 }
 
 #map-container {
-    min-width: 200px;
     padding: 0;
     position: relative;
     min-height: 100vh;
 }
 
-#map {
+#map-body {
     position: absolute;
     top: 0;
     right: 0;
     bottom: 0;
     left: 20px;
+}
+
+#map{
+    width: 100%;
+    height: 96%;
+}
+
+#map-info-container{
+    width: 100%;
+    height: 4%;
+    background: #7b98bc;
+    border-top: 2px solid white;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+#map-info-coordinate, #map-info-address {
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    margin-left: 20px;
+}
+
+#map-info-coordinate span, #map-info-address span {
+    display: flex;
+    align-items: center;
 }
 
 #first-treeview-card{
@@ -73,4 +127,22 @@
 #first-treeview-card > ul{
     padding: 0;
     margin: 0;
+}
+
+.accordion-header{
+    border-top: 1px solid var(--bs-light-border-subtle);
+    border-bottom: 1px solid var(--bs-light-border-subtle);
+}
+
+.accordion-header > .treeview-button{
+    background-color: var(--ol-accent-background-color);
+    padding: var(--bs-border-radius-lg) var(--bs-accordion-btn-padding-x);
+}
+
+.collapse > .card{
+    border-radius: 0px;
+}
+
+.collapsing > .card{
+    border-radius: 0px;
 }
