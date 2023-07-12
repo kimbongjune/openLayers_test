@@ -3464,20 +3464,3 @@ printControl.on(['print', 'error'], function(e) {
       console.warn('No canvas to export');
     }
   });
-
-  //TODO 체크박스를 하나 생성하고 체크박스 체크 시 magnify 오버레이를 넣으면 될듯, layer에는 현재 지도의 레이어를 전부 순회해서 type이 map인 애들만 가져다가 넣으면 될듯 함
-  var magnify = new ol.Overlay.Magnify({
-    layers: [
-        new ol.layer.Tile({
-            source: new ol.source.XYZ({
-                url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Base/{z}/{y}/{x}.png`,
-                serverType: "geoserver",
-                crossOrigin: "anonymous",
-            }),
-            preload: Infinity,
-        }),
-    ],
-    zoomOffset: 1
-  });
-
-  map.addOverlay(magnify);
