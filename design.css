@@ -1,0 +1,76 @@
+#sidebar-nav {
+    width: 300px;
+    margin-bottom: 5vh;
+    padding-right: 15px;
+}
+
+.collapse-horizontal{
+    width: 300px;
+}
+#sidebar{
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+#sidebar::-webkit-scrollbar {
+    width: 15px;
+}
+
+#sidebar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+#sidebar::-webkit-scrollbar-thumb {
+    background: #888;
+}
+
+#sidebar::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.top-area{
+    height: 5vh !important;
+    position: sticky;
+    top: 0;
+}
+
+.bottom-area{
+    height: 5vh !important;
+    position: fixed;
+    bottom: 0;
+}
+
+#sidebar-toggle-button{
+    position: absolute;
+    width: 20px;
+    display: block;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#map-container {
+    min-width: 200px;
+    padding: 0;
+    position: relative;
+    min-height: 100vh;
+}
+
+#map {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 20px;
+}
+
+#first-treeview-card{
+    padding: 0;
+    margin: 0;
+}
+
+#first-treeview-card > ul{
+    padding: 0;
+    margin: 0;
+}
