@@ -10,14 +10,6 @@
     width: 300px;
 }
 
-.hummingbird-treeview {
-    font-size: 15px;
-}
-
-#treeview_container *{
-    font-size: 15px;
-}
-
 #treeview_container > .hummingbird-base{
     padding: 0px;
     margin-top: 0.3rem;
@@ -91,6 +83,7 @@
 #map{
     width: 100%;
     height: 96%;
+    padding: 0.1em 0.1em 0px 0px;
 }
 
 #map-info-container{
@@ -145,4 +138,60 @@
 
 .collapsing > .card{
     border-radius: 0px;
+}
+
+#treeview{
+    vertical-align: middle;
+}
+
+.nav-item{
+    flex: 1;
+}
+
+.nav-item > button{
+    width: 100%;
+    height: 5vh;
+    font-size: 12px;
+}
+
+.search-container{
+    padding: 0 0.5rem;
+    border-radius: 2px;
+    margin-bottom: 1rem;
+}
+
+.input-group-append > .serach-button{
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+#search-category-tab > li {
+    height: 100%;
+}
+
+#search-category-tab > li > button {
+    font-size : 11px;
+    padding: 0px;
+    height: 100%;
+}
+
+#bottom-sidebar-content{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    width: 100%;
+    height: 2.5rem;
+}
+
+#bottom-sidebar-content > .nav-tabs{
+    width: 100%;
+    height: 100%;
+}
+
+.search-addres-result-text{
+    margin : 0.3rem;
+    font-size: 0.9rem;
+}
+
+.search-address-result-table{
+    margin-top: 1rem;
 }
