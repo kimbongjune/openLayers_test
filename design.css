@@ -89,7 +89,7 @@
 #map-info-container{
     width: 100%;
     height: 4%;
-    background: #7b98bc;
+    background: var(--bs-info-text-emphasis);
     border-top: 2px solid white;
     display: flex;
     justify-content: flex-start;
@@ -193,8 +193,12 @@
     font-size: 0.9rem;
 }
 
-.search-address-result-table{
+.all-result{
     margin-top: 1.2rem;
+}
+
+.accordion > .search-address-result-table{
+    margin-bottom: 0px;
 }
 
 th{
@@ -230,4 +234,40 @@ th{
 
 .address-result > tbody > tr > .address-name, .district-result > tbody > tr > .address-name, .road-result > tbody > tr > .address-name{
     padding: 0 1rem;
+}
+
+#second-treeview{
+    padding: 0.3rem;
+}
+
+.thematic-map-item{
+    margin-top: 1rem;
+}
+
+.thematic-map-item > ul > li{
+    margin: 0 0.5rem;
+}
+
+.thematic-map-item > ul{
+    align-items: center;
+}
+
+.thematic-map-item > ul > li > i{
+    font-size: 1.35rem;
+}
+
+.thematic-map-item > ul > li > i:hover{
+    cursor: pointer;
+}
+
+table{
+    table-layout: fixed;
+}
+
+table > thead > tr{
+    font-size: 14px;
+}
+
+td > a{
+    text-decoration-line: blink;
 }
