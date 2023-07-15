@@ -81,7 +81,7 @@
 <body>
     <div class="container-fluid">
         <div class="row flex-nowrap">
-            <div class="col-auto px-0">
+            <div class="col-auto px-0" id="left-sidebar-containser">
                 <div class="top-area collapse collapse-horizontal show" id="top-sidebar">
                     <div id="top-sidebar-content">
                         <ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -114,8 +114,8 @@
                                         <ul id="basic-thematic-map-node" class="ztree"></ul>
                                         <nav aria-label="Page navigation example" class="basic-thematic-map-item thematic-map-item">
                                             <ul class="pagination pagination-sm justify-content-center">
-                                              <li class="page-item" title="모두 체크" id="basic-thematic-map-treeview-check-all"><i class="text-success bi bi-clipboard-check" href="#"></i></li>
-                                              <li class="page-item" title="모두 체크해제" id="basic-thematic-map-treeview-uncheck-all"><i class="text-danger bi bi-clipboard" href="#"></i></li>
+                                                <li class="page-item" title="모두 체크" id="basic-thematic-map-treeview-check-all"><i class="text-success bi bi-check-lg" href="#"></i></li>
+                                                <li class="page-item" title="모두 체크해제" id="basic-thematic-map-treeview-uncheck-all"><i class="text-danger bi bi-x-lg" href="#"></i></li>
                                               <li class="page-item" title="모두 펼치기" id="basic-thematic-map-treeview-expand-all"><i class="text-primary bi bi-arrows-angle-expand" href="#"></i></li>
                                               <li class="page-item" title="모두 접기" id="basic-thematic-map-treeview-collapse-all"><i class="text-primary bi bi-arrows-angle-contract" href="#"></i></li>
                                             </ul>
@@ -131,8 +131,8 @@
                                         <ul id="administractive-thematic-map-node" class="ztree"></ul>
                                         <nav aria-label="Page navigation example" class="administractive-thematic-map-item thematic-map-item">
                                             <ul class="pagination pagination-sm justify-content-center">
-                                              <li class="page-item" title="모두 체크" id="administractive-thematic-map-treeview-check-all"><i class="text-success bi bi-clipboard-check" href="#"></i></li>
-                                              <li class="page-item" title="모두 체크해제" id="administractive-thematic-map-treeview-uncheck-all"><i class="text-danger bi bi-clipboard" href="#"></i></li>
+                                              <li class="page-item" title="모두 체크" id="administractive-thematic-map-treeview-check-all"><i class="text-success bi bi-check-lg" href="#"></i></li>
+                                              <li class="page-item" title="모두 체크해제" id="administractive-thematic-map-treeview-uncheck-all"><i class="text-danger bi bi-x-lg" href="#"></i></li>
                                               <li class="page-item" title="모두 펼치기" id="administractive-thematic-map-treeview-expand-all"><i class="text-primary bi bi-arrows-angle-expand" href="#"></i></li>
                                               <li class="page-item" title="모두 접기" id="administractive-thematic-map-treeview-collapse-all"><i class="text-primary bi bi-arrows-angle-contract" href="#"></i></li>
                                             </ul>
@@ -148,11 +148,11 @@
                                 <input class="form-control border-end-0 border" type="search" placeholder="주소 검색" id="example-search-input">
                                 <span class="input-group-append">
                                     <button class="btn btn-outline-secondary bg-white border ms-n5 serach-button" type="button">
-                                        <i class="fa fa-search"></i>
+                                        <i class="bi bi-search"></i>
                                     </button>
                                 </span>
                             </div>
-                            <div id="bottom-sidebar-content">
+                            <div id="middle-sidebar-content">
                                 <ul class="nav nav-tabs" id="search-category-tab" role="tablist">
                                     <li class="nav-item" role="presentation">
                                         <button class="nav-link active" id="all-tab" data-bs-toggle="tab"
@@ -464,15 +464,53 @@
                     </div>
                 </div>
                 <div class="bottom-area collapse collapse-horizontal show" id="bottom-sidebar">
-                    <div id="bottom-sidebar-content">푸?터</div>
+                    <div id="bottom-sidebar-content">
+                        <div class="p-1 w-100">
+                            <div class="row layer-selector-container">
+                                <div class="col w-100">
+                                    <select class="form-select layer-selector w-100">
+                                        <option value="none">스와이프 레이어 선택</option>
+                                        <option value="default">기본 지도 레이어</option>
+                                        <option value="aerial">항공 사진 레이어</option>
+                                        <option value="gray">회색 지도 레이어</option>
+                                        <option value="night">야간 지도 레이어</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="offcanvas offcanvas-end route-containser" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1" id="offcanvasScrolling" aria-labelledby="offcanvasScrollingLabel">
+                <div class="offcanvas-header">
+                  <h5 class="offcanvas-title" id="offcanvasScrollingLabel">경로탐색 결과</h5>
+                </div>
+                <div class="offcanvas-body">
+                  <p>경로탐색 데이터</p>
                 </div>
             </div>
             <div class="col flex-fill flex-grow-1" id="map-container">
                 <a href="#" data-bs-target="#sidebar" data-bs-toggle="collapse" class="border text-decoration-none"
-                    id="sidebar-toggle-button"><i class="fa fa-angle-left" aria-hidden="true"></i></a>
+                    id="sidebar-toggle-button"><i class="bi bi-chevron-left" aria-hidden="true"></i></a>
                 <div id="map-body">
-                    <div id="map"></div>
+                    <div id="map">
+                        <button class="btn" id="route-result-toggle-button" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling" aria-controls="offcanvasScrolling">
+                            <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                        </button>
+                    </div>
                     <div id="map-info-container">
+                        <div id="map-info-coordinate-system"><span class="fw-normal">좌표계</span></div>
+                            <div class="row coordinate-system-selector-container">
+                                <div class="col">
+                                    <select class="form-select coordinate-system-selector">
+                                        <option value="EPSG:3857">Web Mercator(EPSG:3857)</option>
+                                        <option value="EPSG:4326">WGS84(EPSG:4326)</option>
+                                        <option value="EPSG:5178">KATEC(EPSG:5178)</option>
+                                        <option value="EPSG:5179">TMK(EPSG:5179)</option>
+                                        <option value="EPSG:5181">UTM-K(EPSG:5181)</option>
+                                    </select>
+                                </div>
+                            </div>
                         <div id="map-info-coordinate"><span class="fw-normal">14123658.12, 4513950.36</span></div>
                         <div id="map-info-address"><span class="fw-normal">서울특별시 양천구 목동</span></div>
                     </div>
@@ -483,8 +521,9 @@
 </body>
 <script>
     $(document).ready(function() {
-        $('#sidebar').on('shown.bs.collapse', function () {
-            $("#sidebar-toggle-button i").removeClass('fa fa-angle-right').addClass('fa fa-angle-left');
+        //collapse 메뉴가 나타나고 사라질 때 컨트롤 버튼의 아이콘을 변경하는 코드
+        $('#sidebar').on('show.bs.collapse', function () {
+            $("#sidebar-toggle-button i").removeClass('bi bi-chevron-right').addClass('bi bi-chevron-left');
         });
 
         $("#sidebar-toggle-button").on("click", function(){
@@ -492,41 +531,21 @@
             $("#top-sidebar").collapse('toggle')
         })
 
-        $('#sidebar').on('hidden.bs.collapse', function () {
-            $("#sidebar-toggle-button i").removeClass('fa fa-angle-left').addClass('fa fa-angle-right');
+        $('#sidebar').on('hide.bs.collapse', function () {
+            $("#sidebar-toggle-button i").removeClass('bi bi-chevron-left').addClass('bi bi-chevron-right');
         });
-        $("#treeview").hummingbird();
 
-        $("#treeview input[type='checkbox']").change(function() {
-        // 체크박스가 체크되었는지 확인
-            if (this.checked) {
-                // 체크박스가 체크되었다면, 체크박스의 id 값을 콘솔에 로그
-                console.log(this.id, "check");
-            }else{
-                console.log(this.id, "uncheck");
-            }
+        //offcanvas 메뉴가 나타나고 사라질 때 컨트롤 버튼의 아이콘을 변경하는 코드
+        $('#offcanvasScrolling').on('show.bs.offcanvas', function () {
+            console.log('Offcanvas is about to be shown');
+            $('#route-result-toggle-button i').removeClass('bi-chevron-left').addClass('bi-x-lg');
+        });
+
+        $('#offcanvasScrolling').on('hide.bs.offcanvas', function () {
+            console.log('Offcanvas is about to be hide');
+            $('#route-result-toggle-button i').removeClass('bi-x-lg').addClass('bi-chevron-left');
         });
     })
-
-    $("#checkAll").click(function() {
-        $("#treeview").hummingbird("checkAll");
-    });
-
-    $("#uncheckAll").click(function() {
-        $("#treeview").hummingbird("uncheckAll");
-    });
-    
-    $("#collapseAll").click(function() {
-        $("#treeview").hummingbird("collapseAll");
-    });
-
-    $("#expendAll").click(function() {
-        $("#treeview").hummingbird("expandAll");
-    });
-
-    $("#treeview").on("nodeChecked", function(e){
-        console.log("node", e)
-    });
 
     //장소 더보기 클릭
     $(".place-more-view").on("click", function(event){
@@ -625,32 +644,72 @@
 
     var administrativeZTreeSetting = {
         check: {
-            enable: true
+            enable: true,
+            autoCheckTrigger: true
         },
         data: {
             simpleData: {
                 enable: true
             }
         },
+        view:{
+            addDiyDom: addDiyDom
+        },
         callback: {
-            onCheck: administrativeNodeChecked
+            onCheck: administrativeNodeChecked,
+            beforeClick : function(treeId, treeNode, clickFlag) {
+                return false;
+            }
         }
     };
 
     var basicZTreeSetting = {
         check: {
-            enable: true
+            enable: true,
+            autoCheckTrigger: true
         },
         data: {
             simpleData: {
                 enable: true
             }
         },
+        view:{
+            addDiyDom: addDiyDom
+        },
         callback: {
-            onCheck: basicNodeChecked
+            onCheck: basicNodeChecked,
+            beforeClick : function(treeId, treeNode, clickFlag) {
+                return false;
+            }
         }
     };
 
+    function addDiyDom(treeId, treeNode){
+        var aObj = $("#" + treeNode.tId + "_span");
+        if ($("#diyBtn_"+treeNode.id).length>0) return;
+        var editStr = "<input type='range' id='diyBtn_space_" +treeNode.id+ "' class='range-input'/>";
+        aObj.append(editStr);
+        aObj.off('click');  // remove click event
+        var rangeElement = $("#diyBtn_space_" +treeNode.id);
+        rangeElement.on('change', function(e) {
+            console.log(treeNode.tId + "_chk");
+            // 이벤트 핸들러 코드를 여기에 작성하십시오.
+            changeChildrenRange(treeNode, rangeElement.val());
+        });
+    }
+    
+    function changeChildrenRange(treeNode, newValue) {
+        var childrenNodes = treeNode.children;
+        if (childrenNodes) {
+            for (var i = 0; i < childrenNodes.length; i++) {
+                var childNode = childrenNodes[i];
+                var childRangeElement = $("#diyBtn_space_" + childNode.id);
+                childRangeElement.val(newValue); // 부모 노드의 range 값으로 설정
+                console.log(childNode.tId + "_chk");
+                changeChildrenRange(childNode, newValue); // 현재 노드의 자식 노드들도 변경
+            }
+        }
+    }
 
     var administrativeThematicMapNodes = [
         { id:1, pId:0, name:"용도지역", open:true, iconClose : "./resources/img/layer_open.png", iconOpen : "./resources/img/layer_open.png"},
