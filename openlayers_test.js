@@ -150,7 +150,7 @@ routeVectorLayer.setZIndex(10)
 
 map.addLayer(routeVectorLayer);
 
-const info = document.getElementById("info");
+const info = document.getElementById("coordinate");
 const addressInfo = document.getElementById("address");
 const swipe = document.getElementById('swipe');
 
