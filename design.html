@@ -513,6 +513,19 @@
                     id="sidebar-toggle-button"><i class="bi bi-chevron-left" aria-hidden="true"></i></a>
                 <div id="map-body">
                     <div id="map" class="map">
+                        <div class="modal fade" id="videoModal" tabindex="-1" role="dialog" aria-labelledby="videoModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="videoModalLabel">CCTV 영상</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <video id="video" style="display: block; margin: 0 auto;" class="video-js vjs-default-skin" preload="none" crossorigin="true" controls width="640" height="268" controls></video>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <label id="zoom-info">Level: </label>
                         <div class="dropdown">
                             <button class="btn btn-outline-primary dropdown-toggle btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -681,56 +694,8 @@
         tabElement.show();
     })
 
-    //맵의 view 객체 정의
-    // const MAX_ZOOM_LEVEL = 20;
-    // const MIN_ZOOM_LEVEL = 6;
-    // const DEFAULT_ZOOM_LEVEL = 15;
-
-    // //zTree 아이디 변수
     // const ADMINISTRATIVE_THEMATIC_MAP = "ADMINISTRATIVE_THEMATIC_MAP"
     // const BASIC_THEMATIC_MAP = "BASIC_THEMATIC_MAP"
-
-    // var view = new ol.View({
-    //     center: [14128579.82, 4512570.74],
-    //     maxZoom: MAX_ZOOM_LEVEL,
-    //     zoom: DEFAULT_ZOOM_LEVEL,
-    //     minZoom : MIN_ZOOM_LEVEL,
-    //     constrainResolution: true,
-    //     rotation: 0,
-    //     // center: [-8910887.277395891, 5382318.072437216],
-    //     // maxZoom: 19,
-    //     // zoom: 15
-    // });
-
-    // //일반적인 openlayers 맵 객체
-    // var map = new ol.Map({
-    //     target: document.getElementById("map"),
-    //     pixelRatio: 1,
-    //     view: view,
-    //     interactions : ol.interaction.defaults.defaults({
-    //         shiftDragZoom: false
-    //     })
-    // });
-
-    // let VWORLD_API_KEY;
-    // if(window.location.href.includes("192")){
-    //     VWORLD_API_KEY = "055CF644-B04A-3772-BF8A-B31B9CDD6364";
-    // }else{
-    //     VWORLD_API_KEY = "A5C5E9FF-F9FC-3012-9D01-41A62F369AA7";
-    // }
-
-    // const baseLayer = new ol.layer.Tile({
-    //     source: new ol.source.XYZ({
-    //         url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Base/{z}/{y}/{x}.png`,
-    //         serverType: "geoserver",
-    //         crossOrigin: "anonymous",
-    //     }),
-    //     preload: Infinity,
-    //     type : "map"
-    // });
-
-    // //맵에 기본 맵 레이어 추가
-    // map.addLayer(baseLayer);
 
     var administrativeZTreeSetting = {
         check: {
@@ -777,14 +742,16 @@
     function addDiyDom(treeId, treeNode){
         var aObj = $("#" + treeNode.tId + "_span");
         if ($("#diyBtn_"+treeNode.id).length>0) return;
-        var editStr = "<input type='range' id='diyBtn_space_" +treeNode.id+ "' class='range-input'/>";
+        var editStr = "<input type='range' id='diyBtn_space_" +treeNode.id+ "' class='range-input' min='0' max='1' step='0.01' value='1' />";
         aObj.append(editStr);
         aObj.off('click');  // remove click event
         var rangeElement = $("#diyBtn_space_" +treeNode.id);
-        rangeElement.on('change', function(e) {
-            console.log(treeNode.tId + "_chk");
+        rangeElement.on('input', function(e) {
             // 이벤트 핸들러 코드를 여기에 작성하십시오.
-            changeChildrenRange(treeNode, rangeElement.val());
+            const rangeValue = e.target.value
+            //console.log(treeNode, rangeValue);
+            layerOpacityChage(treeNode, rangeValue)
+            changeChildrenRange(treeNode, rangeValue);
         });
     }
     
@@ -795,7 +762,8 @@
                 var childNode = childrenNodes[i];
                 var childRangeElement = $("#diyBtn_space_" + childNode.id);
                 childRangeElement.val(newValue); // 부모 노드의 range 값으로 설정
-                console.log(childNode.tId + "_chk");
+                //console.log(childNode, newValue);
+                layerOpacityChage(childNode, newValue)
                 changeChildrenRange(childNode, newValue); // 현재 노드의 자식 노드들도 변경
             }
         }
@@ -834,8 +802,50 @@
         console.log(treeNode);  // 체크된 노드에 대한 데이터가 출력됩니다.
     }
 
+    //기본수치지도의 체크박스 체크 이벤트
     function basicNodeChecked(event, treeId, treeNode) {
-        console.log(treeNode);  // 체크된 노드에 대한 데이터가 출력됩니다.
+        //자식이 있는 노드에는 이벤트를 발생시키지 않는다.
+        if(treeNode.children){
+            return;
+        }
+        switch(treeNode.id){
+            case 31 :{
+                radarLayerChange(treeNode.checked)
+                break;
+            }
+            case 32 :{
+                cctvLayerChange(treeNode.checked)
+                break;
+            }
+            case 33 :{
+                roadLayerChange(treeNode.checked)
+                break;
+            }
+            case 34 :{
+                buildLayerChange(treeNode.checked)
+                break;
+            }
+            case 35 :{
+                cadastralLayerChange(treeNode.checked)
+                break;
+            }
+            case 41 :{
+                sidoLayerChange(treeNode.checked)
+                break;
+            }
+            case 42 :{
+                sigunLayerChange(treeNode.checked)
+                break;
+            }
+            case 43 :{
+                dongLayerChange(treeNode.checked)
+                break;
+            }
+            case 44 :{
+                riLayerChange(treeNode.checked)
+                break;
+            }
+        }
     }
 
 
