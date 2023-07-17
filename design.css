@@ -241,6 +241,11 @@
     align-items: stretch;
     width: 100%;
     height: 2.5rem;
+    display: none;
+}
+
+#address-content{
+    display: none;
 }
 
 #middle-sidebar-content  > .nav-tabs{
