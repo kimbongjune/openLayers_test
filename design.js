@@ -1,3 +1,8 @@
+proj4.defs("EPSG:5178","+proj=tmerc +lat_0=38 +lon_0=127.5 +k=0.9996 +x_0=500000 +y_0=2000000 +ellps=GRS80 +units=m +no_defs");
+proj4.defs("EPSG:5179","+proj=tmerc +lat_0=38 +lon_0=127.5 +k=0.9996 +x_0=500000 +y_0=2000000 +ellps=GRS80 +units=m +no_defs");
+proj4.defs("EPSG:5181","+proj=utm +zone=52 +ellps=GRS80 +units=m +no_defs");
+ol.proj.proj4.register(proj4);
+
 //맵의 view 객체 정의
 const MAX_ZOOM_LEVEL = 20;
 const MIN_ZOOM_LEVEL = 6;
@@ -178,14 +183,14 @@ function setInteraction() {
     });
 
     let layerExtent = vectorSource.getExtent();
-    console.log(event.features)
+    //console.log(event.features)
 
-    for(var i = 0 ; i < event.features.length; i ++){
-        event.features[i].set("attribute", "import")
-        event.features[i].getKeys().forEach(key =>{
-            console.log(key,":", event.features[i].get(key))
-        })
-    }
+    // for(var i = 0 ; i < event.features.length; i ++){
+    //     event.features[i].set("attribute", "import")
+    //     event.features[i].getKeys().forEach(key =>{
+    //         console.log(key,":", event.features[i].get(key))
+    //     })
+    // }
     // Check if the layer is within Korea
     if (!ol.extent.intersects(layerExtent, koreaExtent)) {
         alert("한국이 아닌 지형의 파일은 레이어를 추가할 수 없습니다.")
@@ -212,7 +217,7 @@ map.addInteraction(dragBox);
 
 dragBox.on('boxend', function (evt) {
     const boxExtent = dragBox.getGeometry().getExtent();
-    console.log("박스 그리기 끝", boxExtent)
+    //console.log("박스 그리기 끝", boxExtent)
     // var url = 'https://api.vworld.kr/req/data?';
     // url += 'service=data';
     // url += '&request=GetFeature';
@@ -305,7 +310,7 @@ dragBox.on('boxend', function (evt) {
 })
 
 dragBox.on('boxstart', function () {
-    console.log("박스 그리기 시작")
+    //console.log("박스 그리기 시작")
 });
 
 var customCondition = function(mapBrowserEvent) {
@@ -346,9 +351,9 @@ var extentInteraction = new ol.interaction.Extent({
 extentInteraction.on('extentchanged', function (event) {
     var extent = extentInteraction.getExtent();
     if ($(areaCheckbox).is(":checked") || $(measureCheckbox).is(":checked") || $(areaCircleCheckbox).is(":checked")){
-        console.log($(areaCheckbox).is(":checked"))
-        console.log($(measureCheckbox).is(":checked"))
-        console.log($(areaCheckbox).is(":checked"))
+        // console.log($(areaCheckbox).is(":checked"))
+        // console.log($(measureCheckbox).is(":checked"))
+        // console.log($(areaCheckbox).is(":checked"))
         return;
     }
     //console.log(extentInteraction)
@@ -541,7 +546,8 @@ map.on('loadstart', function () {
 //지도 객체가 로드가 완료되었을때 동작하는 이벤트
 map.on('loadend', function () {
     const center = view.getCenter();
-    info.innerHTML = formatCoordinate(center, null);
+    var selectedValue = $(".coordinate-system-selector").val();
+    info.innerHTML = formatCoordinate(center, "EPSG:3857", selectedValue);
     var zoomLevel = map.getView().getZoom();
     zoomInfo.innerHTML = `level: ${zoomLevel}`;
     map.getTargetElement().classList.remove('spinner');
@@ -634,10 +640,6 @@ var selectCluster = new ol.interaction.SelectCluster({
 var clickCurrentLayer;
 var clickCurrentOverlay
 
-selectCluster.on('select', function(e) {
-    console.log("?")
-});
-
 selectCluster.getFeatures().on(['add'], function (e)
 {
     var originalFeatures = e.element.get('features');
@@ -645,7 +647,7 @@ selectCluster.getFeatures().on(['add'], function (e)
         e.stopPropagation()
         return;
     }
-    console.log("@", originalFeatures)
+    //console.log("@", originalFeatures)
     var overlayElement = document.createElement('div');
     overlayElement.className = "ol-popup";
 
@@ -720,7 +722,7 @@ map.on("click", function (evt) {
             for (var i = 0; i < originalFeatures.length; i++) {
                 if (originalFeatures[i].get('cctvFeature')) {
                     cctvFound == false ? cctvFound = true : cctvFound = true
-                    console.log(originalFeatures[i]);
+                    //console.log(originalFeatures[i]);
                 }
             }
         }
@@ -749,7 +751,7 @@ map.on("click", function (evt) {
         async : false,
         jsonpCallback: 'callback',
         success: function(data) {
-            console.log(data)
+            //console.log(data)
             if(data.response.status != "OK"){
                 return;
             }
@@ -922,8 +924,9 @@ map.on("moveend", function (evt) {
     }
 });
 
-function formatCoordinate(coordinate, targetCoordinateSystem) {
-    return `${coordinate[0].toFixed(5)}, ${coordinate[1].toFixed(5)}`;
+function formatCoordinate(coordinate, beforCoordinateSystem, targetCoordinateSystem) {
+    let changedCoordinate = ol.proj.transform(coordinate, beforCoordinateSystem, targetCoordinateSystem)
+    return `${changedCoordinate[0].toFixed(5)}, ${changedCoordinate[1].toFixed(5)}`;
 }
 
 var drawPolygon;
@@ -1029,7 +1032,7 @@ function addLineInteraction() {
             );
             var deleteButton = measureTooltipElement.querySelector(".delete-btn");
     
-            console.log(sketch.getGeometry().getCoordinates())
+            //console.log(sketch.getGeometry().getCoordinates())
             //searchRouteSummury(sketch.getGeometry().getCoordinates())
     
             deleteButton.addEventListener("click", function () {
@@ -1336,12 +1339,11 @@ function addCircleInteraction() {
 
     circle.on("drawend", function (evt) {
         var geom = evt.target;
-        console.log(geom);
+        //console.log(geom);
         var coordinateLength = geom.sketchCoords_.length;
         //console.log(sketch.getGeometry())
         if (coordinateLength < 2) {
             setTimeout(function () {
-                console.log("S");
                 cricleSource.removeFeature(evt.feature);
                 map.removeOverlay(circleTooltip);
             }, 0);
@@ -1501,7 +1503,7 @@ function uncheckedCheckBox(selectCheckBox) {
 }
 
 document.getElementById("measureCheckbox").addEventListener("change", function () {
-    console.log($(".measure"));
+    //console.log($(".measure"));
     if (this.checked) {
         uncheckedCheckBox(this);
         addLineInteraction();
@@ -1518,7 +1520,7 @@ document.getElementById("measureCheckbox").addEventListener("change", function (
 window.addEventListener("keydown", function (event) {
     if (event.key === "Escape") {
         if (draw) {
-            console.log(draw);
+            //console.log(draw);
             draw.finishDrawing();
             if (measureTooltipElement) {
                 measureTooltipElement.parentNode.removeChild(
@@ -1563,14 +1565,14 @@ $("#color-picker").spectrum({
     showButtons: true,
     showAlpha: true,
     change: function (color) {
-        console.log("change");
-        console.log(color.toRgbString());
+        //console.log("change");
+        //console.log(color.toRgbString());
     },
     show: function (color) {
-        console.log("show");
+        //console.log("show");
     },
     move: function (color) {
-        console.log("move");
+        //console.log("move");
     },
 });
 
@@ -1621,14 +1623,14 @@ function searchRouteSummury(startFeature, endFeature, routeFlag) {
     $.ajax(
         requestUrl
     ).done(function (data) {
-        console.log(data)
+        //console.log(data)
         let instructions = data.routes[0].legs[0].steps
             .map(step => `<a data-coordinate="${ol.proj.transform(step.maneuver.location, "EPSG:4326", "EPSG:3857")}" href="#">${step.maneuver.type == "depart" ? "시작점" : step.maneuver.type == "arrive" ? "도착점" : ""}${step.maneuver.modifier} ${step.name} ${step.distance}m</a>`) // instruction 추출
             .join('<br>');
         let instructionsElement = document.getElementById('sidenav');
         instructionsElement.innerHTML = ""
-        instructionsElement.innerHTML = `<h2>${startFeature.get("address")} -><br> ${endFeature.get("address")}</h2>`
-        instructionsElement.innerHTML += `<h3>${convertMetersToKilometersAndMeters(data.routes[0].distance)}, ${convertSecondsToHoursAndMinutes(data.routes[0].duration)}</h3>`;
+        instructionsElement.innerHTML = `<h4>${startFeature.get("address")} -><br> ${endFeature.get("address")}</h4>`
+        instructionsElement.innerHTML += `<h5>${convertMetersToKilometersAndMeters(data.routes[0].distance)}, ${convertSecondsToHoursAndMinutes(data.routes[0].duration)}</h5>`;
         instructionsElement.innerHTML += instructions;
         let coordinates = data.routes[0].geometry.coordinates.map(c => ol.proj.transform(c, 'EPSG:4326', 'EPSG:3857'));
 
@@ -1673,7 +1675,7 @@ function searchRouteSummury(startFeature, endFeature, routeFlag) {
         });
         startLineFeature.setStyle(lineStyle)
 
-        console.log(osrmStart, startFeature.getGeometry().getCoordinates())
+        //console.log(osrmStart, startFeature.getGeometry().getCoordinates())
         
         // 사용자가 선택한 종료지점과 OSRM이 계산한 종료지점 사이에 선을 그림
         var endLineString = new ol.geom.LineString([osrmEnd, endFeature.getGeometry().getCoordinates()]);
@@ -1742,10 +1744,9 @@ function searchRouteSummury(startFeature, endFeature, routeFlag) {
                 padding: [200, 200, 200, 200],  // 상, 우, 하, 좌 방향으로의 패딩
             });
 
-            var element = document.getElementById("nav-button");
-            console.log(element.classList)
-            if (element.classList.contains("open")) {
-                document.getElementById("nav-button").click()
+            var element = document.getElementById("offcanvasScrolling");
+            if (!element.classList.contains("show")) {
+                document.getElementById("route-result-toggle-button").click()
             } else {
                 
             }
@@ -1903,7 +1904,7 @@ contextmenu.on('beforeopen', function (evt) {
     if ($(areaCheckbox).is(":checked") ||$(measureCheckbox).is(":checked") ||$(areaCircleCheckbox).is(":checked")){
         contextmenu.disable();
         if (draw) {
-            console.log(draw);
+            //console.log(draw);
             draw.finishDrawing();
             if (measureTooltipElement) {
                 measureTooltipElement.parentNode.removeChild(measureTooltipElement);
@@ -1953,13 +1954,15 @@ contextmenu.on('open', function (evt) {
         captureItem[2].data = { extent: extentInteraction.getExtent() };
         contextmenu.extend(captureItem);
     } else {
-        console.log(evt.coordinate)
+        var selectedValue = $(".coordinate-system-selector").val();
         let coord4326 = ol.proj.transform(evt.coordinate, "EPSG:3857", "EPSG:4326");
+        let coordinate = ol.proj.transform(evt.coordinate, "EPSG:3857", selectedValue);
+        //console.log(coordinate);
         let address = reverseGeoCoding(coord4326[0], coord4326[1])
         contextmenu.clear();
         contextmenuItems[3].data = { address : address}
         contextmenu.extend(contextmenuItems);
-        document.querySelector('.ol-coordinate').innerText = `${coord4326[0]},\n${coord4326[1]}\n${address}`;
+        document.querySelector('.ol-coordinate').innerText = `${coordinate[0]},\n${coordinate[1]}\n${address}`;
         //contextmenu.extend(contextmenu.getDefaultItems());
     }
 });
@@ -2004,7 +2007,8 @@ var captureItem = [
 //지도 위에서 마우스가 이동할 때 발생하는 이벤트 길이와 면적 측정시 마우스 커서를 변경하고, 지도 위에 특정 레이어가 존재한다면 커서를 변경한다.
 map.on("pointermove", function (e) {
     const center = view.getCenter();
-    info.innerHTML = formatCoordinate(center, null);
+    var selectedValue = $(".coordinate-system-selector").val();
+    info.innerHTML = formatCoordinate(center, "EPSG:3857", selectedValue);
     if (e.dragging) return;
 
     var pixel = map.getEventPixel(e.originalEvent);
@@ -2046,7 +2050,7 @@ function addBookMark(obj){
     })
     document.getElementById("form-control-address").innerText = obj.data.address
     modal.toggle()
-    console.log(obj)
+    //console.log(obj)
 }
 
 //특정 영역의 이미지 캡쳐를 위한 함수
@@ -2057,7 +2061,7 @@ function imageCapture() {
 //특정 영역만큼으로 줌을 당기는 함수
 function zoomExntent(obj) {
     //view.setConstrainResolution(false)
-    console.log(obj.data.extent)
+    //console.log(obj.data.extent)
     map.getView().fit(obj.data.extent, map.getSize()); 
     //view.setConstrainResolution(true)
 }
@@ -2158,22 +2162,22 @@ function startMarker(obj) {
     var endFeature = features.find(feature => feature.get('attribute') === 'end');
     if (endFeature) {
         var endCoordinates = endFeature.getGeometry().getCoordinates();
-        console.log("시작지점 지점 좌표",obj.coordinate)
-        console.log("끝 지점 좌표",endCoordinates);
-        console.log(obj.coordinate.concat(endCoordinates))
+        // console.log("시작지점 지점 좌표",obj.coordinate)
+        // console.log("끝 지점 좌표",endCoordinates);
+        // console.log(obj.coordinate.concat(endCoordinates))
 
         var selectElement = document.querySelector('.form-select-sm');
         var selectedOption = selectElement.value;
         searchRouteSummury(feature, endFeature, selectedOption)
         
-        console.log('Current selected option:', selectedOption);
-        console.log("시작 마커를 찍었고 끝지점의 마커도 존재한다")
+        // console.log('Current selected option:', selectedOption);
+        // console.log("시작 마커를 찍었고 끝지점의 마커도 존재한다")
     }
 }
 
 function endMarker(obj) {
     map.getOverlays().getArray().slice(0).forEach(function(overlay) {
-        console.log("@")
+        //console.log("@")
         if (overlay.get('type') === 'route') {
             map.removeOverlay(overlay) ;
         }
@@ -2221,8 +2225,8 @@ function endMarker(obj) {
 
         searchRouteSummury(startFeature, feature, selectedOption)
 
-        console.log('Current selected option:', selectedOption);
-        console.log("끝 마커를 찍었고 시작 지점의 마커도 존재한다")
+        // console.log('Current selected option:', selectedOption);
+        // console.log("끝 마커를 찍었고 시작 지점의 마커도 존재한다")
     }
 }
 
@@ -2338,7 +2342,7 @@ document.getElementById("current-position").addEventListener("click", function (
         navigator.geolocation.getCurrentPosition(position =>{
             const { latitude, longitude } = position.coords;
             const coordinate = ol.proj.transform([longitude, latitude], 'EPSG:4326', 'EPSG:3857');
-            console.log(coordinate)
+            //console.log(coordinate)
             map.getView().setCenter(coordinate);
             if(map.getView().getZoom() < 14){
                 map.getView().setZoom(14)
@@ -2396,7 +2400,7 @@ function reverseGeoCoding(coordinateX, coordinateY){
             }
         },
         error: function(xhr, status, error){ 
-            console.log(error, status)
+            //console.log(error, status)
 			result = "주소를 찾을 수 없습니다."
 		}
     });
@@ -2541,12 +2545,12 @@ $(document).ready(function(){
 $('#bookmark-container').on('click', '.olControlBookmarkLink', function() {
     var index = $('.olControlBookmarkLink').index(this);
     var storageKey = $('.olControlBookmarkLink').eq(index).text();
-    console.log('Clicked link at index: ', index);
-    console.log(storageKey);
+    // console.log('Clicked link at index: ', index);
+    // console.log(storageKey);
 
     const value = JSON.parse(window.localStorage.getItem(`bookmark-${storageKey}`));
 
-    console.log(value)
+    //console.log(value)
 
     map.getView().setCenter([value.x, value.y]);
 
@@ -2573,7 +2577,6 @@ $('#bookmark-container').on('click', '.olControlBookmarkRemove', function() {
 $('ul.dropdown-menu a.dropdown-item').click(function(e) {
     e.preventDefault(); // This will prevent the default action of the a tag
     const clickedId = this.id;
-    console.log("?")
     // Add active class to clicked a tag and remove from others
     $('ul.dropdown-menu a.dropdown-item').removeClass('active');
     $(this).addClass('active');
@@ -2606,7 +2609,7 @@ $('ul.dropdown-menu a.dropdown-item').click(function(e) {
             map.addLayer(midnightLayer)
             break;
         default:
-            console.log("Invalid map type");
+            //console.log("Invalid map type");
     }
     map.renderSync()
 });
@@ -2652,7 +2655,7 @@ document.querySelectorAll('input[name="map-layer"]').forEach((elem) => {
     if($(this).val() != ""){
         searchAddress($(this).val())
     }
-    console.log('Value changed to:', $(this).val());
+    //console.log('Value changed to:', $(this).val());
 });
 
 // document.getElementById("nav-button").addEventListener("click", function (e) {
@@ -2675,7 +2678,6 @@ document.querySelector('#sidenav').addEventListener('mouseover', function (event
         var customValue = event.target.getAttribute('data-coordinate');
 
         const coordinates = customValue.split(',').map(Number);
-        console.log(coordinates)
         var x = parseFloat(coordinates[0]);
         var y = parseFloat(coordinates[1]);
 
@@ -2696,7 +2698,6 @@ document.querySelector('#sidenav').addEventListener('mouseout', function (event)
 document.querySelector('#sidenav').addEventListener('click', function (event) {
     if(event.target.tagName === 'A') {
         var customValue = event.target.getAttribute('data-coordinate');
-        console.log('Mouse over: ' + customValue);
 
         const coords = customValue.split(',').map(Number);
         map.getView().animate({
@@ -2736,15 +2737,14 @@ function convertMetersToKilometersAndMeters(totalMeters) {
 //경로탐색 셀렉트박스의 값이 변경될 때 발생하는 이벤트
 document.querySelector('.form-select-sm').addEventListener('change', function(e) {
     var selectedOption = e.target.value;
-    console.log('Selected option:', selectedOption);
+    //console.log('Selected option:', selectedOption);
 
     var source = vectorLayer.getSource();
     var features = source.getFeatures();
     var startFeature = features.find(feature => feature.get('attribute') === 'start');
     var endFeature = features.find(feature => feature.get('attribute') === 'end');
-    console.log(startFeature, endFeature)
+    //console.log(startFeature, endFeature)
     if(startFeature && endFeature){
-        console.log("@@@@@@")
         map.getOverlays().getArray().slice(0).forEach(function(overlay) {
             if (overlay.get('type') === 'route') {
                 map.removeOverlay(overlay) ;
@@ -2764,14 +2764,13 @@ document.querySelector('.form-select-sm').addEventListener('change', function(e)
 var clusterLayer
 
 // Handle checkbox change event
-// document.getElementById('cctv-checkbox').addEventListener('change', function(e) {
-//     if (e.target.checked) {
-//         e.target.disabled = true;
-//         addCctvLayer(e)
-//     }else{
-//         removeCctvLayer()
-//     }
-// });
+function cctvLayerChange(e) {
+    if (e) {
+        addCctvLayer(e)
+    }else{
+        removeCctvLayer()
+    }
+}
 
 function addCctvLayer(e){
     var view = map.getView();
@@ -2784,10 +2783,8 @@ function addCctvLayer(e){
     
     //대한민국 전역을 Extent로 잡기 위해 좌표를 고정하였음
     const extent4326 = ol.proj.transformExtent([12135411.855562285, 3470787.4316931707, 15481519.205774158, 5197652.774711872], 'EPSG:3857', 'EPSG:4326')
-    console.log(extent4326)
 
 
-    console.log(extent);
         // var url = 'https://api.vworld.kr/req/data?'; // Replace with actual CCTV API URL
         // url += 'service=data';
         // url += '&version=2.0';
@@ -2809,7 +2806,6 @@ function addCctvLayer(e){
         url += `&maxY=${extent4326[3]}`;
         url += `&getType=json`;
         url += `&apiKey=12a08608b49a43f0a4f4a6fb1d838d8b`
-        console.log(url)
         // Add geomFilter if you want to limit CCTV data to a certain area
 
         $.ajax({
@@ -2818,8 +2814,8 @@ function addCctvLayer(e){
             // dataType: "jsonp",
             // async : false,
             success: function(data) {
-                e.target.disabled = false;
-                console.log(data.response.datacount)
+                //e.target.disabled = false;
+                //console.log(data.response.datacount)
                 if(data.response.datacount <= 0){
                     return;
                 }
@@ -2855,10 +2851,10 @@ function addCctvLayer(e){
                 map.addLayer(clusterLayer);
             },
             error: function(xhr, stat, err) {
-                console.log('Error fetching CCTV data:', err);
+                //console.log('Error fetching CCTV data:', err);
                 alert("CCTV api 호출에 실패하였습니다.")
-                e.target.checked = false;
-                e.target.disabled = false;
+                //e.target.checked = false;
+                //e.target.disabled = false;
             }
         });
 }
@@ -2908,99 +2904,99 @@ $(document).on('mouseenter', 'span.cctv-name', function() {
 
 
 //기상 레이더 레이어 체크박스 이벤트
-// document.getElementById('radar-checkbox').addEventListener('change', function(e) {
-//     if (this.checked) {
-//         e.target.disabled = true;
-//         var url = 'http://apis.data.go.kr/1360000/RadarObsInfoService/getNationalRadarRn';
+function radarLayerChange(e) {
+    if (e) {
+        //e.target.disabled = true;
+        var url = 'http://apis.data.go.kr/1360000/RadarObsInfoService/getNationalRadarRn';
     
-//         // 파라미터 설정
-//         var serviceKey = "myYHhhNxJO5zGLT39cjBldHCap4TWme/JU4ubw5WcPfX0CX5CIFLuEA6N0zH115SujHcKBLUbGsxo/Nn8jIVDw==";
-//         var pageNo = 1;
-//         var numOfRows = 10;
-//         var dataType = 'json';
-//         var qcType = 'NQC'; // 실제 값을 지정하세요
-//         var compType = 'M'; // 실제 값을 지정하세요
-//         var dateTime = getTwentyMinutesBefore(); // 실제 값을 지정하세요
+        // 파라미터 설정
+        var serviceKey = "myYHhhNxJO5zGLT39cjBldHCap4TWme/JU4ubw5WcPfX0CX5CIFLuEA6N0zH115SujHcKBLUbGsxo/Nn8jIVDw==";
+        var pageNo = 1;
+        var numOfRows = 10;
+        var dataType = 'json';
+        var qcType = 'NQC'; // 실제 값을 지정하세요
+        var compType = 'M'; // 실제 값을 지정하세요
+        var dateTime = getTwentyMinutesBefore(); // 실제 값을 지정하세요
 
-//         if(webGlVectorLayer){
-//             map.removeLayer(webGlVectorLayer)
-//         }
-//         // AJAX 호출
-//         $.ajax({
-//             url: url,
-//             method: 'GET',
-//             data: {
-//                 ServiceKey: serviceKey,
-//                 pageNo: pageNo,
-//                 numOfRows: numOfRows,
-//                 dataType: dataType,
-//                 qcType: qcType,
-//                 compType: compType,
-//                 dateTime: dateTime
-//             },
-//             success: function(data) {
-//                 // API 응답 데이터 처리
-//                 console.log(data);
-//                 if(data.response.header == undefined){
-//                     e.target.checked = false;
-//                     e.target.disabled = false;
-//                     return alert("api 호출 에러")
-//                 }
-//                 if(data.response.header.resultCode != "00"){
-//                     e.target.checked = false;
-//                     e.target.disabled = false;
-//                     return alert("api 호출 에러")
-//                 }
-//                 $("#legend").css("display", "block")
-//                 var csvData = decodeCAPPIData(data.response.body.items.item[0].cappiCompressData)
+        if(webGlVectorLayer){
+            map.removeLayer(webGlVectorLayer)
+        }
+        // AJAX 호출
+        $.ajax({
+            url: url,
+            method: 'GET',
+            data: {
+                ServiceKey: serviceKey,
+                pageNo: pageNo,
+                numOfRows: numOfRows,
+                dataType: dataType,
+                qcType: qcType,
+                compType: compType,
+                dateTime: dateTime
+            },
+            success: function(data) {
+                // API 응답 데이터 처리
+                //console.log(data);
+                if(data.response.header == undefined){
+                    e.target.checked = false;
+                    e.target.disabled = false;
+                    return alert("api 호출 에러")
+                }
+                if(data.response.header.resultCode != "00"){
+                    e.target.checked = false;
+                    e.target.disabled = false;
+                    return alert("api 호출 에러")
+                }
+                //$("#legend").css("display", "block")
+                var csvData = decodeCAPPIData(data.response.body.items.item[0].cappiCompressData)
 
-//                 var startLon = data.response.body.items.item[0].lon;
-//                 var startLat = data.response.body.items.item[0].lat;
-//                 var gridKm = data.response.body.items.item[0].gridKm;
+                var startLon = data.response.body.items.item[0].lon;
+                var startLat = data.response.body.items.item[0].lat;
+                var gridKm = data.response.body.items.item[0].gridKm;
 
-//                 var xdim = data.response.body.items.item[0].xdim;
-//                 var ydim = data.response.body.items.item[0].ydim
+                var xdim = data.response.body.items.item[0].xdim;
+                var ydim = data.response.body.items.item[0].ydim
 
-//                 var altitude = data.response.body.items.item[0].altitudeKm
+                var altitude = data.response.body.items.item[0].altitudeKm
 
-//                 var dataWithCoords = assignCoordinates(startLon, startLat, gridKm, csvData, xdim, ydim, altitude);
+                var dataWithCoords = assignCoordinates(startLon, startLat, gridKm, csvData, xdim, ydim, altitude);
 
-//                 var geojsonData = toGeoJSON(dataWithCoords);
+                var geojsonData = toGeoJSON(dataWithCoords);
 
-//                 var geoJsonFeatures = geojsonFormat.readFeatures(geojsonData, {
-//                     dataProjection: 'EPSG:4326',
-//                     featureProjection: 'EPSG:3857'
-//                 });
+                var geoJsonFeatures = geojsonFormat.readFeatures(geojsonData, {
+                    dataProjection: 'EPSG:4326',
+                    featureProjection: 'EPSG:3857'
+                });
 
-//                 var getJsonSource = new ol.source.Vector({
-//                     features: geoJsonFeatures
-//                 });
+                var getJsonSource = new ol.source.Vector({
+                    features: geoJsonFeatures
+                });
 
-//                 webGlVectorLayer = new ol.layer.WebGLPoints({
-//                     preload: Infinity,
-//                     source: getJsonSource,
-//                     style: webGlStyle,
-//                     blur: 2,
-//                 });
-//                 webGlVectorLayer.setZIndex(5)
-//                 map.addLayer(webGlVectorLayer);
-//                 e.target.disabled = false;
-//             },
-//             error: function(error) {
-//                 // 오류 처리
-//                 e.target.checked = false;
-//                 e.target.disabled = false;
-//                 alert("레이더 api 호출에 실패하였습니다.")
-//                 console.log(error);
-//             }
-//         });
-//     }else{
-//         $("#legend").css("display", "none")
-//         if(webGlVectorLayer){
-//             map.removeLayer(webGlVectorLayer)
-//         }
-//     }
-// });
+                webGlVectorLayer = new ol.layer.WebGLPoints({
+                    preload: Infinity,
+                    source: getJsonSource,
+                    style: webGlStyle,
+                    blur: 2,
+                });
+                webGlVectorLayer.setZIndex(5)
+                map.addLayer(webGlVectorLayer);
+                //e.target.disabled = false;
+            },
+            error: function(error) {
+                // 오류 처리
+                //e.target.checked = false;
+                //e.target.disabled = false;
+                alert("레이더 api 호출에 실패하였습니다.")
+                //console.log(error);
+            }
+        });
+    }else{
+        //$("#legend").css("display", "none")
+        if(webGlVectorLayer){
+            map.removeLayer(webGlVectorLayer)
+        }
+    }
+}
 
 //base64로 인코딩되고, 압축되어있는 csv 데이터를 디코딩하고 압축을 해제하는 함수 2차원 배열로 반환된다.
 function decodeCAPPIData(cappiCompressData) {
@@ -3109,114 +3105,116 @@ function toGeoJSON(data) {
 
 
 //건물 레이어 체크박스 이벤트
-// document.getElementById('building-checkbox').addEventListener('change', function() {
-//     if (this.checked) {
-//         if(buildingLayer){
-//             map.removeLayer(buildingLayer)
-//             buildingLayer = null;
-//         }
-//         buildingLayer = requestWmsLayer(BUILDING_LAYER_ID)
-//     }else{
-//         if(buildingLayer){
-//             map.removeLayer(buildingLayer)
-//             buildingLayer = null;
-//         }
-//     }
-// })
+function buildLayerChange(e) {
+    if (e) {
+        if(buildingLayer){
+            map.removeLayer(buildingLayer)
+            buildingLayer = null;
+        }
+        buildingLayer = requestWmsLayer(BUILDING_LAYER_ID)
+    }else{
+        if(buildingLayer){
+            map.removeLayer(buildingLayer)
+            buildingLayer = null;
+        }
+    }
+}
 
 //시도 경계 레이어 체크박스 이벤트
-// document.getElementById('sido-checkbox').addEventListener('change', function() {
-//     if (this.checked) {
-//         if(sidoLayer){
-//             map.removeLayer(sidoLayer)
-//             sidoLayer = null;
-//         }
-//         sidoLayer = requestWmsLayer(SIDO_LAYER_ID)
-//     }else{
-//         if(sidoLayer){
-//             map.removeLayer(sidoLayer)
-//             sidoLayer = null;
-//         }
-//     }
-// })
+function sidoLayerChange(e) {
+    if (e) {
+        if(sidoLayer){
+            map.removeLayer(sidoLayer)
+            sidoLayer = null;
+        }
+        sidoLayer = requestWmsLayer(SIDO_LAYER_ID)
+    }else{
+        if(sidoLayer){
+            map.removeLayer(sidoLayer)
+            sidoLayer = null;
+        }
+    }
+}
 
 //시 군 구 경계 레이어 체크박스 이벤트
-// document.getElementById('sigungu-checkbox').addEventListener('change', function() {
-//     if (this.checked) {
-//         if(sigunguLayer){
-//             map.removeLayer(sigunguLayer)
-//             sigunguLayer = null;
-//         }
-//         sigunguLayer = requestWmsLayer(SIGUNGU_LAYER_ID)
-//     }else{
-//         if(sigunguLayer){
-//             map.removeLayer(sigunguLayer)
-//             sigunguLayer = null;
-//         }
-//     }
-// })
+function sigunLayerChange(e) {
+    if (e) {
+        if(sigunguLayer){
+            map.removeLayer(sigunguLayer)
+            sigunguLayer = null;
+        }
+        sigunguLayer = requestWmsLayer(SIGUNGU_LAYER_ID)
+    }else{
+        if(sigunguLayer){
+            map.removeLayer(sigunguLayer)
+            sigunguLayer = null;
+        }
+    }
+}
 
 //읍 면 동 경계 레이어 체크박스 이벤트
-// document.getElementById('myeondong-checkbox').addEventListener('change', function() {
-//     if (this.checked) {
-//         if(myeondongLayer){
-//             map.removeLayer(myeondongLayer)
-//             myeondongLayer = null;
-//         }
-//         myeondongLayer = requestWmsLayer(MYEONDONG_LAYER_ID)
-//     }else{
-//         if(myeondongLayer){
-//             map.removeLayer(myeondongLayer)
-//             myeondongLayer = null;
-//         }
-//     }
-// })
+function dongLayerChange(e) {
+    if (e) {
+        if(myeondongLayer){
+            map.removeLayer(myeondongLayer)
+            myeondongLayer = null;
+        }
+        myeondongLayer = requestWmsLayer(MYEONDONG_LAYER_ID)
+    }else{
+        if(myeondongLayer){
+            map.removeLayer(myeondongLayer)
+            myeondongLayer = null;
+        }
+    }
+}
 
 //리 경계 레이어 체크박스 이벤트
-// document.getElementById('ri-checkbox').addEventListener('change', function() {
-//     if (this.checked) {
-//         if(riLayer){
-//             map.removeLayer(riLayer)
-//             riLayer = null;
-//         }
-//         riLayer = requestWmsLayer(RI_LAYER_ID)
-//     }else{
-//         if(riLayer){
-//             map.removeLayer(riLayer)
-//             riLayer = null;
-//         }
-//     }
-// })
+function riLayerChange(e) {
+    if (e) {
+        if(riLayer){
+            map.removeLayer(riLayer)
+            riLayer = null;
+        }
+        riLayer = requestWmsLayer(RI_LAYER_ID)
+    }else{
+        if(riLayer){
+            map.removeLayer(riLayer)
+            riLayer = null;
+        }
+    }
+}
 
-// document.getElementById('road-checkbox').addEventListener('change', function() {
-//     if (this.checked) {
-//         if(roadLayer){
-//             map.removeLayer(roadLayer)
-//             roadLayer = null;
-//         }
-//         roadLayer = requestWmsLayer(ROAD_LAYER_ID)
-//     }else{
-//         if(roadLayer){
-//             map.removeLayer(roadLayer)
-//             roadLayer = null;
-//         }
-//     }
-// })
+//전국 도로 레이어 체크박스 이벤트
+function roadLayerChange(e) {
+    if (e) {
+        if(roadLayer){
+            map.removeLayer(roadLayer)
+            roadLayer = null;
+        }
+        roadLayer = requestWmsLayer(ROAD_LAYER_ID)
+    }else{
+        if(roadLayer){
+            map.removeLayer(roadLayer)
+            roadLayer = null;
+        }
+    }
+}
 
-// document.getElementById('cadastral-map-checkbox').addEventListener('change', function() {
-//     if (this.checked) {
-//         if(cadastralMapLayer){
-//             map.removeLayer(cadastralMapLayer)
-//             cadastralMapLayer = null;
-//         }
-//         cadastralMapLayer = requestWmsLayer(CADASTRAL_MAP_LAYER_ID)
-//     }else{
-//         if(cadastralMapLayer){
-//             map.removeLayer(cadastralMapLayer)
-//             cadastralMapLayer = null;
-//         }
-//     }
-// })
+//연속지적도 레이어 체크박스 이벤트
+function cadastralLayerChange(e) {
+    if (e) {
+        if(cadastralMapLayer){
+            map.removeLayer(cadastralMapLayer)
+            cadastralMapLayer = null;
+        }
+        cadastralMapLayer = requestWmsLayer(CADASTRAL_MAP_LAYER_ID)
+    }else{
+        if(cadastralMapLayer){
+            map.removeLayer(cadastralMapLayer)
+            cadastralMapLayer = null;
+        }
+    }
+}
 
 // document.getElementById('mountaion-fire-map-checkbox').addEventListener('change', function() {
 //     if (this.checked) {
@@ -3278,6 +3276,7 @@ document.getElementById('map-graticule-checkbox').addEventListener('change', fun
               showLabels: true,
               wrapX: false,
         })
+        graticuleLayer.setZIndex(5)
         map.addLayer(graticuleLayer)
     }else{
         if(graticuleLayer){
@@ -3289,7 +3288,7 @@ document.getElementById('map-graticule-checkbox').addEventListener('change', fun
 
 //vworld wms api 호출 공통 함수
 function requestWmsLayer(layerId, layerIndex = 5){
-    console.log(document.getElementById('map').offsetWidth, document.getElementById('map').offsetHeight)
+    //console.log(document.getElementById('map').offsetWidth, document.getElementById('map').offsetHeight)
     let layer = new ol.layer.Image({
         name: layerId, //vmap 올린 레이어를 삭제하거나 수정,변경할때 접근할 name 속성
         projection: "EPSG:3857",
@@ -3311,7 +3310,6 @@ function requestWmsLayer(layerId, layerIndex = 5){
         })
     });
     layer.setZIndex(layerIndex);
-    console.log(layer)
     map.addLayer(layer);
 
     return layer;
@@ -3407,7 +3405,6 @@ document.getElementById('mapLayerSelect').addEventListener('change', function() 
         return;
     }
     map.addLayer(swipeLayer)
-    console.log(swipeLayer.getZIndex())
     swipeLayer.on('prerender', function (event) {
         const ctx = event.context;
         const mapSize = map.getSize();
@@ -3433,7 +3430,6 @@ document.getElementById('mapLayerSelect').addEventListener('change', function() 
 });
 
 swipe.addEventListener('input', function () {
-    console.log("?")
     map.render();
 });
 
@@ -3446,13 +3442,8 @@ printControl.setSize('A4');
 map.addControl(printControl);
 
 printControl.on("show", function(){
-    console.log("?")
     extentInteraction.setActive(false)
     map.removeInteraction(dragBox);
-
-    console.log(map.getView().getZoom())
-    console.log(map.getView().getCenter())
-    console.log(map.getView().getRotation())
 
     const storageObject = {
         zoomLevel : map.getView().getZoom(),
@@ -3465,7 +3456,6 @@ printControl.on("show", function(){
 })
 
 printControl.on("hide", function(){
-    console.log("@")
     extentInteraction.setActive(true)
     map.addInteraction(dragBox);
     contextmenu.enable();
@@ -3478,7 +3468,6 @@ printControl.on("hide", function(){
   
   /* On print > save image file */
 printControl.on(['print', 'error'], function(e) {
-    console.log("?")
     // Print success
     if (e.image) {
       if (e.pdf) {
@@ -3501,3 +3490,99 @@ printControl.on(['print', 'error'], function(e) {
       console.warn('No canvas to export');
     }
   });
+
+$('.coordinate-system-selector').change(function() {
+    const prevValue = $(this).data('prevValue');
+    const selectedValue = $(this).val();
+
+    if(contextmenu.isOpen()){
+        let li = $('.ol-coordinate');
+        let htmlContent = li.html();
+        let htmlLines = htmlContent.split("<br>");
+        let address = htmlLines[2];
+        let newCoordinates = ol.proj.transform([parseFloat(htmlLines[0]), parseFloat(htmlLines[1])], prevValue, selectedValue);
+        htmlLines[0] = `${newCoordinates[0]},`;
+        htmlLines[1] = newCoordinates[1];
+        htmlLines[2] = address;
+        li.html(htmlLines.join("<br>"));
+    }
+
+    let coordinateValue = $("#coordinate").text().split(",")
+    info.innerHTML = formatCoordinate([parseFloat(coordinateValue[0]), parseFloat(coordinateValue[1])], prevValue, selectedValue);
+
+    $(this).data('prevValue', selectedValue);
+    
+}).data('prevValue', $('.coordinate-system-selector').val()); 
+
+
+function layerOpacityChage(treeNode, opacity){
+    if(treeNode.children){
+        return;
+    }
+    var opacityInt = parseFloat(Number(opacity))
+    switch(treeNode.id){
+        case 31 :{
+            if(webGlVectorLayer){
+                webGlVectorLayer.setOpacity(opacityInt)
+            }
+            //radarLayerChange(treeNode.checked)
+            break;
+        }
+        case 32 :{
+            if(clusterLayer){
+                clusterLayer.setOpacity(opacityInt)
+            }
+            //cctvLayerChange(treeNode.checked)
+            break;
+        }
+        case 33 :{
+            if(roadLayer){
+                roadLayer.setOpacity(opacityInt)
+            }
+            //roadLayerChange(treeNode.checked)
+            break;
+        }
+        case 34 :{
+            if(buildingLayer){
+                buildingLayer.setOpacity(opacityInt)
+            }
+            //buildLayerChange(treeNode.checked)
+            break;
+        }
+        case 35 :{
+            if(cadastralMapLayer){
+                cadastralMapLayer.setOpacity(opacityInt)
+            }
+            //cadastralLayerChange(treeNode.checked)
+            break;
+        }
+        case 41 :{
+            if(sidoLayer){
+                sidoLayer.setOpacity(opacityInt)
+            }
+            //sidoLayerChange(treeNode.checked)
+            break;
+        }
+        case 42 :{
+            if(sigunguLayer){
+                sigunguLayer.setOpacity(opacityInt)
+            }
+            //sigunLayerChange(treeNode.checked)
+            break;
+        }
+        case 43 :{
+            if(myeondongLayer){
+                myeondongLayer.setOpacity(opacityInt)
+            }
+            //dongLayerChange(treeNode.checked)
+            break;
+        }
+        case 44 :{
+            if(riLayer){
+                riLayer.setOpacity(opacityInt)
+            }
+            //riLayerChange(treeNode.checked)
+            break;
+        }
+    }
+}
