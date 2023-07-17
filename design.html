@@ -141,9 +141,9 @@
                                 <h4>주소 서비스</h4>
                             </div>
                             <div class="input-group search-container">
-                                <input class="form-control border-end-0 border" type="search" placeholder="주소 검색" id="example-search-input">
+                                <input class="form-control border-end-0 border" type="search" placeholder="주소 검색" id="search-input">
                                 <span class="input-group-append">
-                                    <button class="btn btn-outline-secondary bg-white border ms-n5 serach-button" type="button">
+                                    <button class="btn btn-outline-secondary bg-white border ms-n5 serach-button" type="button" id="serach-button">
                                         <i class="bi bi-search"></i>
                                     </button>
                                 </span>
@@ -177,129 +177,32 @@
                                     </li>
                                 </ul>
                             </div>
-                            <div class="tab-content">
+                            <div class="tab-content" id="address-content">
                                 <div class="accordion accordion-flush tab-pane fade show active" id="all-tab-pane" aria-labelledby="all-tab" tabindex="1">
                                     <p class="search-addres-result-text text-sm-start text-secondary">
                                         <span class="text-danger">"한누리대로 2130"</span> 검색결과 : <span class="text-danger">4건</span>
                                     </p>
-                                    <table class="table table-sm search-address-result-table all-result">
-                                        <thead>
-                                            <tr>
-                                                <td scope="col">장소</td>
-                                                <td scope="col" class="text-danger search-place-count">1건</td>
-                                                <td>
-                                                    <a href="#" class="link-secondary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover place-more-view">
-                                                        <span>더보기</span>
-                                                        <i class="bi bi-chevron-right"></i>
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr class="address-table-first-child"></tr>
-                                            <tr>
-                                                <td scope="row" colspan="3" class="address-name">
-                                                    <span>세종 시청</span>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td scope="row" colspan="3" class="address-category">
-                                                    <span>건물 > 관공서</span>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td scope="row" colspan="3" class="address-parcel">
-                                                    <div class="badge bg-warning text-wrap" style="width: 3rem;">지번</div>
-                                                    <span>보람동 626-5</span>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td scope="row" colspan="3" class="address-road">
-                                                    <div class="badge bg-primary text-wrap" style="width: 3rem;">도로명</div>
-                                                    <span>세종 한누리대로 2130 세종특별자치시청</span>
-                                                </td>
-                                            </tr>
-                                            <tr class="address-table-last-child"></tr>
-                                        </tbody>
+                                    <table class="table table-sm search-address-result-table all-result" id="all-place-result">
+                                        
                                     </table>
 
-                                    <table class="table table-sm search-address-result-table address-result">
-                                        <thead>
-                                            <tr>
-                                                <td scope="col">주소</td>
-                                                <td scope="col" class="text-danger search-address-count">1건</td>
-                                                <td>
-                                                    <a href="#" class="link-secondary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover address-more-view">
-                                                        <span>더보기</span>
-                                                        <i class="bi bi-chevron-right"></i>
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr class="address-table-first-child"></tr>
-                                            <tr>
-                                                <td scope="row" colspan="3" class="address-name">
-                                                    <span>(30151) 세종특별자치시 한누리대로 2130<br> (보람동)</span>
-                                                </td>
-                                            </tr>
-                                            <tr class="address-table-last-child-md"></tr>
-                                        </tbody>
+                                    <table class="table table-sm search-address-result-table address-result" id="all-address-result">
+                                        
                                     </table>
 
-                                    <table class="table table-sm search-address-result-table district-result">
-                                        <thead>
-                                            <tr>
-                                                <td scope="col">행정구역</th>
-                                                <td scope="col" class="text-danger search-district-count">1건</td>
-                                                <td>
-                                                    <a href="#" class="link-secondary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover district-more-view">
-                                                        <span>더보기</span>
-                                                        <i class="bi bi-chevron-right"></i>
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr class="address-table-first-child"></tr>
-                                            <tr>
-                                                <td scope="row" colspan="3" class="address-name">
-                                                    <span>(3611010300) 세종특별자치시 보람동<br> (보람동)</span>
-                                                </td>
-                                            </tr>
-                                            <tr class="address-table-last-child-md"></tr>
-                                        </tbody>
+                                    <table class="table table-sm search-address-result-table district-result" id="all-district-result">
+                                        
                                     </table>
 
-                                    <table class="table table-sm search-address-result-table road-result">
-                                        <thead>
-                                            <tr>
-                                                <td scope="col">도로명</th>
-                                                <td scope="col" class="text-danger search-road-count">1건</th>
-                                                <td>
-                                                    <a href="#" class="link-secondary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover road-more-view">
-                                                        <span>더보기</span>
-                                                        <i class="bi bi-chevron-right"></i>
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr class="address-table-first-child"></tr>
-                                            <tr>
-                                                <td scope="row" colspan="3" class="address-name">
-                                                    <span>(361102000002) 세종특별자치시 (어진동)...<br> (한누리대로)</span>
-                                                </td>
-                                            </tr>
-                                            <tr class="address-table-last-child-md"></tr>
-                                        </tbody>
+                                    <table class="table table-sm search-address-result-table road-result" id="all-road-result">
+                                        
                                     </table>
                                 </div>
                                 <div class="tab-pane fade" id="place-tab-pane" aria-labelledby="place-tab" tabindex="1">
                                     <p class="search-addres-result-text text-sm-start text-secondary">
                                         <span class="text-danger">"한누리대로 2130"</span> 검색결과 : <span class="text-danger">1건</span>
                                     </p>
-                                    <table class="table table-sm search-address-result-table place-result">
+                                    <table class="table table-sm search-address-result-table place-result" id="place-result">
                                         <tbody>
                                             <tr class="address-table-first-child"></tr>
                                             <tr>
@@ -351,7 +254,7 @@
                                     <p class="search-addres-result-text text-sm-start text-secondary">
                                         <span class="text-danger">"한누리대로 2130"</span> 검색결과 : <span class="text-danger">1건</span>
                                     </p>
-                                    <table class="table table-sm search-address-result-table address-result">
+                                    <table class="table table-sm search-address-result-table address-result" id="address-result">
                                         <tbody>
                                             <tr>
                                                 <td scope="row" colspan="3" class="address-name">
@@ -385,7 +288,7 @@
                                     <p class="search-addres-result-text text-sm-start text-secondary">
                                         <span class="text-danger">"한누리대로 2130"</span> 검색결과 : <span class="text-danger">1건</span>
                                     </p>
-                                    <table class="table table-sm search-address-result-table district-result">
+                                    <table class="table table-sm search-address-result-table district-result" id="district-result">
                                         <tbody>
                                             <tr>
                                                 <td scope="row" colspan="3" class="address-name">
@@ -419,7 +322,7 @@
                                     <p class="search-addres-result-text text-sm-start text-secondary">
                                         <span class="text-danger">"한누리대로 2130"</span> 검색결과 : <span class="text-danger">1건</span>
                                     </p>
-                                    <table class="table table-sm search-address-result-table road-result">
+                                    <table class="table table-sm search-address-result-table road-result" id="road-result">
                                         <tbody>
                                             <tr>
                                                 <td scope="row" colspan="3" class="address-name">
@@ -651,7 +554,7 @@
     })
 
     //장소 더보기 클릭
-    $(".place-more-view").on("click", function(event){
+    $(document).on('click', '.place-more-view', function(event) {
         event.preventDefault();
 
         // Get the tab element
@@ -662,7 +565,7 @@
     })
 
     //주소 더보기 클릭
-    $(".address-more-view").on("click", function(event){
+    $(document).on('click', '.address-more-view', function(event) {
         event.preventDefault();
 
         // Get the tab element
@@ -673,7 +576,7 @@
     })
 
     //행정구역 더보기 클릭
-    $(".district-more-view").on("click", function(event){
+    $(document).on('click', '.district-more-view', function(event) {
         event.preventDefault();
 
         // Get the tab element
@@ -684,7 +587,7 @@
     })
 
     //도로명 더보기 클릭
-    $(".road-more-view").on("click", function(event){
+    $(document).on('click', '.road-more-view', function(event) {
         event.preventDefault();
 
         // Get the tab element
@@ -891,6 +794,25 @@
     $("#basic-thematic-map-treeview-collapse-all").on("click", function(){
         //모두 접음
         basicThematicMapTree.expandAll(false);
+    })
+
+    $('#search-input').on('keypress', function(e) {
+        if (e.which == 13) {  // Check if the key pressed is the Enter key (ASCII value 13)
+            $('#serach-button').click();
+        }
+    });
+
+    $("#serach-button").on("click", function(){
+        const searchQuery = $("#search-input").val();
+        if(searchQuery.length == 0){
+            return alert("검색어 입력은 필수입니다.")
+        }
+        $("#middle-sidebar-content").css("display","block")
+        $("#address-content").css("display","block")
+        searchPlace(searchQuery)
+        searchAddress(searchQuery)
+        searchDistrict(searchQuery)
+        searchRoad(searchQuery)
     })
 
 </script>
