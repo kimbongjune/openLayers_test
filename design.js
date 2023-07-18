@@ -743,7 +743,6 @@ map.on("click", function (evt) {
     url += '&geomFilter=POINT(' + evt.coordinate[0] + ' ' + evt.coordinate[1] + ')';
     url +=  "&domain=http://127.0.0.1:3000/openlayers_test.html"
 
-
     $.ajax({
         url: url,
         type: 'GET',
@@ -785,12 +784,18 @@ map.on("click", function (evt) {
             map.addLayer(vector_layer);
             clickCurrentLayer = vector_layer
 
+            var selectedValue = $(".coordinate-system-selector").val();
+            var coord = ol.proj.transform(evt.coordinate, "EPSG:3857", selectedValue)
+            
+            console.log(coord)
+
             var overlayElement = document.createElement('div');
             overlayElement.className = "ol-popup";
             overlayElement.innerHTML += `<a href="#" id="popup-closer" class="ol-popup-closer"></a>`
             overlayElement.innerHTML += `<div id="popup-content">
                                             <div class="ol-popup-title">연속 지적도 정보</div>
-                                                <code class="code">${evt.coordinate}<br>주소<br>
+                                                <code class="code">
+                                                    <div class="popup-coordinate">${coord}</div><span>주소</span><br>
                                                     <div class="leftBottom__etcBtn">
                                                         <ul>
                                                             <li class="select customSelect">
@@ -3507,6 +3512,12 @@ $('.coordinate-system-selector').change(function() {
         li.html(htmlLines.join("<br>"));
     }
 
+    if ($('.popup-coordinate').length) {
+        let htmlLines = $('.popup-coordinate').text().split(",");
+        let newCoordinates = ol.proj.transform([parseFloat(htmlLines[0]), parseFloat(htmlLines[1])], prevValue, selectedValue);
+        $('.popup-coordinate').text(newCoordinates)
+    }
+
     let coordinateValue = $("#coordinate").text().split(",")
     info.innerHTML = formatCoordinate([parseFloat(coordinateValue[0]), parseFloat(coordinateValue[1])], prevValue, selectedValue);
 
@@ -3791,9 +3802,9 @@ function addDistrict(elementId, response, searchQuery, pagenation = 3){
         for(var i = 0; i < maxLength; i ++){
             htmlContent += `
                 <tr class="address-table-first-child"></tr>
-                <tr onclick="clickGeoData(event)" style="cursor:pointer">
+                <tr onclick="clickGeoData(event, 'district')" style="cursor:pointer">
                     <td scope="row" colspan="3" class="address-name">
-                        <span data-geo-url="${response.response.result.items[i].geometry}" data-coord="${response.response.result.items[i].point.x}, ${response.response.result.items[i].point.y}">(${response.response.result.items[i].id}) ${addHighlight(response.response.result.items[i].title, searchQuery)}</span>
+                        <span data-district-code="${response.response.result.items[i].id}" data-geo-url="${response.response.result.items[i].geometry}" data-coord="${response.response.result.items[i].point.x}, ${response.response.result.items[i].point.y}">(${response.response.result.items[i].id}) ${addHighlight(response.response.result.items[i].title, searchQuery)}</span>
                     </td>
                 </tr>
                 <tr class="address-table-last-child-md"></tr>
@@ -3829,7 +3840,7 @@ function addRoad(elementId, response, searchQuery, pagenation = 3){
         for(var i = 0; i < maxLength; i ++){
             htmlContent += `
                 <tr class="address-table-first-child"></tr>
-                <tr onclick="clickGeoData(event)" style="cursor:pointer">
+                <tr onclick="clickGeoData(event, 'road')" style="cursor:pointer">
                     <td scope="row" colspan="3" class="address-name">
                         <span title="${response.response.result.items[i].district}" data-geo-url="${response.response.result.items[i].geometry}">(${response.response.result.items[i].id}) ${addHighlight(response.response.result.items[i].title, searchQuery)}</span>
                     </td>
@@ -3848,115 +3859,225 @@ function clickAddress(event){
     // 클릭한 요소가 <span>인지 확인합니다.
     if (target.tagName.toLowerCase() === 'span') {
         // data-coord 속성의 값을 가져옵니다.
+        console.log($(target).text())
         const coords = target.getAttribute('data-coord');
 
         const coordinates = coords.split(", ")
-        map.getView().setCenter([parseFloat(coordinates[0]), parseFloat(coordinates[1])]);
+        const coordinate = [parseFloat(coordinates[0]), parseFloat(coordinates[1])]
+        map.getView().setCenter(coordinate);
         if(map.getView().getZoom() < 14){
             map.getView().setZoom(14)
         }
-    }
-}
 
-function clickGeoData(event){
-    const target = event.target;
-
-    // 클릭한 요소가 <span>인지 확인합니다.
-    if (target.tagName.toLowerCase() === 'span') {
-        const coords = target.getAttribute('data-coord');
-        const geoUrl = target.getAttribute('data-geo-url');
-
-        console.log(geoUrl)
-        // 콘솔에 출력하여 확인합니다.
-        if(coords){
-            const coordinates = coords.split(", ")
-            map.getView().setCenter([parseFloat(coordinates[0]), parseFloat(coordinates[1])]);
-            if(map.getView().getZoom() < 14){
-                map.getView().setZoom(14)
-            }
+        if (clickCurrentLayer) {
+            map.removeLayer(clickCurrentLayer);
         }
 
+        if (clickCurrentOverlay) {
+            map.removeOverlay(clickCurrentOverlay);
+        }
+
+        var url = 'https://api.vworld.kr/req/data?';
+        url += 'service=data';
+        url += '&request=GetFeature';
+        url += '&data=LP_PA_CBND_BUBUN';
+        url += `&key=${VWORLD_API_KEY}`; // Replace with your actual API key
+        url += '&format=json';
+        url += "&crs=EPSG:3857";
+        url += '&geomFilter=POINT(' + coordinates[0] + ' ' + coordinates[1] + ')';
+        url +=  "&domain=http://127.0.0.1:3000/openlayers_test.html"
+    
         $.ajax({
-            url: geoUrl,
+            url: url,
             type: 'GET',
             dataType: "jsonp",
             async : false,
-            jsonp: 'callback',
+            jsonpCallback: 'callback',
             success: function(data) {
-                console.log(data)
-                // if(data.response.status != "OK"){
-                //     return;
-                // }
-                // var geoInfoObject = data.response.result.featureCollection.features[0];
-                // var geojsonObject = geoInfoObject.geometry;
+                //console.log(data)
+                if(data.response.status != "OK"){
+                    return;
+                }
+                var geoInfoObject = data.response.result.featureCollection.features[0];
+                var geojsonObject = geoInfoObject.geometry;
                  
-                // var vectorSource = new ol.source.Vector({
-                //     features: (new ol.format.GeoJSON()).readFeatures(geojsonObject)
-                // });
-                // vectorSource.set("ctp_kor_nm",data.response.result.featureCollection.features[0].properties.ctp_kor_nm); 
-                // vectorSource.set("ctp_eng_nm",data.response.result.featureCollection.features[0].properties.ctp_eng_nm); 
-                // //layer.getSource().getKeys()로 확인
+                var vectorSource = new ol.source.Vector({
+                    features: (new ol.format.GeoJSON()).readFeatures(geojsonObject)
+                });
+                vectorSource.set("ctp_kor_nm",data.response.result.featureCollection.features[0].properties.ctp_kor_nm); 
+                vectorSource.set("ctp_eng_nm",data.response.result.featureCollection.features[0].properties.ctp_eng_nm); 
+                //layer.getSource().getKeys()로 확인
     
-                // var vectorStyle = new ol.style.Style({
-                //     fill: new ol.style.Fill({
-                //         color: 'rgba(135,206,250, 0.5)', // Skyblue color fill with opacity
-                //     }),
-                //     stroke: new ol.style.Stroke({
-                //         color: 'orange', // Orange stroke color
-                //         width: 2
-                //     }),
-                // });
+                var vectorStyle = new ol.style.Style({
+                    fill: new ol.style.Fill({
+                        color: 'rgba(135,206,250, 0.5)', // Skyblue color fill with opacity
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: 'orange', // Orange stroke color
+                        width: 2
+                    }),
+                });
                  
-                // var vector_layer = new ol.layer.Vector({
-                //   source: vectorSource,
-                //   style: vectorStyle
-                // })
-                // vector_layer.set("ctp_kor_nm_layer",data.response.result.featureCollection.features[0].properties.ctp_kor_nm+"_layer");
-                // //layer.getKeys() 로 확인
+                var vector_layer = new ol.layer.Vector({
+                  source: vectorSource,
+                  style: vectorStyle
+                })
+                vector_layer.set("ctp_kor_nm_layer",data.response.result.featureCollection.features[0].properties.ctp_kor_nm+"_layer");
+                //layer.getKeys() 로 확인
                  
-                // map.addLayer(vector_layer);
-                // clickCurrentLayer = vector_layer
+                map.addLayer(vector_layer);
+                clickCurrentLayer = vector_layer
     
-                // var overlayElement = document.createElement('div');
-                // overlayElement.className = "ol-popup";
-                // overlayElement.innerHTML += `<a href="#" id="popup-closer" class="ol-popup-closer"></a>`
-                // overlayElement.innerHTML += `<div id="popup-content">
-                //                                 <div class="ol-popup-title">연속 지적도 정보</div>
-                //                                     <code class="code">${evt.coordinate}<br>주소<br>
-                //                                         <div class="leftBottom__etcBtn">
-                //                                             <ul>
-                //                                                 <li class="select customSelect">
-                //                                                     <p>${geoInfoObject.properties.addr}</p>
-                //                                                 </li>
-                //                                             </ul>
-                //                                         </div>
-                //                                     </code>
-                //                                     <br>
-                //                                     <div>공시지가 : ${geoInfoObject.properties.jiga != "" ? geoInfoObject.properties.jiga.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : "--"}&#8361;, 지목 : ${geoInfoObject.properties.jibun.slice(-1)}</div>
-                //                                 </div>`
-                // var overlay = new ol.Overlay({
-                //     element: overlayElement,
-                //     position: evt.coordinate
-                // });
-                // // Add the overlay to the map
-                // map.addOverlay(overlay);
-                // clickCurrentOverlay = overlay;
+                var selectedValue = $(".coordinate-system-selector").val();
+                var coord = ol.proj.transform(coordinate, "EPSG:3857", selectedValue)
     
-                // var deleteButton = overlayElement.querySelector(".ol-popup-closer");
-                // deleteButton.addEventListener("click", function () {
-                //     map.removeLayer(vector_layer);
-                //     map.removeOverlay(clickCurrentOverlay);
-                // });
+                var overlayElement = document.createElement('div');
+                overlayElement.className = "ol-popup";
+                overlayElement.innerHTML += `<a href="#" id="popup-closer" class="ol-popup-closer"></a>`
+                overlayElement.innerHTML += `<div id="popup-content">
+                                                <div class="ol-popup-title">정보</div>
+                                                    <code class="code">
+                                                        <div class="popup-coordinate">${coord}</div><span>주소</span><br>
+                                                        <div class="leftBottom__etcBtn">
+                                                            <ul>
+                                                                <li class="select customSelect">
+                                                                    <p>${geoInfoObject.properties.addr}</p>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </code>
+                                                    <br>
+                                                    <div>공시지가 : ${geoInfoObject.properties.jiga != "" ? geoInfoObject.properties.jiga.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : "--"}&#8361;, 지목 : ${geoInfoObject.properties.jibun.slice(-1)}</div>
+                                                </div>`
+                var overlay = new ol.Overlay({
+                    element: overlayElement,
+                    position: coordinate
+                });
+                // Add the overlay to the map
+                map.addOverlay(overlay);
+                clickCurrentOverlay = overlay;
+    
+                var deleteButton = overlayElement.querySelector(".ol-popup-closer");
+                deleteButton.addEventListener("click", function () {
+                    map.removeLayer(vector_layer);
+                    map.removeOverlay(clickCurrentOverlay);
+                });
             },
             beforesend: function(){
                  
             },
-            error: function(xhr, stat, err) {
-                console.log(xhr, stat, err)
-            }
+            error: function(xhr, stat, err) {}
           });
     }
+}
 
+function clickGeoData(event, type){
+    const target = event.target;
+
+    // 클릭한 요소가 <span>인지 확인합니다.
+    if (target.tagName.toLowerCase() === 'span') {
+
+        //TODO 추후 서버 생성시 진행 예정
+        // if (clickCurrentLayer) {
+        //     map.removeLayer(clickCurrentLayer);
+        // }
+
+        // if (clickCurrentOverlay) {
+        //     map.removeOverlay(clickCurrentOverlay);
+        // }
+
+        // const geoUrl = target.getAttribute('data-geo-url');
+
+        // $.ajax({
+        //     url : "/api",
+        //     data : {
+        //         url : geoUrl
+        //     },
+        //     success: function(data) {
+        //         console.log(data)
+        //         var geoInfoObject = data.features[0];
+        //         var geojsonObject = geoInfoObject.geometry;
+
+        //         const format = new ol.format.GeoJSON({
+        //             featureProjection: "EPSG:3857",
+        //         });
+                 
+        //         const feature = format.readFeature(geojsonObject);
+        //         var vectorSource = new ol.source.Vector({
+        //             features: [feature]
+        //         });
+
+        //         const geometry = feature.getGeometry();
+        //         const center = ol.extent.getCenter(geometry.getExtent());
+        //         //layer.getSource().getKeys()로 확인
+    
+        //         var vectorStyle = new ol.style.Style({
+        //             fill: new ol.style.Fill({
+        //                 color: 'rgba(135,206,250, 0.5)', // Skyblue color fill with opacity
+        //             }),
+        //             stroke: new ol.style.Stroke({
+        //                 color: 'orange', // Orange stroke color
+        //                 width: 2
+        //             }),
+        //         });
+                 
+        //         var vector_layer = new ol.layer.Vector({
+        //           source: vectorSource,
+        //           style: vectorStyle
+        //         })
+        //         //layer.getKeys() 로 확인
+                 
+        //         map.addLayer(vector_layer);
+        //         clickCurrentLayer = vector_layer
+    
+        //         var selectedValue = $(".coordinate-system-selector").val();
+        //         var coord = ol.proj.transform(center, "EPSG:3857", selectedValue)
+    
+        //         var overlayElement = document.createElement('div');
+        //         overlayElement.className = "ol-popup";
+        //         overlayElement.innerHTML += `<a href="#" id="popup-closer" class="ol-popup-closer"></a>`
+        //         overlayElement.innerHTML += `<div id="popup-content">
+        //                                         <div class="ol-popup-title">정보</div>
+        //                                             <code class="code">
+        //                                                 <div class="popup-coordinate">${coord}</div><span>주소</span><br>
+        //                                                 <div class="leftBottom__etcBtn">
+        //                                                     <ul>
+        //                                                         <li class="select customSelect">
+        //                                                             <p>${geoInfoObject.properties.addr == null ? geoInfoObject.properties.title : geoInfoObject.properties.addr}</p>
+        //                                                         </li>
+        //                                                     </ul>
+        //                                                 </div>
+        //                                             </code>
+        //                                             <br>
+        //                                         </div>`
+        //         var overlay = new ol.Overlay({
+        //             element: overlayElement,
+        //             position: center
+        //         });
+
+        //         map.getView().setCenter(center);
+        //         if(map.getView().getZoom() < 14){
+        //             map.getView().setZoom(14)
+        //         }
+                
+        //         // Add the overlay to the map
+        //         map.addOverlay(overlay);
+        //         clickCurrentOverlay = overlay;
+    
+        //         var deleteButton = overlayElement.querySelector(".ol-popup-closer");
+        //         deleteButton.addEventListener("click", function () {
+        //             map.removeLayer(vector_layer);
+        //             map.removeOverlay(clickCurrentOverlay);
+        //         });
+        //     },beforesend: function(){
+                
+        //     },
+        //     error: function(xhr, stat, err) {
+        //         console.log(xhr, stat, err)
+        //     }
+        // })
+        
+    }
 }
 
 function addHighlight(html, query){
