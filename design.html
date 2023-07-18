@@ -730,10 +730,6 @@
         }
         $("#middle-sidebar-content").css("display","block")
         $("#address-content").css("display","block")
-        // searchPlace(searchQuery)
-        // searchAddress(searchQuery)
-        // searchDistrict(searchQuery)
-        // searchRoad(searchQuery)
         $.when(
             searchPlace(searchQuery),
             searchAddress(searchQuery),
@@ -745,6 +741,8 @@
             const districeCount = parseInt(districtResponse[0].response.record.total)
             const roadCount = parseInt(roadResponse[0].response.record.total)
             const totalCount = placeCount + addressCount + districeCount + roadCount
+
+            console.log(placeResponse, addressResponse, districtResponse, roadResponse)
 
             $("#all-search-content-name").text(`"${searchQuery}"`)
             $("#place-search-content-name").text(`"${searchQuery}"`)
