@@ -3589,7 +3589,7 @@ function layerOpacityChage(treeNode, opacity){
 
 //vworld API를 이용해 장소를 검색하는 함수
 function searchPlace(query, page = 1) {
-    $.ajax({
+    return $.ajax({
         url: "http://api.vworld.kr/req/search",
         dataType: "jsonp",
         data: {
@@ -3604,73 +3604,14 @@ function searchPlace(query, page = 1) {
             format: "json",
             errorformat: "json",
             key: `${VWORLD_API_KEY}`
-        },
-        success: function (response) {
-            //console.log(response);
-            // 여기에 페이징 처리를 작성하면 됩니다.
-            $('#all-place-result').empty()
-            let htmlContent = "";
-            htmlContent += `
-                <thead>
-                    <tr>
-                        <td scope="col">장소</td>
-                        <td scope="col" class="text-danger search-place-count">${response.response.record.total}건</td>
-                        <td>
-                            <a href="#" class="link-secondary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover place-more-view">
-                                <span>더보기</span>
-                                <i class="bi bi-chevron-right"></i>
-                            </a>
-                        </td>
-                    </tr>
-                </thead>
-            `
-            if(response.response.result && response.response.result.items.length > 0){
-                const maxLength = response.response.result.items.length > 3 ? 3 : response.response.result.items.length
-                htmlContent += '<tbody>'
-                for(var i = 0; i < maxLength; i ++){
-                    htmlContent += `
-                        <tr class="address-table-first-child"></tr>
-                        <tr>
-                            <td scope="row" colspan="3" class="address-name">
-                                <span>${response.response.result.items[i].title}</span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td scope="row" colspan="3" class="address-category">
-                                <span>${response.response.result.items[i].category}</span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td scope="row" colspan="3" class="address-parcel">
-                                <div class="badge bg-warning text-wrap" style="width: 3rem;">지번</div>
-                                <span data-coord="${response.response.result.items[i].point.x}, ${response.response.result.items[i].point.y}">${response.response.result.items[i].address.parcel}</span>
-                            </td>
-                        </tr>`;
-                    if(response.response.result.items[i].address.road){
-                        htmlContent += `
-                            <tr>
-                                <td scope="row" colspan="3" class="address-road">
-                                    <div class="badge bg-primary text-wrap" style="width: 3rem;">도로명</div>
-                                    <span data-coord="${response.response.result.items[i].point.x}, ${response.response.result.items[i].point.y}">${response.response.result.items[i].address.road}</span>
-                                </td>
-                            </tr>
-                        `
-                    }
-                    htmlContent += `<tr class="address-table-last-child"></tr>`
-                }
-                htmlContent += '</tbody>'
-            }
-            $('#all-place-result').append(htmlContent)
-        },
-        error: function (request, status, error) {
-            console.log("code:" + request.status + "\n" + "message:" + request.responseText + "\n" + "error:" + error);
         }
     });
 }
 
+
 //vworld API를 이용해 주소를 검색하는 함수
 function searchAddress(query, page = 1) {
-    $.ajax({
+    return $.ajax({
         url: "http://api.vworld.kr/req/search",
         dataType: "jsonp",
         data: {
@@ -3686,52 +3627,13 @@ function searchAddress(query, page = 1) {
             format: "json",
             errorformat: "json",
             key: `${VWORLD_API_KEY}`
-        },
-        success: function (response) {
-            //console.log(response);
-            $('#all-address-result').empty()
-            let htmlContent = "";
-            htmlContent += `
-                <thead>
-                    <tr>
-                        <td scope="col">주소</td>
-                        <td scope="col" class="text-danger search-address-count">${response.response.record.total}건</td>
-                        <td>
-                            <a href="#" class="link-secondary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover address-more-view">
-                                <span>더보기</span>
-                                <i class="bi bi-chevron-right"></i>
-                            </a>
-                        </td>
-                    </tr>
-                </thead>
-            `
-            if(response.response.result && response.response.result.items.length > 0){
-                const maxLength = response.response.result.items.length > 3 ? 3 : response.response.result.items.length
-                htmlContent += '<tbody>'
-                for(var i = 0; i < maxLength; i ++){
-                    htmlContent += `
-                        <tr class="address-table-first-child"></tr>
-                        <tr>
-                            <td scope="row" colspan="3" class="address-name">
-                                <span data-coord="${response.response.result.items[i].point.x}, ${response.response.result.items[i].point.y}">(${response.response.result.items[i].address.zipcode}) ${response.response.result.items[i].address.road}</span>
-                            </td>
-                        </tr>
-                        <tr class="address-table-last-child-md"></tr>
-                    `
-                }
-                htmlContent += '</tbody>'
-            }
-            $('#all-address-result').append(htmlContent)
-        },
-        error: function (request, status, error) {
-            console.log("code:" + request.status + "\n" + "message:" + request.responseText + "\n" + "error:" + error);
         }
     });
 }
 
 //vworld API를 이용해 행정구역을 검색하는 함수
 function searchDistrict(query, page = 1) {
-    $.ajax({
+    return $.ajax({
         url: "http://api.vworld.kr/req/search",
         dataType: "jsonp",
         data: {
@@ -3747,52 +3649,13 @@ function searchDistrict(query, page = 1) {
             format: "json",
             errorformat: "json",
             key: `${VWORLD_API_KEY}`
-        },
-        success: function (response) {
-            //console.log(response);
-            $('#all-district-result').empty()
-            let htmlContent = "";
-            htmlContent += `
-                <thead>
-                    <tr>
-                        <td scope="col">행정구역</th>
-                        <td scope="col" class="text-danger search-district-count">${response.response.record.total}건</td>
-                        <td>
-                            <a href="#" class="link-secondary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover district-more-view">
-                                <span>더보기</span>
-                                <i class="bi bi-chevron-right"></i>
-                            </a>
-                        </td>
-                    </tr>
-                </thead>
-            `
-            if(response.response.result && response.response.result.items.length > 0){
-                const maxLength = response.response.result.items.length > 3 ? 3 : response.response.result.items.length
-                htmlContent += '<tbody>'
-                for(var i = 0; i < maxLength; i ++){
-                    htmlContent += `
-                        <tr class="address-table-first-child"></tr>
-                        <tr>
-                            <td scope="row" colspan="3" class="address-name">
-                                <span data-geo-url="${response.response.result.items[i].geometry}" data-coord="${response.response.result.items[i].point.x}, ${response.response.result.items[i].point.y}">(${response.response.result.items[i].id}) ${response.response.result.items[i].title}</span>
-                            </td>
-                        </tr>
-                        <tr class="address-table-last-child-md"></tr>
-                    `
-                }
-                htmlContent += '</tbody>'
-            }
-            $('#all-district-result').append(htmlContent)
-        },
-        error: function (request, status, error) {
-            console.log("code:" + request.status + "\n" + "message:" + request.responseText + "\n" + "error:" + error);
         }
     });
 }
 
 //vworld API를 이용해 도로명을 검색하는 함수
 function searchRoad(query, page = 1) {
-    $.ajax({
+    return $.ajax({
         url: "http://api.vworld.kr/req/search",
         dataType: "jsonp",
         data: {
@@ -3807,45 +3670,295 @@ function searchRoad(query, page = 1) {
             format: "json",
             errorformat: "json",
             key: `${VWORLD_API_KEY}`
-        },
-        success: function (response) {
-            console.log(response);
-            $('#all-road-result').empty()
-            let htmlContent = "";
-            htmlContent += `
-                <thead>
-                    <tr>
-                        <td scope="col">도로명</th>
-                        <td scope="col" class="text-danger search-road-count">${response.response.record.total}건</th>
-                        <td>
-                            <a href="#" class="link-secondary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover road-more-view">
-                                <span>더보기</span>
-                                <i class="bi bi-chevron-right"></i>
-                            </a>
-                        </td>
-                    </tr>
-                </thead>
-            `
-            if(response.response.result && response.response.result.items.length > 0){
-                const maxLength = response.response.result.items.length > 3 ? 3 : response.response.result.items.length
-                htmlContent += '<tbody>'
-                for(var i = 0; i < maxLength; i ++){
-                    htmlContent += `
-                        <tr class="address-table-first-child"></tr>
-                        <tr>
-                            <td scope="row" colspan="3" class="address-name">
-                                <span title="${response.response.result.items[i].district}" data-geo-url="${response.response.result.items[i].geometry}">(${response.response.result.items[i].id}) ${response.response.result.items[i].title}</span>
-                            </td>
-                        </tr>
-                        <tr class="address-table-last-child-md"></tr>
-                    `
-                }
-                htmlContent += '</tbody>'
-            }
-            $('#all-road-result').append(htmlContent)
-        },
-        error: function (request, status, error) {
-            console.log("code:" + request.status + "\n" + "message:" + request.responseText + "\n" + "error:" + error);
         }
     });
+}
+
+function addPlace(elementId, response, searchQuery, pagenation = 3){
+    $(`#${elementId}`).empty()
+    let htmlContent = "";
+    if(elementId.includes("all")){
+        htmlContent += `
+            <thead>
+                <tr>
+                    <td scope="col">장소</td>
+                    <td scope="col" class="text-danger search-place-count">${parseInt(response.response.record.total).toLocaleString('ko-KR')}건</td>
+                    <td>
+                        <a href="#" class="link-secondary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover place-more-view">
+                            <span>더보기</span>
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </td>
+                </tr>
+            </thead>
+        `
+    }
+    if(response.response.result && response.response.result.items.length > 0){
+        const maxLength = response.response.result.items.length > pagenation ? pagenation : response.response.result.items.length
+        htmlContent += '<tbody>'
+        for(var i = 0; i < maxLength; i ++){
+            htmlContent += `
+                <tr class="address-table-first-child"></tr>
+                <tr>
+                    <td scope="row" colspan="3" class="address-name">
+                        <span>${addHighlight(response.response.result.items[i].title, searchQuery)}</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td scope="row" colspan="3" class="address-category">
+                        <span>${addHighlight(response.response.result.items[i].category, searchQuery)}</span>
+                    </td>
+                </tr>
+                <tr style="cursor:pointer" onclick="clickAddress(event)">
+                    <td scope="row" colspan="3" class="address-parcel">
+                        <div class="badge bg-warning text-wrap" style="width: 3rem;">지번</div>
+                        <span data-coord="${response.response.result.items[i].point.x}, ${response.response.result.items[i].point.y}">${addHighlight(response.response.result.items[i].address.parcel, searchQuery)}</span>
+                    </td>
+                </tr>
+                <tr style="cursor:pointer" onclick="clickAddress(event)">
+                    <td scope="row" colspan="3" class="address-road">
+                        <div class="badge bg-primary text-wrap" style="width: 3rem;">도로명</div>
+                        <span data-coord="${response.response.result.items[i].point.x}, ${response.response.result.items[i].point.y}">${addHighlight(response.response.result.items[i].address.road, searchQuery)}</span>
+                    </td>
+                </tr>`;
+            htmlContent += `<tr class="address-table-last-child"></tr>`
+        }
+        htmlContent += '</tbody>'
+    }
+    $(`#${elementId}`).append(htmlContent)
+}
+
+function addAddress(elementId, response, searchQuery, pagenation = 3){
+    $(`#${elementId}`).empty()
+    let htmlContent = "";
+    if(elementId.includes("all")){
+        htmlContent += `
+            <thead>
+                <tr>
+                    <td scope="col">주소</td>
+                    <td scope="col" class="text-danger search-address-count">${parseInt(response.response.record.total).toLocaleString('ko-KR')}건</td>
+                    <td>
+                        <a href="#" class="link-secondary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover address-more-view">
+                            <span>더보기</span>
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </td>
+                </tr>
+            </thead>
+        `
+    }
+    if(response.response.result && response.response.result.items.length > 0){
+        const maxLength = response.response.result.items.length > pagenation ? pagenation : response.response.result.items.length
+        htmlContent += '<tbody>'
+        for(var i = 0; i < maxLength; i ++){
+            htmlContent += `
+                <tr class="address-table-first-child"></tr>
+                <tr style="cursor:pointer" onclick="clickAddress(event)">
+                    <td scope="row" colspan="3" class="address-name">
+                        <span data-coord="${response.response.result.items[i].point.x}, ${response.response.result.items[i].point.y}">(${response.response.result.items[i].address.zipcode}) ${addHighlight(response.response.result.items[i].address.road, searchQuery)}</span>
+                    </td>
+                </tr>
+                <tr class="address-table-last-child-md"></tr>
+            `
+        }
+        htmlContent += '</tbody>'
+    }
+    $(`#${elementId}`).append(htmlContent)
+}
+
+function addDistrict(elementId, response, searchQuery, pagenation = 3){
+    $(`#${elementId}`).empty()
+    let htmlContent = "";
+    if(elementId.includes("all")){
+        htmlContent += `
+            <thead>
+                <tr>
+                    <td scope="col">행정구역</th>
+                    <td scope="col" class="text-danger search-district-count">${parseInt(response.response.record.total).toLocaleString('ko-KR')}건</td>
+                    <td>
+                        <a href="#" class="link-secondary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover district-more-view">
+                            <span>더보기</span>
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </td>
+                </tr>
+            </thead>
+        `
+    }
+    if(response.response.result && response.response.result.items.length > 0){
+        const maxLength = response.response.result.items.length > pagenation ? pagenation : response.response.result.items.length
+        htmlContent += '<tbody>'
+        for(var i = 0; i < maxLength; i ++){
+            htmlContent += `
+                <tr class="address-table-first-child"></tr>
+                <tr onclick="clickGeoData(event)" style="cursor:pointer">
+                    <td scope="row" colspan="3" class="address-name">
+                        <span data-geo-url="${response.response.result.items[i].geometry}" data-coord="${response.response.result.items[i].point.x}, ${response.response.result.items[i].point.y}">(${response.response.result.items[i].id}) ${addHighlight(response.response.result.items[i].title, searchQuery)}</span>
+                    </td>
+                </tr>
+                <tr class="address-table-last-child-md"></tr>
+            `
+        }
+        htmlContent += '</tbody>'
+    }
+    $(`#${elementId}`).append(htmlContent)
+}
+
+function addRoad(elementId, response, searchQuery, pagenation = 3){
+    $(`#${elementId}`).empty()
+    let htmlContent = "";
+    if(elementId.includes("all")){
+        htmlContent += `
+            <thead>
+                <tr>
+                    <td scope="col">도로명</th>
+                    <td scope="col" class="text-danger search-road-count">${parseInt(response.response.record.total).toLocaleString('ko-KR')}건</th>
+                    <td>
+                        <a href="#" class="link-secondary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover road-more-view">
+                            <span>더보기</span>
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </td>
+                </tr>
+            </thead>
+        `
+    }
+    if(response.response.result && response.response.result.items.length > 0){
+        const maxLength = response.response.result.items.length > pagenation ? pagenation : response.response.result.items.length
+        htmlContent += '<tbody>'
+        for(var i = 0; i < maxLength; i ++){
+            htmlContent += `
+                <tr class="address-table-first-child"></tr>
+                <tr onclick="clickGeoData(event)" style="cursor:pointer">
+                    <td scope="row" colspan="3" class="address-name">
+                        <span title="${response.response.result.items[i].district}" data-geo-url="${response.response.result.items[i].geometry}">(${response.response.result.items[i].id}) ${addHighlight(response.response.result.items[i].title, searchQuery)}</span>
+                    </td>
+                </tr>
+                <tr class="address-table-last-child-md"></tr>
+            `
+        }
+        htmlContent += '</tbody>'
+    }
+    $(`#${elementId}`).append(htmlContent)
+}
+
+function clickAddress(event){
+    const target = event.target;
+
+    // 클릭한 요소가 <span>인지 확인합니다.
+    if (target.tagName.toLowerCase() === 'span') {
+        // data-coord 속성의 값을 가져옵니다.
+        const coords = target.getAttribute('data-coord');
+
+        const coordinates = coords.split(", ")
+        map.getView().setCenter([parseFloat(coordinates[0]), parseFloat(coordinates[1])]);
+        if(map.getView().getZoom() < 14){
+            map.getView().setZoom(14)
+        }
+    }
+}
+
+function clickGeoData(event){
+    const target = event.target;
+
+    // 클릭한 요소가 <span>인지 확인합니다.
+    if (target.tagName.toLowerCase() === 'span') {
+        const coords = target.getAttribute('data-coord');
+        const geoUrl = target.getAttribute('data-geo-url');
+
+        console.log(geoUrl)
+        // 콘솔에 출력하여 확인합니다.
+        if(coords){
+            const coordinates = coords.split(", ")
+            map.getView().setCenter([parseFloat(coordinates[0]), parseFloat(coordinates[1])]);
+            if(map.getView().getZoom() < 14){
+                map.getView().setZoom(14)
+            }
+        }
+
+        $.ajax({
+            url: geoUrl,
+            type: 'GET',
+            dataType: "jsonp",
+            async : false,
+            jsonp: 'callback',
+            success: function(data) {
+                console.log(data)
+                // if(data.response.status != "OK"){
+                //     return;
+                // }
+                // var geoInfoObject = data.response.result.featureCollection.features[0];
+                // var geojsonObject = geoInfoObject.geometry;
+                 
+                // var vectorSource = new ol.source.Vector({
+                //     features: (new ol.format.GeoJSON()).readFeatures(geojsonObject)
+                // });
+                // vectorSource.set("ctp_kor_nm",data.response.result.featureCollection.features[0].properties.ctp_kor_nm); 
+                // vectorSource.set("ctp_eng_nm",data.response.result.featureCollection.features[0].properties.ctp_eng_nm); 
+                // //layer.getSource().getKeys()로 확인
+    
+                // var vectorStyle = new ol.style.Style({
+                //     fill: new ol.style.Fill({
+                //         color: 'rgba(135,206,250, 0.5)', // Skyblue color fill with opacity
+                //     }),
+                //     stroke: new ol.style.Stroke({
+                //         color: 'orange', // Orange stroke color
+                //         width: 2
+                //     }),
+                // });
+                 
+                // var vector_layer = new ol.layer.Vector({
+                //   source: vectorSource,
+                //   style: vectorStyle
+                // })
+                // vector_layer.set("ctp_kor_nm_layer",data.response.result.featureCollection.features[0].properties.ctp_kor_nm+"_layer");
+                // //layer.getKeys() 로 확인
+                 
+                // map.addLayer(vector_layer);
+                // clickCurrentLayer = vector_layer
+    
+                // var overlayElement = document.createElement('div');
+                // overlayElement.className = "ol-popup";
+                // overlayElement.innerHTML += `<a href="#" id="popup-closer" class="ol-popup-closer"></a>`
+                // overlayElement.innerHTML += `<div id="popup-content">
+                //                                 <div class="ol-popup-title">연속 지적도 정보</div>
+                //                                     <code class="code">${evt.coordinate}<br>주소<br>
+                //                                         <div class="leftBottom__etcBtn">
+                //                                             <ul>
+                //                                                 <li class="select customSelect">
+                //                                                     <p>${geoInfoObject.properties.addr}</p>
+                //                                                 </li>
+                //                                             </ul>
+                //                                         </div>
+                //                                     </code>
+                //                                     <br>
+                //                                     <div>공시지가 : ${geoInfoObject.properties.jiga != "" ? geoInfoObject.properties.jiga.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : "--"}&#8361;, 지목 : ${geoInfoObject.properties.jibun.slice(-1)}</div>
+                //                                 </div>`
+                // var overlay = new ol.Overlay({
+                //     element: overlayElement,
+                //     position: evt.coordinate
+                // });
+                // // Add the overlay to the map
+                // map.addOverlay(overlay);
+                // clickCurrentOverlay = overlay;
+    
+                // var deleteButton = overlayElement.querySelector(".ol-popup-closer");
+                // deleteButton.addEventListener("click", function () {
+                //     map.removeLayer(vector_layer);
+                //     map.removeOverlay(clickCurrentOverlay);
+                // });
+            },
+            beforesend: function(){
+                 
+            },
+            error: function(xhr, stat, err) {
+                console.log(xhr, stat, err)
+            }
+          });
+    }
+
+}
+
+function addHighlight(html, query){
+    return html.replaceAll(query, `<mark style="padding:0px;">${query}</mark>`)
 }

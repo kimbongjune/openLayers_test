@@ -73,6 +73,8 @@
     <!-- zTree 3.5.24 js CDN -->
     <script src="./lib/js/zTree-3.5.24.js"></script>
 
+    <script src="https://cdn.jsdelivr.net/npm/twbs-pagination@1.4.2/jquery.twbsPagination.min.js"></script>
+
 </head>
 <body>
     <div class="container-fluid">
@@ -180,7 +182,7 @@
                             <div class="tab-content" id="address-content">
                                 <div class="accordion accordion-flush tab-pane fade show active" id="all-tab-pane" aria-labelledby="all-tab" tabindex="1">
                                     <p class="search-addres-result-text text-sm-start text-secondary">
-                                        <span class="text-danger">"한누리대로 2130"</span> 검색결과 : <span class="text-danger">4건</span>
+                                        <span class="text-danger" id="all-search-content-name">"한누리대로 2130"</span> 검색결과 : <span class="text-danger" id="all-search-content-count">4 </span>건
                                     </p>
                                     <table class="table table-sm search-address-result-table all-result" id="all-place-result">
                                         
@@ -200,59 +202,20 @@
                                 </div>
                                 <div class="tab-pane fade" id="place-tab-pane" aria-labelledby="place-tab" tabindex="1">
                                     <p class="search-addres-result-text text-sm-start text-secondary">
-                                        <span class="text-danger">"한누리대로 2130"</span> 검색결과 : <span class="text-danger">1건</span>
+                                        <span class="text-danger" id="place-search-content-name">"한누리대로 2130"</span> 검색결과 : <span id="place-search-content-count" class="text-danger">1</span>건
                                     </p>
                                     <table class="table table-sm search-address-result-table place-result" id="place-result">
-                                        <tbody>
-                                            <tr class="address-table-first-child"></tr>
-                                            <tr>
-                                                <td scope="row" colspan="3" class="address-name">
-                                                    <span>세종 시청</span>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td scope="row" colspan="3" class="address-category">
-                                                    <span>건물 > 관공서</span>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td scope="row" colspan="3" class="address-parcel">
-                                                    <div class="badge bg-warning text-wrap" style="width: 3rem;">도로명</div>
-                                                    <span>지번 : 보람동 626-5</span>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td scope="row" colspan="3" class="address-road">
-                                                    <div class="badge bg-primary text-wrap" style="width: 3rem;">도로명</div>
-                                                    <span>세종 한누리대로 2130 세종특별자치시청</span>
-                                                </td>
-                                            </tr>
-                                            <tr class="address-table-last-child"></tr>
-                                        </tbody>
+                                        
                                     </table>
                                     <nav aria-label="Page navigation example">
-                                        <ul class="pagination pagination-sm justify-content-center">
-                                          <li class="page-item">
-                                            <a class="page-link" href="#" aria-label="Previous">
-                                              <span aria-hidden="true">&laquo;</span>
-                                            </a>
-                                          </li>
-                                          <li class="page-item"><a class="page-link" href="#">1</a></li>
-                                          <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                          <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                          <li class="page-item"><a class="page-link" href="#">4</a></li>
-                                          <li class="page-item"><a class="page-link" href="#">5</a></li>
-                                          <li class="page-item">
-                                            <a class="page-link" href="#" aria-label="Next">
-                                              <span aria-hidden="true">&raquo;</span>
-                                            </a>
-                                          </li>
+                                        <ul class="pagination pagination-sm justify-content-center" id="place-pagination-container">
+                                          
                                         </ul>
-                                      </nav>
+                                    </nav>
                                 </div>
                                 <div class="tab-pane fade" id="address-tab-pane" aria-labelledby="address-tab" tabindex="2">
                                     <p class="search-addres-result-text text-sm-start text-secondary">
-                                        <span class="text-danger">"한누리대로 2130"</span> 검색결과 : <span class="text-danger">1건</span>
+                                        <span class="text-danger" id="address-search-content-name">"한누리대로 2130"</span> 검색결과 : <span id="address-search-content-count" class="text-danger">1</span>건
                                     </p>
                                     <table class="table table-sm search-address-result-table address-result" id="address-result">
                                         <tbody>
@@ -265,28 +228,14 @@
                                         </tbody>
                                     </table>
                                     <nav aria-label="Page navigation example">
-                                        <ul class="pagination pagination-sm justify-content-center">
-                                          <li class="page-item">
-                                            <a class="page-link" href="#" aria-label="Previous">
-                                              <span aria-hidden="true">&laquo;</span>
-                                            </a>
-                                          </li>
-                                          <li class="page-item"><a class="page-link" href="#">1</a></li>
-                                          <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                          <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                          <li class="page-item"><a class="page-link" href="#">4</a></li>
-                                          <li class="page-item"><a class="page-link" href="#">5</a></li>
-                                          <li class="page-item">
-                                            <a class="page-link" href="#" aria-label="Next">
-                                              <span aria-hidden="true">&raquo;</span>
-                                            </a>
-                                          </li>
+                                        <ul class="pagination pagination-sm justify-content-center" id="address-pagination-container">
+                                          
                                         </ul>
                                       </nav>
                                 </div>
                                 <div class="tab-pane fade" id="district-tab-pane" aria-labelledby="district-tab" tabindex="3">
                                     <p class="search-addres-result-text text-sm-start text-secondary">
-                                        <span class="text-danger">"한누리대로 2130"</span> 검색결과 : <span class="text-danger">1건</span>
+                                        <span class="text-danger" id="district-search-content-name">"한누리대로 2130"</span> 검색결과 : <span id="district-search-content-count" class="text-danger">1</span>건
                                     </p>
                                     <table class="table table-sm search-address-result-table district-result" id="district-result">
                                         <tbody>
@@ -299,28 +248,14 @@
                                         </tbody>
                                     </table>
                                     <nav aria-label="Page navigation example">
-                                        <ul class="pagination pagination-sm justify-content-center">
-                                          <li class="page-item">
-                                            <a class="page-link" href="#" aria-label="Previous">
-                                              <span aria-hidden="true">&laquo;</span>
-                                            </a>
-                                          </li>
-                                          <li class="page-item"><a class="page-link" href="#">1</a></li>
-                                          <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                          <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                          <li class="page-item"><a class="page-link" href="#">4</a></li>
-                                          <li class="page-item"><a class="page-link" href="#">5</a></li>
-                                          <li class="page-item">
-                                            <a class="page-link" href="#" aria-label="Next">
-                                              <span aria-hidden="true">&raquo;</span>
-                                            </a>
-                                          </li>
+                                        <ul class="pagination pagination-sm justify-content-center" id="district-pagination-container">
+                                          
                                         </ul>
                                       </nav>
                                 </div>
                                 <div class="tab-pane fade" id="road-tab-pane" aria-labelledby="road-tab" tabindex="4">
                                     <p class="search-addres-result-text text-sm-start text-secondary">
-                                        <span class="text-danger">"한누리대로 2130"</span> 검색결과 : <span class="text-danger">1건</span>
+                                        <span class="text-danger" id="road-search-content-name">"한누리대로 2130"</span> 검색결과 : <span id="road-search-content-count" class="text-danger">1</span>건
                                     </p>
                                     <table class="table table-sm search-address-result-table road-result" id="road-result">
                                         <tbody>
@@ -333,22 +268,8 @@
                                         </tbody>
                                     </table>
                                     <nav aria-label="Page navigation example">
-                                        <ul class="pagination pagination-sm justify-content-center">
-                                          <li class="page-item">
-                                            <a class="page-link" href="#" aria-label="Previous">
-                                              <span aria-hidden="true">&laquo;</span>
-                                            </a>
-                                          </li>
-                                          <li class="page-item"><a class="page-link" href="#">1</a></li>
-                                          <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                          <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                          <li class="page-item"><a class="page-link" href="#">4</a></li>
-                                          <li class="page-item"><a class="page-link" href="#">5</a></li>
-                                          <li class="page-item">
-                                            <a class="page-link" href="#" aria-label="Next">
-                                              <span aria-hidden="true">&raquo;</span>
-                                            </a>
-                                          </li>
+                                        <ul class="pagination pagination-sm justify-content-center" id="road-pagination-container">
+                                          
                                         </ul>
                                       </nav>
                                 </div>
@@ -809,10 +730,126 @@
         }
         $("#middle-sidebar-content").css("display","block")
         $("#address-content").css("display","block")
-        searchPlace(searchQuery)
-        searchAddress(searchQuery)
-        searchDistrict(searchQuery)
-        searchRoad(searchQuery)
+        // searchPlace(searchQuery)
+        // searchAddress(searchQuery)
+        // searchDistrict(searchQuery)
+        // searchRoad(searchQuery)
+        $.when(
+            searchPlace(searchQuery),
+            searchAddress(searchQuery),
+            searchDistrict(searchQuery),
+            searchRoad(searchQuery)
+        ).done(function(placeResponse, addressResponse, districtResponse, roadResponse) {
+            const placeCount = parseInt(placeResponse[0].response.record.total)
+            const addressCount = parseInt(addressResponse[0].response.record.total)
+            const districeCount = parseInt(districtResponse[0].response.record.total)
+            const roadCount = parseInt(roadResponse[0].response.record.total)
+            const totalCount = placeCount + addressCount + districeCount + roadCount
+
+            $("#all-search-content-name").text(`"${searchQuery}"`)
+            $("#place-search-content-name").text(`"${searchQuery}"`)
+            $("#address-search-content-name").text(`"${searchQuery}"`)
+            $("#district-search-content-name").text(`"${searchQuery}"`)
+            $("#road-search-content-name").text(`"${searchQuery}"`)
+
+            $("#all-search-content-count").text(totalCount.toLocaleString('ko-KR'))
+            $("#place-search-content-count").text(placeCount.toLocaleString('ko-KR'))
+            $("#address-search-content-count").text(addressCount.toLocaleString('ko-KR'))
+            $("#district-search-content-count").text(districeCount.toLocaleString('ko-KR'))
+            $("#road-search-content-count").text(roadCount.toLocaleString('ko-KR'))
+
+            const allPlaceElementId = $('#all-place-result')[0].id
+            const placeElementId = $('#place-result')[0].id
+            const allAddressElementId = $('#all-address-result')[0].id
+            const addressElementId = $('#address-result')[0].id
+            const allDistrictElementId = $('#all-district-result')[0].id
+            const districtElementId = $('#district-result')[0].id
+            const allRoadElementId = $('#all-road-result')[0].id
+            const roadElementId = $('#road-result')[0].id
+
+            $('#place-pagination-container').twbsPagination('destroy');
+            $('#address-pagination-container').twbsPagination('destroy');
+            $('#district-pagination-container').twbsPagination('destroy');
+            $('#road-pagination-container').twbsPagination('destroy');
+
+            $('#place-pagination-container').twbsPagination({
+                totalPages: placeResponse[0].response.page.total,
+                visiblePages: 5,
+                hideOnlyOnePage : true,
+                first : null,
+                prev : "<",
+                next : ">",
+                last : null,
+                initiateStartPageClick : true,
+                onPageClick: function (event, page) {
+                    $.when(
+                        searchPlace(searchQuery, page)
+                    ).done(function(response){
+                        addPlace(placeElementId, response, searchQuery, 10)
+                    })
+                }
+            });
+
+            $('#address-pagination-container').twbsPagination({
+                totalPages: addressResponse[0].response.page.total,
+                visiblePages: 5,
+                hideOnlyOnePage : true,
+                first : null,
+                prev : "<",
+                next : ">",
+                last : null,
+                initiateStartPageClick : true,
+                onPageClick: function (event, page) {
+                    $.when(
+                        searchAddress(searchQuery, page)
+                    ).done(function(response){
+                        addAddress(addressElementId, response, searchQuery, 10)
+                    })
+                }
+            });
+
+            $('#district-pagination-container').twbsPagination({
+                totalPages: districtResponse[0].response.page.total,
+                visiblePages: 5,
+                hideOnlyOnePage : true,
+                first : null,
+                prev : "<",
+                next : ">",
+                last : null,
+                initiateStartPageClick : true,
+                onPageClick: function (event, page) {
+                    $.when(
+                        searchDistrict(searchQuery, page)
+                    ).done(function(response){
+                        addDistrict(districtElementId, response, searchQuery, 10)
+                    })
+                }
+            });
+
+            $('#road-pagination-container').twbsPagination({
+                totalPages: roadResponse[0].response.page.total,
+                visiblePages: 5,
+                hideOnlyOnePage : true,
+                first : null,
+                prev : "<",
+                next : ">",
+                last : null,
+                initiateStartPageClick : true,
+                onPageClick: function (event, page) {
+                    $.when(
+                        searchRoad(searchQuery, page)
+                    ).done(function(response){
+                        addRoad(roadElementId, response, searchQuery, 10)
+                    })
+                }
+            });
+            addPlace(allPlaceElementId, placeResponse[0], searchQuery)
+            addAddress(allAddressElementId, addressResponse[0], searchQuery)
+            addDistrict(allDistrictElementId, districtResponse[0], searchQuery)
+            addRoad(allRoadElementId, roadResponse[0], searchQuery)
+        }).fail(function(err){
+            console.error(err);
+        });
     })
 
 </script>
