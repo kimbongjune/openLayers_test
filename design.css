@@ -67,8 +67,8 @@
 }
 
 #map > .btn-group-vertical{
-    top: 0.5em;
-    left: 5rem;
+    top: 3em;
+    left: 3em;
     position: absolute;
     z-index: 2;
     background-color: var(--ol-background-color);
@@ -697,6 +697,16 @@ td > a{
     vertical-align: middle;
 }
 
+.ol-overlaycontainer-stopevent > .ol-print > button{
+    color: var(--bs-btn-color);
+    border: var(--bs-btn-border-width) solid var(--bs-btn-border-color);
+}
+
+.ol-overlaycontainer-stopevent > .ol-print > button:hover{
+    color: var(--bs-btn-hover-color);
+    outline : var(--bs-btn-hover-color);
+}
+
 .olControlBookmarkMaximizeButton {
     background-image: url(./resources/img/layer-switcher-maximize.png);
     background-repeat: no-repeat;
@@ -706,6 +716,7 @@ td > a{
     position: absolute;
     top: 0px;
     right: 0px;
+    cursor: pointer;
 }
 
 .olControlBookmarkMinimizeButton {
@@ -717,6 +728,7 @@ td > a{
     position: absolute;
     top: 0px;
     right: 0px;
+    cursor: pointer;
 }
 
 .sidenav {
@@ -873,7 +885,7 @@ td > a{
     padding: 0px 15px 0px 0px;
     margin: 0;
     white-space: nowrap;
-    position: absolute;
+    position: relative;
 }
 
 .leftBottom__etcBtn > ul > li {
@@ -988,13 +1000,65 @@ ul, ol {
     top: 1px;
 }
 #swipe{
-    visibility: hidden;
+    display: none;
     position: absolute;
     z-index: 1;
     top: 50%;
     width: 100%;
     background: transparent;
+    transform: translateY(-50%);
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
 }
+
+#swipe::-webkit-slider-runnable-track {
+    -webkit-appearance: none;
+    background: transparent;  /* Track's color */
+    pointer-events: none;
+}
+  
+/* #swipe::before {
+    content: "";
+    position: absolute;
+    width: 1px;
+    height: 100%; 
+    background-color: black;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    z-index: -2;
+    border: 1.5px solid white;
+} */
+
+#line {
+    display: none;
+    position: absolute;
+    left: 50%;
+    width: 2px;
+    height: 100%;
+    transform: translateY(-50%);
+    transform: translateX(-50%);
+    background: black;
+    z-index: 1;
+}
+
+#swipe::-webkit-slider-thumb {
+    pointer-events:auto;
+    width: 20px;
+    cursor: col-resize;
+}
+
+/* #swipe::-webkit-slider-thumb {
+    pointer-events:auto;
+    -webkit-appearance: none;
+    width: 32px;
+    height: 32px;
+    background: url(./resources/img/btn-move.png) no-repeat left center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    cursor: col-resize;
+} */
 
 @keyframes spinner {
     to {
