@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="./lib/js/jquery-3.4.1.js"></script>
+    <script type="application/javascript"
+		src="./lib/js/hangjungdong.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <select id="sido"><option value="">선택</option></select>
+    <select id="sigugun"><option value="">선택</option></select>
+    <select id="dong"><option value="">선택</option></select>
+
+    <button type="button" id="button" value="button">button</button>
+</body>
+<script>
+
+// function download(data, filename, type) {
+//     var file = new Blob([data], {type: type});
+//     if (window.navigator.msSaveOrOpenBlob) // IE10+
+//         window.navigator.msSaveOrOpenBlob(file, filename);
+//     else { // Others
+//         var a = document.createElement("a"),
+//                 url = URL.createObjectURL(file);
+//         a.href = url;
+//         a.download = filename;
+//         document.body.appendChild(a);
+//         a.click();
+//         setTimeout(function() {
+//             document.body.removeChild(a);
+//             window.URL.revokeObjectURL(url);  
+//         }, 0); 
+//     }
+// }
+
+// var accessKey;
+//     $.ajax({
+//     url: "https://sgisapi.kostat.go.kr/OpenAPI3/auth/authentication.json",
+//     type: "GET",
+//     data: {
+//         consumer_key: "5ffa82fde9fa45338732",
+//         consumer_secret: "42f45550972442dea2c9"
+//     },
+//     success: function(data) {
+//         console.log(data);
+//         accessKey = data.result.accessToken
+//     },
+//     error: function(xhr, status, error) {
+//         console.error('Error:', status, error);
+//     }
+//     });
+    
+//     let hangjungdong = {
+//         sido: [],
+//         sigugun: [],
+//         dong: [],
+//     };
+
+
+//     $("#button").on("click", async function(){
+//     try {
+//         let codes = await callSidoApi();
+//         for (let code of codes) {
+//             let sidoData = {sido: code.cd, codeNm: code.addr_name, polygon : code.pg};
+//             hangjungdong.sido.push(sidoData);
+// 			console.log(code)
+
+//             let datas = await callGugunApi(code.cd);
+//             for (let data of datas) {
+//                 let sigugunData = {sido: code.cd, sigugun: data.cd, codeNm: data.addr_name, polygon : data.pg};
+//                 hangjungdong.sigugun.push(sigugunData);
+
+//                 let results = await callGugunApi(data.cd);
+//                 for (let result of results) {
+//                     let dongData = {sido: code.cd, sigugun: data.cd, dong: result.cd, codeNm: result.addr_name, polygon : result.pg};
+//                     hangjungdong.dong.push(dongData);
+//                     console.log("work",result)
+//                 }
+//             }
+//         }
+//         let hangjungdongStr = "var hangjungdong = " + JSON.stringify(hangjungdong, null, 2) + ";";
+//         download(hangjungdongStr, "hangjungdong.js", "text/plain");
+//     } catch (err) {
+//         console.error('Error:', err);
+//     }
+// });
+
+//     function callSidoApi() {
+//         return $.ajax({
+//             url: "https://sgisapi.kostat.go.kr/OpenAPI3/addr/stage.json",
+//             type: "GET",
+//             data: {
+//                 accessToken: accessKey,
+// 				pg_yn : 1
+//             }
+//         }).then(data => data.result);
+//     }
+
+//     function callGugunApi(code) {
+//         return $.ajax({
+//             url: "https://sgisapi.kostat.go.kr/OpenAPI3/addr/stage.json",
+//             type: "GET",
+//             data: {
+//                 accessToken: accessKey,
+//                 cd : code,
+// 				pg_yn : 1
+//             }
+//         }).then(data => data.result);
+//     }
+    
+    	$(document).ready(function () {
+			//sido option 추가
+			$.each(hangjungdong.sido, function (idx, code) {
+				//append를 이용하여 option 하위에 붙여넣음
+				$('#sido').append(fn_option(code.sido, code.codeNm, code.polygon));
+			});
+
+			//sido 변경시 시군구 option 추가
+			$('#sido').change(function () {
+				$('#sigugun').show();
+				$('#sigugun').empty();
+				$('#sigugun').append(fn_option('', '선택')); //
+                $('#dong').empty();
+                $('#dong').append(fn_option('', '선택')); //
+				$.each(hangjungdong.sigugun, function (idx, code) {
+					if ($('#sido > option:selected').val() == code.sido)
+						$('#sigugun').append(fn_option(code.sigugun, code.codeNm, code.polygon));
+				});
+			});
+
+			//시군구 변경시 행정동 옵션추가
+			$('#sigugun').change(function () {
+				//option 제거
+				$('#dong').empty();
+				$.each(hangjungdong.dong, function (idx, code) {
+					if ($('#sido > option:selected').val() == code.sido && $('#sigugun > option:selected').val() == code.sigugun)
+						$('#dong').append(fn_option(code.dong, code.codeNm, code.polygon));
+				});
+				//option의 맨앞에 추가
+				$('#dong').prepend(fn_option('', '선택'));
+				//option중 선택을 기본으로 선택
+				$('#dong option:eq("")').attr('selected', 'selected');
+			});
+
+			$('#dong').change(function () {
+				var sido = $('#sido option:selected');
+				var sigugun = $('#sigugun option:selected');
+				var dong = $('#dong option:selected');
+
+				var dongName = sido.text() + ' ' + sigugun.text() + ' ' + dong.text(); // 시도/시군구/읍면동 이름
+
+				var sidoData = sido.data('polygon');
+				var sigugunData = sigugun.data('polygon');
+				var dongData = dong.data('polygon');
+
+				console.log("Dong Name: " + dongName);
+
+			});
+		});
+
+		function fn_option(code, name, polygon) {
+			return '<option data-polygon="'+polygon+'" value="' + code + '">' + name + '</option>';
+		}
+</script>
+</html>
