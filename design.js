@@ -158,6 +158,7 @@ map.addLayer(routeVectorLayer);
 const info = document.getElementById("coordinate");
 const addressInfo = document.getElementById("address");
 const swipe = document.getElementById('swipe');
+const line = document.getElementById('line');
 
 let dragAndDropInteraction;
 var koreaExtent = ol.proj.transformExtent([123.75, 33.55, 131.88, 39.44], 'EPSG:4326', 'EPSG:3857');
@@ -280,13 +281,13 @@ dragBox.on('boxend', function (evt) {
     //                                                 <div class="leftBottom__etcBtn">
     //                                                     <ul>
     //                                                         <li class="select customSelect">
-    //                                                             <p>${geoInfoObject.properties.addr}</p>
+    //                                                             <p onclick="searchLocalAddress(this)">${geoInfoObject.properties.addr}</p>
     //                                                         </li>
     //                                                     </ul>
     //                                                 </div>
     //                                             </code>
     //                                             <br>
-    //                                             <div>공시지가 : ${geoInfoObject.properties.jiga != "" ? geoInfoObject.properties.jiga.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : "--"}&#8361;, 지목 : ${geoInfoObject.properties.jibun.slice(-1)}</div>
+    //                                             <div style="float: left;">공시지가 : ${geoInfoObject.properties.jiga != "" ? geoInfoObject.properties.jiga.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : "--"}&#8361;, 지목 : ${geoInfoObject.properties.jibun.slice(-1)}</div>
     //                                         </div>`
     //         var overlay = new ol.Overlay({
     //             element: overlayElement,
@@ -750,7 +751,7 @@ map.on("click", function (evt) {
         async : false,
         jsonpCallback: 'callback',
         success: function(data) {
-            //console.log(data)
+            console.log(data)
             if(data.response.status != "OK"){
                 return;
             }
@@ -799,13 +800,13 @@ map.on("click", function (evt) {
                                                     <div class="leftBottom__etcBtn">
                                                         <ul>
                                                             <li class="select customSelect">
-                                                                <p>${geoInfoObject.properties.addr}</p>
+                                                                <p onclick="searchLocalAddress(this)">${geoInfoObject.properties.addr}</p>
                                                             </li>
                                                         </ul>
                                                     </div>
                                                 </code>
                                                 <br>
-                                                <div>공시지가 : ${geoInfoObject.properties.jiga != "" ? geoInfoObject.properties.jiga.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : "--"}&#8361;, 지목 : ${geoInfoObject.properties.jibun.slice(-1)}</div>
+                                                <div style="float: left;">공시지가 : ${geoInfoObject.properties.jiga != "" ? geoInfoObject.properties.jiga.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : "--"}&#8361;, 지목 : ${geoInfoObject.properties.jibun.slice(-1)}</div>
                                             </div>`
             var overlay = new ol.Overlay({
                 element: overlayElement,
@@ -2545,6 +2546,8 @@ $(document).ready(function(){
         container.append(text)
     }
 
+    addControlTitle()
+
 });
 
 $('#bookmark-container').on('click', '.olControlBookmarkLink', function() {
@@ -3360,7 +3363,8 @@ document.getElementById('mapLayerSelect').addEventListener('change', function() 
             type : "submap",
             zIndex : 0
         });
-        $(swipe).css("visibility", "visible")
+        $(swipe).css("display", "block")
+        $(line).css("display", "block")
         break;
       case 'aerial':
         // 항공 사진 레이어 표시 로직
@@ -3373,7 +3377,8 @@ document.getElementById('mapLayerSelect').addEventListener('change', function() 
             type : "submap",
             zIndex : 0
         });
-        $(swipe).css("visibility", "visible")
+        $(swipe).css("display", "block")
+        $(line).css("display", "block")
         break;
       case 'gray':
         // 회색 지도 레이어 표시 로직
@@ -3386,7 +3391,8 @@ document.getElementById('mapLayerSelect').addEventListener('change', function() 
             type : "submap",
             zIndex : 0
         });
-        $(swipe).css("visibility", "visible")
+        $(swipe).css("display", "block")
+        $(line).css("display", "block")
         break;
       case 'night':
         // 야간 지도 레이어 표시 로직
@@ -3399,21 +3405,24 @@ document.getElementById('mapLayerSelect').addEventListener('change', function() 
             type : "submap",
             zIndex : 0
         });
-        $(swipe).css("visibility", "visible")
+        $(swipe).css("display", "block")
+        $(line).css("display", "block")
         break;
       default:
         // 데이터 없음 선택 시 로직
         if(swipeLayer){
             map.removeLayer(swipeLayer)
         }   
-        $(swipe).css("visibility", "hidden")
+        $(swipe).css("display", "none")
+        $(line).css("display", "none")
         return;
     }
     map.addLayer(swipeLayer)
     swipeLayer.on('prerender', function (event) {
+        const thumbWidth = 20;
         const ctx = event.context;
         const mapSize = map.getSize();
-        const width = mapSize[0] * (swipe.value / 100);
+        const width = (mapSize[0] - thumbWidth) * (swipe.value / 100) + thumbWidth / 2;
         const tl = ol.render.getRenderPixel(event, [width, 0]);
         const tr = ol.render.getRenderPixel(event, [mapSize[0], 0]);
         const bl = ol.render.getRenderPixel(event, [width, mapSize[1]]);
@@ -3434,13 +3443,20 @@ document.getElementById('mapLayerSelect').addEventListener('change', function() 
     });
 });
 
-swipe.addEventListener('input', function () {
+swipe.addEventListener('input', function (e) {
+    var rangeValue = e.target.value;
+    var swipeWidth = e.target.offsetWidth;
+    var thumbWidth = parseInt(getComputedStyle(e.target).getPropertyValue('--thumb-width'), 10) || 20; // thumb의 너비 가져오기
+    var max = parseInt(e.target.getAttribute('max'), 10); // range 요소의 최댓값 가져오기
+    var linePosition = (rangeValue / max) * (swipeWidth - thumbWidth); // range 값에 따라 div 위치 계산
+    line.style.left = linePosition + (thumbWidth / 2) + 'px';
     map.render();
 });
 
 var printControl = new ol.control.PrintDialog({ 
     lang : "ko",
     scales : false,
+    className : "ol-print"
 });
 
 printControl.setSize('A4');
@@ -3477,7 +3493,7 @@ printControl.on(['print', 'error'], function(e) {
     if (e.image) {
       if (e.pdf) {
         // Export pdf using the print info
-        var pdf = new jsPDF({
+        var pdf = new jspdf.jsPDF({
           orientation: e.print.orientation,
           unit: e.print.unit,
           format: e.print.size
@@ -3857,10 +3873,10 @@ function clickAddress(event){
     const target = event.target;
 
     // 클릭한 요소가 <span>인지 확인합니다.
-    if (target.tagName.toLowerCase() === 'span') {
+    if (target.tagName.toLowerCase() === 'span' || 'mark') {
         // data-coord 속성의 값을 가져옵니다.
         console.log($(target).text())
-        const coords = target.getAttribute('data-coord');
+        const coords = target.tagName.toLowerCase() === 'mark' ? $(target).parent().data('coord') : target.getAttribute('data-coord');
 
         const coordinates = coords.split(", ")
         const coordinate = [parseFloat(coordinates[0]), parseFloat(coordinates[1])]
@@ -3941,13 +3957,13 @@ function clickAddress(event){
                                                         <div class="leftBottom__etcBtn">
                                                             <ul>
                                                                 <li class="select customSelect">
-                                                                    <p>${geoInfoObject.properties.addr}</p>
+                                                                    <p onclick="searchLocalAddress(this)">${geoInfoObject.properties.addr}</p>
                                                                 </li>
                                                             </ul>
                                                         </div>
                                                     </code>
                                                     <br>
-                                                    <div>공시지가 : ${geoInfoObject.properties.jiga != "" ? geoInfoObject.properties.jiga.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : "--"}&#8361;, 지목 : ${geoInfoObject.properties.jibun.slice(-1)}</div>
+                                                    <div style="float: left;">공시지가 : ${geoInfoObject.properties.jiga != "" ? geoInfoObject.properties.jiga.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : "--"}&#8361;, 지목 : ${geoInfoObject.properties.jibun.slice(-1)}</div>
                                                 </div>`
                 var overlay = new ol.Overlay({
                     element: overlayElement,
@@ -3975,7 +3991,7 @@ function clickGeoData(event, type){
     const target = event.target;
 
     // 클릭한 요소가 <span>인지 확인합니다.
-    if (target.tagName.toLowerCase() === 'span') {
+    if (target.tagName.toLowerCase() === 'span' || 'mark') {
 
         //TODO 추후 서버 생성시 진행 예정
         // if (clickCurrentLayer) {
@@ -4043,7 +4059,7 @@ function clickGeoData(event, type){
         //                                                 <div class="leftBottom__etcBtn">
         //                                                     <ul>
         //                                                         <li class="select customSelect">
-        //                                                             <p>${geoInfoObject.properties.addr == null ? geoInfoObject.properties.title : geoInfoObject.properties.addr}</p>
+        //                                                             <p onclick="searchLocalAddress(this)">${geoInfoObject.properties.addr == null ? geoInfoObject.properties.title : geoInfoObject.properties.addr}</p>
         //                                                         </li>
         //                                                     </ul>
         //                                                 </div>
@@ -4082,4 +4098,26 @@ function clickGeoData(event, type){
 
 function addHighlight(html, query){
     return html.replaceAll(query, `<mark style="padding:0px;">${query}</mark>`)
+}
+
+function searchLocalAddress(e){
+    console.log(e.innerText)
+    var tabElement = new bootstrap.Tab(document.getElementById('profile-tab'));
+    $("#search-input").val(e.innerText)
+    $("#serach-button").click()
+    // Show the tab
+    tabElement.show();
+}
+
+
+function addControlTitle(){
+    $(".ol-zoom-in").attr("title", "줌인")
+    $(".ol-zoom-out").attr("title", "줌아웃")
+    $(".ol-zoom-extent button").attr("title", "범위 맞춤")
+    $(".ol-zoomslider-thumb").attr("title", "줌 슬라이더")
+    $(".ol-compass").attr("title", "회전 초기화")
+    $(".ol-fullscreen-control-false").attr("title", "전체 화면")
+    $(".ol-overviewmap button").attr("title", "개요도")
+    $(".ol-print button").attr("title", "프린트")
+    $(".ol-scale-bar .ol-scale-bar-inner").attr("title", "축적/거리")
 }
