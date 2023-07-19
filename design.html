@@ -78,6 +78,9 @@
 
     <!-- filesaver 1.3.8 js -->
     <script src="./lib/js/filesaver-1.3.8.js"></script>
+
+    <!-- 시군구 데이터 -->
+    <script src="./lib/js/hangjungdong.js"></script>
 </head>
 <body>
     <div class="container-fluid">
@@ -438,8 +441,32 @@
                                     </select>
                                 </div>
                             </div>
+
+                            <div class="collapse justify-content-center" id="address-collpase" style="position: fixed; bottom: 4%; width: 50%;">
+                                <div class="card card-body">
+                                    <!-- Grid system for horizontal select boxes -->
+                                    <div class="row">
+                                        <div class="col">
+                                            <select id="sido" class="form-select form-select-sm mb-3" aria-label="Default select example">
+                                                <option value="">선택</option>
+                                            </select>
+                                        </div>
+                                        <div class="col">
+                                            <select id="sigugun" class="form-select form-select-sm mb-3" aria-label="Default select example">
+                                                <option value="">선택</option>
+                                            </select>
+                                        </div>
+                                        <div class="col">
+                                            <select id="dong" class="form-select form-select-sm mb-3" aria-label="Default select example">
+                                                <option value="">선택</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                         <div id="map-info-coordinate"><span class="fw-normal" id="coordinate">14123658.12, 4513950.36</span></div>
-                        <div id="map-info-address"><span class="fw-normal" id="address">서울특별시 양천구 목동</span></div>
+                        <div id="map-info-address" data-bs-toggle="collapse" data-bs-target="#address-collpase" aria-expanded="false" aria-controls="address-collpase"><span class="fw-normal" id="address">서울특별시 양천구 목동</span></div>
                     </div>
                 </div>
             </div>
@@ -476,7 +503,58 @@
         $('.dropdown-menu').on('click', function(e) {
             e.stopPropagation();
         });
+
+        $.each(hangjungdong.sido, function (idx, code) {
+            //append를 이용하여 option 하위에 붙여넣음
+            $('#sido').append(fn_option(code.sido, code.codeNm, code.polygon));
+        });
+
+        //sido 변경시 시군구 option 추가
+        $('#sido').change(function () {
+            $('#sigugun').show();
+            $('#sigugun').empty();
+            $('#sigugun').append(fn_option('', '선택')); //
+            $('#dong').empty();
+            $('#dong').append(fn_option('', '선택')); //
+            $.each(hangjungdong.sigugun, function (idx, code) {
+                if ($('#sido > option:selected').val() == code.sido)
+                    $('#sigugun').append(fn_option(code.sigugun, code.codeNm, code.polygon));
+            });
+        });
+
+        //시군구 변경시 행정동 옵션추가
+        $('#sigugun').change(function () {
+            //option 제거
+            $('#dong').empty();
+            $.each(hangjungdong.dong, function (idx, code) {
+                if ($('#sido > option:selected').val() == code.sido && $('#sigugun > option:selected').val() == code.sigugun)
+                    $('#dong').append(fn_option(code.dong, code.codeNm, code.polygon));
+            });
+            //option의 맨앞에 추가
+            $('#dong').prepend(fn_option('', '선택'));
+            //option중 선택을 기본으로 선택
+            $('#dong option:eq("")').attr('selected', 'selected');
+        });
+
+        $('#dong').change(function () {
+            var sido = $('#sido option:selected');
+            var sigugun = $('#sigugun option:selected');
+            var dong = $('#dong option:selected');
+
+            var dongName = sido.text() + ' ' + sigugun.text() + ' ' + dong.text(); // 시도/시군구/읍면동 이름
+
+            var sidoData = sido.data('polygon');
+            var sigugunData = sigugun.data('polygon');
+            var dongData = dong.data('polygon');
+
+            console.log("Dong Name: " + dongName);
+
+        });
     })
+
+    function fn_option(code, name, polygon) {
+        return '<option data-polygon="'+polygon+'" value="' + code + '">' + name + '</option>';
+    }
 
     //장소 더보기 클릭
     $(document).on('click', '.place-more-view', function(event) {
