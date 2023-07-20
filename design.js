@@ -5,7 +5,7 @@ ol.proj.proj4.register(proj4);
 
 //맵의 view 객체 정의
 const MAX_ZOOM_LEVEL = 20;
-const MIN_ZOOM_LEVEL = 6;
+const MIN_ZOOM_LEVEL = 7;
 const DEFAULT_ZOOM_LEVEL = 15;
 
 //건물 레이어 API 요청 아이디
@@ -2437,7 +2437,8 @@ function reverseGeoCodingToRegion(coordinateX, coordinateY){
         },
         success: function (res) {
             //console.log(res);
-            addressInfo.innerHTML = `${res.documents[0].address_name}`
+            addressInfo.innerHTML = `${res.documents[1].address_name}`
+            findCodeByNames(res.documents[1].region_1depth_name, res.documents[1].region_2depth_name, res.documents[1].region_3depth_name)
         },
         error: function(xhr, status, error){ 
 			addressInfo.innerHTML = "주소를 찾을 수 없습니다."
@@ -4160,3 +4161,39 @@ function addControlTitle(){
     $(".ol-print button").attr("title", "프린트")
     $(".ol-scale-bar .ol-scale-bar-inner").attr("title", "축적/거리")
 }
+
+function findCodeByNames(sidoName, gugunName, dongName) {
+    var sidoCode, gugunCode, dongCode;
+    if(sidoName == "" && gugunName == "" && dongName == ""){
+        console.log("?")
+        $("#sido").val("").trigger('change');
+        $("#sigugun").val("").trigger('change');
+        $("#dong").val("").trigger('change');
+        return
+    }
+    console.log(sidoName, gugunName, dongName)
+    for (let i = 0; i < hangjungdong.sido.length; i++) {
+        if (hangjungdong.sido[i].codeNm === sidoName) {
+            sidoCode = hangjungdong.sido[i].sido;
+            $("#sido").val(hangjungdong.sido[i].sido).trigger('change');
+            break;
+        }
+    }
+
+    for (let i = 0; i < hangjungdong.sigugun.length; i++) {
+        if (hangjungdong.sigugun[i].codeNm === gugunName && hangjungdong.sigugun[i].sido === sidoCode) {
+            gugunCode = hangjungdong.sigugun[i].sigugun;
+            $("#sigugun").val(hangjungdong.sigugun[i].sigugun).trigger('change');
+            break;
+        }
+    }
+
+    for (let i = 0; i < hangjungdong.dong.length; i++) {
+        if (hangjungdong.dong[i].codeNm === dongName && hangjungdong.dong[i].sido === sidoCode && hangjungdong.dong[i].sigugun === gugunCode) {
+            dongCode = hangjungdong.dong[i].dong;
+            $("#dong").val(hangjungdong.dong[i].dong).trigger('change');
+            break;
+        }
+    }
+    return dongCode;
+  }
