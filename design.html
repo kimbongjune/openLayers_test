@@ -210,11 +210,16 @@
                                     <p class="search-addres-result-text text-sm-start text-secondary">
                                         <span class="text-danger" id="place-search-content-name">"한누리대로 2130"</span> 검색결과 : <span id="place-search-content-count" class="text-danger">1</span>건
                                     </p>
+                                    <nav aria-label="Page navigation example">
+                                        <ul class="pagination pagination-sm justify-content-center place-pagination-container" id="place-pagination-container">
+                                          
+                                        </ul>
+                                    </nav>
                                     <table class="table table-sm search-address-result-table place-result" id="place-result">
                                         
                                     </table>
                                     <nav aria-label="Page navigation example">
-                                        <ul class="pagination pagination-sm justify-content-center" id="place-pagination-container">
+                                        <ul class="pagination pagination-sm justify-content-center place-pagination-container" id="place-pagination-container">
                                           
                                         </ul>
                                     </nav>
@@ -223,18 +228,16 @@
                                     <p class="search-addres-result-text text-sm-start text-secondary">
                                         <span class="text-danger" id="address-search-content-name">"한누리대로 2130"</span> 검색결과 : <span id="address-search-content-count" class="text-danger">1</span>건
                                     </p>
+                                    <nav aria-label="Page navigation example">
+                                        <ul class="pagination pagination-sm justify-content-center address-pagination-container" id="address-pagination-container">
+                                          
+                                        </ul>
+                                      </nav>
                                     <table class="table table-sm search-address-result-table address-result" id="address-result">
-                                        <tbody>
-                                            <tr>
-                                                <td scope="row" colspan="3" class="address-name">
-                                                    <span>(30151) 세종특별자치시 한누리대로 2130<br> (보람동)</span>
-                                                </td>
-                                            </tr>
-                                            <tr class="address-table-last-child-md"></tr>
-                                        </tbody>
+                                        
                                     </table>
                                     <nav aria-label="Page navigation example">
-                                        <ul class="pagination pagination-sm justify-content-center" id="address-pagination-container">
+                                        <ul class="pagination pagination-sm justify-content-center address-pagination-container" id="address-pagination-container">
                                           
                                         </ul>
                                       </nav>
@@ -243,18 +246,16 @@
                                     <p class="search-addres-result-text text-sm-start text-secondary">
                                         <span class="text-danger" id="district-search-content-name">"한누리대로 2130"</span> 검색결과 : <span id="district-search-content-count" class="text-danger">1</span>건
                                     </p>
+                                    <nav aria-label="Page navigation example">
+                                        <ul class="pagination pagination-sm justify-content-center district-pagination-container" id="district-pagination-container">
+                                          
+                                        </ul>
+                                      </nav>
                                     <table class="table table-sm search-address-result-table district-result" id="district-result">
-                                        <tbody>
-                                            <tr>
-                                                <td scope="row" colspan="3" class="address-name">
-                                                    <span>(3611010300) 세종특별자치시 보람동<br> (보람동)</span>
-                                                </td>
-                                            </tr>
-                                            <tr class="address-table-last-child-md"></tr>
-                                        </tbody>
+                                        
                                     </table>
                                     <nav aria-label="Page navigation example">
-                                        <ul class="pagination pagination-sm justify-content-center" id="district-pagination-container">
+                                        <ul class="pagination pagination-sm justify-content-center district-pagination-container" id="district-pagination-container">
                                           
                                         </ul>
                                       </nav>
@@ -263,18 +264,16 @@
                                     <p class="search-addres-result-text text-sm-start text-secondary">
                                         <span class="text-danger" id="road-search-content-name">"한누리대로 2130"</span> 검색결과 : <span id="road-search-content-count" class="text-danger">1</span>건
                                     </p>
+                                    <nav aria-label="Page navigation example">
+                                        <ul class="pagination pagination-sm justify-content-center road-pagination-container" id="road-pagination-container">
+                                          
+                                        </ul>
+                                      </nav>
                                     <table class="table table-sm search-address-result-table road-result" id="road-result">
-                                        <tbody>
-                                            <tr>
-                                                <td scope="row" colspan="3" class="address-name">
-                                                    <span>(361102000002) 세종특별자치시 (어진동)...<br> (한누리대로)</span>
-                                                </td>
-                                            </tr>
-                                            <tr class="address-table-last-child-md"></tr>
-                                        </tbody>
+                                        
                                     </table>
                                     <nav aria-label="Page navigation example">
-                                        <ul class="pagination pagination-sm justify-content-center" id="road-pagination-container">
+                                        <ul class="pagination pagination-sm justify-content-center road-pagination-container" id="road-pagination-container">
                                           
                                         </ul>
                                       </nav>
@@ -442,24 +441,27 @@
                                 </div>
                             </div>
 
-                            <div class="collapse justify-content-center" id="address-collpase" style="position: fixed; bottom: 4%; width: 50%;">
+                            <div class="collapse justify-content-center" id="address-collpase">
                                 <div class="card card-body">
                                     <!-- Grid system for horizontal select boxes -->
                                     <div class="row">
                                         <div class="col">
-                                            <select id="sido" class="form-select form-select-sm mb-3" aria-label="Default select example">
+                                            <select id="sido" class="form-select form-select-sm" aria-label="Default select example">
                                                 <option value="">선택</option>
                                             </select>
                                         </div>
                                         <div class="col">
-                                            <select id="sigugun" class="form-select form-select-sm mb-3" aria-label="Default select example">
+                                            <select id="sigugun" class="form-select form-select-sm" aria-label="Default select example">
                                                 <option value="">선택</option>
                                             </select>
                                         </div>
                                         <div class="col">
-                                            <select id="dong" class="form-select form-select-sm mb-3" aria-label="Default select example">
+                                            <select id="dong" class="form-select form-select-sm" aria-label="Default select example">
                                                 <option value="">선택</option>
                                             </select>
+                                        </div>
+                                        <div class="col-auto">
+                                            <button type="button" class="btn btn-outline-primary" style="font-size: 0.7rem;" id="btn-move-address">이동</button>
                                         </div>
                                     </div>
                                 </div>
@@ -543,11 +545,7 @@
 
             var dongName = sido.text() + ' ' + sigugun.text() + ' ' + dong.text(); // 시도/시군구/읍면동 이름
 
-            var sidoData = sido.data('polygon');
-            var sigugunData = sigugun.data('polygon');
             var dongData = dong.data('polygon');
-
-            console.log("Dong Name: " + dongName);
 
         });
     })
@@ -845,12 +843,12 @@
             const allRoadElementId = $('#all-road-result')[0].id
             const roadElementId = $('#road-result')[0].id
 
-            $('#place-pagination-container').twbsPagination('destroy');
-            $('#address-pagination-container').twbsPagination('destroy');
-            $('#district-pagination-container').twbsPagination('destroy');
-            $('#road-pagination-container').twbsPagination('destroy');
+            $('.place-pagination-container').twbsPagination('destroy');
+            $('.address-pagination-container').twbsPagination('destroy');
+            $('.district-pagination-container').twbsPagination('destroy');
+            $('.road-pagination-container').twbsPagination('destroy');
 
-            $('#place-pagination-container').twbsPagination({
+            $('.place-pagination-container').twbsPagination({
                 totalPages: placeResponse[0].response.page.total,
                 visiblePages: 5,
                 hideOnlyOnePage : true,
@@ -868,7 +866,7 @@
                 }
             });
 
-            $('#address-pagination-container').twbsPagination({
+            $('.address-pagination-container').twbsPagination({
                 totalPages: addressResponse[0].response.page.total,
                 visiblePages: 5,
                 hideOnlyOnePage : true,
@@ -886,7 +884,7 @@
                 }
             });
 
-            $('#district-pagination-container').twbsPagination({
+            $('.district-pagination-container').twbsPagination({
                 totalPages: districtResponse[0].response.page.total,
                 visiblePages: 5,
                 hideOnlyOnePage : true,
@@ -904,7 +902,7 @@
                 }
             });
 
-            $('#road-pagination-container').twbsPagination({
+            $('.road-pagination-container').twbsPagination({
                 totalPages: roadResponse[0].response.page.total,
                 visiblePages: 5,
                 hideOnlyOnePage : true,
@@ -930,6 +928,134 @@
         }).fail(function(err){
             console.error(err);
         });
+    })
+
+    $("#btn-move-address").on("click", function(){
+        let addressCode = $("#dong").val()
+        let param = "LT_C_ADEMD_INFO"
+        let sidoName = $("#dong option:selected").text()
+        let attrFilter = "emd_kor_nm"
+        if(addressCode == ""){
+            addressCode = $("#sigugun").val()
+            param = "LT_C_ADSIGG_INFO"
+            sidoName = $("#sigugun option:selected").text()
+            attrFilter = "sig_kor_nm"
+        }
+        if(addressCode == ""){
+            addressCode = $("#sido").val()
+            param = "LT_C_ADSIDO_INFO"
+            sidoName = $("#sido option:selected").text()
+            attrFilter = "ctp_kor_nm"
+        }
+        if(addressCode == ""){
+           return alert("시도 / 시군구 / 읍면동 중 하나 이상을 선택해주세요")
+        }
+
+        const fullAddress = `${$("#sido option:selected").text()} ${$("#sigugun option:selected").text()} ${$("#dong option:selected").text()}`.replaceAll("선택", "")
+        console.log(fullAddress)
+
+        console.log(addressCode, sidoName)
+        var url = `https://api.vworld.kr/req/data?service=data&request=GetFeature&data=${param}&key=A5C5E9FF-F9FC-3012-9D01-41A62F369AA7&domain=http://127.0.0.1:3000/openlayers_test.html&crs=EPSG:3857&attrFilter=${attrFilter}:=:${sidoName}`
+        
+        if (clickCurrentLayer) {
+            map.removeLayer(clickCurrentLayer);
+        }
+
+        if (clickCurrentOverlay) {
+            map.removeOverlay(clickCurrentOverlay);
+        }
+
+        $.ajax({
+            url : url,
+            type: 'GET',
+            dataType: "jsonp",
+            async : false,
+            jsonpCallback: 'callback',
+            success: function(data) {
+                console.log(data)
+                if(!data.response.status == "OK"){
+                    return alert("api 호출 에러 발생")
+                }
+                var geoInfoObject = data.response.result.featureCollection.features[0];
+                var geojsonObject = geoInfoObject.geometry;
+                
+                var vectorSource = new ol.source.Vector({
+                    features: (new ol.format.GeoJSON()).readFeatures(geojsonObject)
+                });
+
+                //layer.getSource().getKeys()로 확인
+
+                var vectorStyle = new ol.style.Style({
+                    fill: new ol.style.Fill({
+                        color: 'rgba(135,206,250, 0.5)', // Skyblue color fill with opacity
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: 'orange', // Orange stroke color
+                        width: 2
+                    }),
+                });
+                
+                var vector_layer = new ol.layer.Vector({
+                    source: vectorSource,
+                    style: vectorStyle
+                })
+                //layer.getKeys() 로 확인
+                 
+                map.addLayer(vector_layer);
+                clickCurrentLayer = vector_layer
+
+                var overlayElement = document.createElement('div');
+                overlayElement.className = "ol-popup";
+                overlayElement.innerHTML += `<a href="#" id="popup-closer" class="ol-popup-closer"></a>`
+                overlayElement.innerHTML += `<div id="popup-content">
+                                                <div class="ol-popup-title">정보</div>
+                                                    <code class="code">
+                                                        <div class="popup-coordinate">${ol.extent.getCenter(vectorSource.getExtent())}</div><span>주소</span><br>
+                                                        <div class="leftBottom__etcBtn">
+                                                            <ul>
+                                                                <li class="select customSelect">
+                                                                    <p onclick="searchLocalAddress(this)">${fullAddress}</p>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </code>
+                                                    <br>
+                                                </div>`
+                var overlay = new ol.Overlay({
+                    element: overlayElement,
+                    position: ol.extent.getCenter(vectorSource.getExtent())
+                });
+
+                map.getView().fit(vectorSource.getExtent());
+                map.getView().setCenter(ol.extent.getCenter(vectorSource.getExtent()));
+                let zoomLevel;
+                if(param == "LT_C_ADSIDO_INFO"){
+                    zoomLevel = 8
+                }else if(param == "LT_C_ADSIGG_INFO"){
+                    zoomLevel = 10
+                }else{
+                    zoomLevel = 12
+                }
+                if(map.getView().getZoom() < zoomLevel){
+                    map.getView().setZoom(zoomLevel)
+                }
+                
+                // Add the overlay to the map
+                map.addOverlay(overlay);
+                clickCurrentOverlay = overlay;
+    
+                var deleteButton = overlayElement.querySelector(".ol-popup-closer");
+                deleteButton.addEventListener("click", function () {
+                    map.removeLayer(vector_layer);
+                    map.removeOverlay(clickCurrentOverlay);
+                });
+            },beforesend: function(){
+                
+            },
+            error: function(xhr, stat, err) {
+                console.log(xhr, stat, err)
+            }
+        })
     })
 
 </script>
