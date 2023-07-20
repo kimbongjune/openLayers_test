@@ -1064,6 +1064,72 @@
         })
     })
 
+    $('#place-tab').on('shown.bs.tab', function (e) {
+        //TODO 해당 탭이 오픈되면 숨겨둔 마커를 표시한다.
+        console.log(e.target.id + ' tab is now active');
+        $('#place-result span[data-coord]').each(function() {
+            //TODO 이런 식으로 좌표를 읽어 지도에 마커를 표시 마커는 특정 속성으로 각 탭을 비교
+            //TODO 최초 api 호출시 마커를 숨김 상태로 지도 위에 표시는 해놓음
+            var coord = $(this).attr('data-coord');
+            console.log('Coordinate:', coord);
+        });
+    });
+
+    $('#place-tab').on('hidden.bs.tab', function (e) {
+        //TODO 해당 탭이 닫히면 마커를 숨긴다.
+        console.log(e.target.id + ' tab is now hidden');
+    });
+
+
+    $('#address-tab').on('shown.bs.tab', function (e) {
+        //TODO 해당 탭이 오픈되면 숨겨둔 마커를 표시한다.
+        console.log(e.target.id + ' tab is now active');
+        $('#address-result span[data-coord]').each(function() {
+            //TODO 이런 식으로 좌표를 읽어 지도에 마커를 표시 마커는 특정 속성으로 각 탭을 비교
+            //TODO 최초 api 호출시 마커를 숨김 상태로 지도 위에 표시는 해놓음
+            var coord = $(this).attr('data-coord');
+            console.log('Coordinate:', coord);
+        });
+    });
+
+    $('#address-tab').on('hidden.bs.tab', function (e) {
+        //TODO 해당 탭이 닫히면 마커를 숨긴다.
+        console.log(e.target.id + ' tab is now hidden');
+    });
+
+
+    $('#district-tab').on('shown.bs.tab', function (e) {
+        //TODO 해당 탭이 오픈되면 숨겨둔 마커를 표시한다.
+        console.log(e.target.id + ' tab is now active');
+        $('#district-result span[data-coord]').each(function() {
+            //TODO 이런 식으로 좌표를 읽어 지도에 마커를 표시 마커는 특정 속성으로 각 탭을 비교
+            //TODO 최초 api 호출시 마커를 숨김 상태로 지도 위에 표시는 해놓음
+            var coord = $(this).attr('data-coord');
+            console.log('Coordinate:', coord);
+        });
+    });
+
+    $('#district-tab').on('hidden.bs.tab', function (e) {
+        //TODO 해당 탭이 닫히면 마커를 숨긴다.
+        console.log(e.target.id + ' tab is now hidden');
+    });
+
+
+    $('#road-tab').on('shown.bs.tab', function (e) {
+        //TODO 해당 탭이 오픈되면 숨겨둔 마커를 표시한다.
+        console.log(e.target.id + ' tab is now active');
+        $('#road-result span[data-coord]').each(function() {
+            //TODO 이런 식으로 좌표를 읽어 지도에 마커를 표시 마커는 특정 속성으로 각 탭을 비교
+            //TODO 최초 api 호출시 마커를 숨김 상태로 지도 위에 표시는 해놓음
+            var coord = $(this).attr('data-coord');
+            console.log('Coordinate:', coord);
+        });
+    });
+
+    $('#road-tab').on('hidden.bs.tab', function (e) {
+        //TODO 해당 탭이 닫히면 마커를 숨긴다.
+        console.log(e.target.id + ' tab is now hidden');
+    });
 </script>
 <script src="./design.js"></script>
 </html>

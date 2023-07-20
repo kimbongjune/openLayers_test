@@ -5,7 +5,7 @@ ol.proj.proj4.register(proj4);
 
 //맵의 view 객체 정의
 const MAX_ZOOM_LEVEL = 20;
-const MIN_ZOOM_LEVEL = 7;
+const MIN_ZOOM_LEVEL = 6;
 const DEFAULT_ZOOM_LEVEL = 15;
 
 //건물 레이어 API 요청 아이디
@@ -1564,6 +1564,10 @@ window.addEventListener("keydown", function (event) {
             map.removeOverlay(clickCurrentOverlay);
         }
 
+        if(selectCluster){
+            selectCluster.clear()
+        }
+
         if(contextmenu.isOpen()){
             contextmenu.closeMenu()
         }
@@ -2676,21 +2680,6 @@ document.querySelectorAll('input[name="map-layer"]').forEach((elem) => {
     //console.log('Value changed to:', $(this).val());
 });
 
-// document.getElementById("nav-button").addEventListener("click", function (e) {
-//     document.getElementById("sidenav").style.width = "250px";
-//     let clickedElementClass = e.target.className; // e.target refers to the clicked element
-//     //console.log(clickedElementClass == "sidenav-menu open");
-//     if(clickedElementClass == "sidenav-menu open"){
-//         e.target.className = "sidenav-menu close"
-//         e.target.textContent = "X"
-//         document.getElementById("sidenav").style.width = "250px";
-//     }else if(clickedElementClass == "sidenav-menu close"){
-//         e.target.className = "sidenav-menu open"
-//         document.getElementById("sidenav").style.width = "0";
-//         e.target.textContent = ">"
-//     }
-// })
-
 document.querySelector('#sidenav').addEventListener('mouseover', function (event) {
     if(event.target.tagName === 'A') {
         var customValue = event.target.getAttribute('data-coordinate');
@@ -2791,30 +2780,9 @@ function cctvLayerChange(e) {
 }
 
 function addCctvLayer(e){
-    var view = map.getView();
-
-    // Get the size of the current map container
-    var size = map.getSize();
-
-    // Calculate the extent of the current view
-    var extent = view.calculateExtent(size);
-    
     //대한민국 전역을 Extent로 잡기 위해 좌표를 고정하였음
-    const extent4326 = ol.proj.transformExtent([12135411.855562285, 3470787.4316931707, 15481519.205774158, 5197652.774711872], 'EPSG:3857', 'EPSG:4326')
+    const extent4326 = ol.proj.transformExtent(koreaExtent, 'EPSG:3857', 'EPSG:4326')
 
-
-        // var url = 'https://api.vworld.kr/req/data?'; // Replace with actual CCTV API URL
-        // url += 'service=data';
-        // url += '&version=2.0';
-        // url += '&request=GetFeature';
-        // url += `&key=${VWORLD_API_KEY}`; // Replace with your actual API key
-        // url += '&format=json';
-        // url += '&size=1000'; // Modify this as needed
-        // url += '&page=1';
-        // url += '&data=LT_P_UTISCCTV';
-        // url += "&crs=EPSG:3857";
-        // url += `&geomFilter=BOX(${extent[0]},${extent[1]},${extent[2]},${extent[3]})`;
-        // url +=  "&domain=http://127.0.0.1:3000/openlayers_test.html"
         var url = `https://openapi.its.go.kr:9443/cctvInfo?`;
         url += `type=all`;
         url += `&cctvType=1`;
@@ -2914,12 +2882,6 @@ function stremVideo(videoSrc, videoName){
         player.pause();
     });
 }
-
-$(document).on('mouseenter', 'span.cctv-name', function() {
-    var customAttribute = $(this).data('coordinate-attribute');
-    //console.log('Custom 속성 값:', customAttribute);
-  });
-
 
 //기상 레이더 레이어 체크박스 이벤트
 function radarLayerChange(e) {
