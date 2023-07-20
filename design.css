@@ -1085,3 +1085,23 @@ ul, ol {
 .ol-viewport > div > .ol-zoomslider{
     top: 6.1em;
 }
+
+#address-collpase {
+    position: absolute;
+    bottom: 4%;
+    width: auto;
+    left: 30rem;
+    min-width: 32rem;
+}
+
+#address-collpase > .card-body{
+    padding: 0.5rem 0.5rem;
+}
+
+#address-collpase > .card-body > .row{
+    margin: 0px;
+}
+
+#address-collpase > .card-body > .row > .col{
+    padding: 0px 0.2rem;
+}
