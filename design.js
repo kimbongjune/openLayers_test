@@ -831,9 +831,11 @@ map.on("click", function (evt) {
 
 
 //방위계 아이콘을 변경하고 컨트롤 객체에 추가한다.
-var span = document.createElement("span");
-span.innerHTML = '<img src="./resources/img/rotate-removebg.png">';
-map.addControl(new ol.control.Rotate({ autoHide: false, label: span }));
+// var span = document.createElement("span");
+// span.innerHTML = '<img src="./resources/img/rotate-removebg.png">';
+// map.addControl(new ol.control.Rotate({ autoHide: false, label: span }));
+
+map.addControl(new ol.control.Rotate({ autoHide: false}));
 
 //지도에 방향 표시
 map.getView().setRotation(0);
@@ -1379,34 +1381,6 @@ function addCircleInteraction() {
     });
 }
 
-document.getElementById("areaCheckbox").addEventListener("change", function () {
-    if (this.checked) {
-        uncheckedCheckBox(this);
-        addPolygonInteraction();
-    } else {
-        if (drawPolygon) {
-            map.removeInteraction(drawPolygon);
-        }
-        drawPolygon = null;
-        sketch = null;
-    }
-});
-
-document
-    .getElementById("areaCircleCheckbox")
-    .addEventListener("change", function () {
-        if (this.checked) {
-            uncheckedCheckBox(this);
-            addCircleInteraction();
-        } else {
-            if (circle) {
-                map.removeInteraction(circle);
-            }
-            circle = null;
-            sketch = null;
-        }
-    });
-
 // 거리를 계산하는 함수입니다.
 function formatLength(line) {
     var length = ol.sphere.getLength(line);
@@ -1499,7 +1473,7 @@ function uncheckedCheckBox(selectCheckBox) {
     //체크박스에 부여된 클래스 이름으로 체크박스를 순회한다.
     document.querySelectorAll(".measure").forEach(function (e) {
         //이벤트가 트리거된 체크박스가 아닐경우 동작한다
-        if (e !== selectCheckBox) {
+        if (e !== selectCheckBox && e.checked) {
             e.checked = false;
             //체크박스의 onChange 이벤트를 강제로 트리거시킨다.
             var event = new Event("change");
@@ -1513,12 +1487,71 @@ document.getElementById("measureCheckbox").addEventListener("change", function (
     if (this.checked) {
         uncheckedCheckBox(this);
         addLineInteraction();
+        $("#remove-measure").attr("disabled",true);
+        if(areaTooltip){
+            map.removeOverlay(areaTooltip)
+        }
+        if(circleTooltip){
+            map.removeOverlay(circleTooltip)
+        }
     } else {
         if (draw) {
             map.removeInteraction(draw);
+            if (measureTooltipElement) {
+                measureTooltipElement = null
+            }
         }
         draw = null;
         sketch = null;
+        $("#remove-measure").attr("disabled",false);
+    }
+});
+
+document.getElementById("areaCheckbox").addEventListener("change", function () {
+    if (this.checked) {
+        uncheckedCheckBox(this);
+        addPolygonInteraction();
+        $("#remove-measure").attr("disabled",true);
+        if(measureTooltip){
+            map.removeOverlay(measureTooltip)
+        }
+        if(circleTooltip){
+            map.removeOverlay(circleTooltip)
+        }
+    } else {
+        if (drawPolygon) {
+            map.removeInteraction(drawPolygon);
+            if (areaTooltipElement) {
+                areaTooltipElement = null
+            }
+        }
+        drawPolygon = null;
+        sketch = null;
+        $("#remove-measure").attr("disabled",false);
+    }
+});
+
+document.getElementById("areaCircleCheckbox").addEventListener("change", function () {
+    if (this.checked) {
+        uncheckedCheckBox(this);
+        addCircleInteraction();
+        $("#remove-measure").attr("disabled",true);
+        if(measureTooltip){
+            map.removeOverlay(measureTooltip)
+        }
+        if(areaTooltip){
+            map.removeOverlay(areaTooltip)
+        }
+    } else {
+        if (circle) {
+            map.removeInteraction(circle);
+            if (circleTooltipElement) {
+                circleTooltipElement = null
+            }
+        }
+        circle = null;
+        sketch = null;
+        $("#remove-measure").attr("disabled",false);
     }
 });
 
@@ -2249,7 +2282,7 @@ function endMarker(obj) {
     }
 }
 
-function addMarker(coordinate) {
+function addMarker(coordinate, template = "", attribute = "", searchType = "", flag = false) {
 
     var source = vectorLayer.getSource();
     var features = source.getFeatures();
@@ -2262,23 +2295,26 @@ function addMarker(coordinate) {
             }
         }
     }
-    var coord4326 = ol.proj.transform(coordinate, "EPSG:3857", "EPSG:4326"),
-        template = "현재 위치",
-        iconStyle = new ol.style.Style({
-            image: new ol.style.Icon({ scale: 0.6, src: pinIcon }),
-            text: new ol.style.Text({
-                offsetY: 25,
-                text: ol.coordinate.format(coord4326, template, 12),
-                font: "15px Open Sans,sans-serif",
-                fill: new ol.style.Fill({ color: "#111" }),
-                stroke: new ol.style.Stroke({ color: "#eee", width: 2 }),
-            }),
+    template = template != "" ? template : "현재 위치",
+    iconStyle = new ol.style.Style({
+        image: new ol.style.Icon({
+                scale: 0.6, 
+                src: pinIcon,
+                opacity: flag ? 0 : 1, 
         }),
-        feature = new ol.Feature({
-            type: "removable",
-            geometry: new ol.geom.Point(coordinate),
-            attribute : "position"
-        });
+        text: new ol.style.Text({
+            offsetY: 25,
+            text: template,
+            font: "15px Open Sans,sans-serif",
+            fill: new ol.style.Fill({ color: flag ? 'rgba(0,0,0,0)' : '#111' }),
+            stroke: new ol.style.Stroke({ color: flag ? 'rgba(0,0,0,0)' : '#eee', width: 2 }),
+        }),
+    }),
+    feature = new ol.Feature({
+        type:  searchType != "" ? searchType : "removable",
+        geometry: new ol.geom.Point(coordinate),
+        attribute : attribute != "" ? attribute : "position",
+    });
 
     feature.setStyle(iconStyle);
     vectorLayer.getSource().addFeature(feature);
@@ -3696,6 +3732,11 @@ function addPlace(elementId, response, searchQuery, pagenation = 3){
         const maxLength = response.response.result.items.length > pagenation ? pagenation : response.response.result.items.length
         htmlContent += '<tbody>'
         for(var i = 0; i < maxLength; i ++){
+
+            // if(!elementId.includes("all")){
+            //     console.log(page)
+            //     addMarker([response.response.result.items[i].point.x, response.response.result.items[i].point.y], response.response.result.items[i].title, "search", "place")
+            // }
             htmlContent += `
                 <tr class="address-table-first-child"></tr>
                 <tr>
@@ -3835,6 +3876,7 @@ function addRoad(elementId, response, searchQuery, pagenation = 3){
                 </tr>
                 <tr class="address-table-last-child-md"></tr>
             `
+            
         }
         htmlContent += '</tbody>'
     }

@@ -149,9 +149,9 @@
                                 <h4>주소 서비스</h4>
                             </div>
                             <div class="input-group search-container">
-                                <input class="form-control border-end-0 border" type="search" placeholder="주소 검색" id="search-input">
+                                <input class="form-control border-end-0 border" type="search" placeholder="장소, 주소, 행정동, 도로명 검색" id="search-input" title="검색어">
                                 <span class="input-group-append">
-                                    <button class="btn btn-outline-secondary bg-white border ms-n5 serach-button" type="button" id="serach-button">
+                                    <button class="btn btn-outline-secondary bg-white border ms-n5 serach-button" type="button" id="serach-button" title="검색">
                                         <i class="bi bi-search"></i>
                                     </button>
                                 </span>
@@ -211,7 +211,7 @@
                                         <span class="text-danger" id="place-search-content-name">"한누리대로 2130"</span> 검색결과 : <span id="place-search-content-count" class="text-danger">1</span>건
                                     </p>
                                     <nav aria-label="Page navigation example">
-                                        <ul class="pagination pagination-sm justify-content-center place-pagination-container" id="place-pagination-container">
+                                        <ul class="pagination pagination-sm justify-content-center place-pagination-container mb-3 mt-4" id="place-pagination-container">
                                           
                                         </ul>
                                     </nav>
@@ -229,7 +229,7 @@
                                         <span class="text-danger" id="address-search-content-name">"한누리대로 2130"</span> 검색결과 : <span id="address-search-content-count" class="text-danger">1</span>건
                                     </p>
                                     <nav aria-label="Page navigation example">
-                                        <ul class="pagination pagination-sm justify-content-center address-pagination-container" id="address-pagination-container">
+                                        <ul class="pagination pagination-sm justify-content-center address-pagination-container mb-3 mt-4" id="address-pagination-container">
                                           
                                         </ul>
                                       </nav>
@@ -247,7 +247,7 @@
                                         <span class="text-danger" id="district-search-content-name">"한누리대로 2130"</span> 검색결과 : <span id="district-search-content-count" class="text-danger">1</span>건
                                     </p>
                                     <nav aria-label="Page navigation example">
-                                        <ul class="pagination pagination-sm justify-content-center district-pagination-container" id="district-pagination-container">
+                                        <ul class="pagination pagination-sm justify-content-center district-pagination-container mb-3 mt-4" id="district-pagination-container">
                                           
                                         </ul>
                                       </nav>
@@ -265,7 +265,7 @@
                                         <span class="text-danger" id="road-search-content-name">"한누리대로 2130"</span> 검색결과 : <span id="road-search-content-count" class="text-danger">1</span>건
                                     </p>
                                     <nav aria-label="Page navigation example">
-                                        <ul class="pagination pagination-sm justify-content-center road-pagination-container" id="road-pagination-container">
+                                        <ul class="pagination pagination-sm justify-content-center road-pagination-container mb-3 mt-4" id="road-pagination-container">
                                           
                                         </ul>
                                       </nav>
@@ -311,10 +311,10 @@
                                 <div class="col w-100">
                                     <select class="form-select layer-selector w-100" id="mapLayerSelect">
                                         <option value="none">스와이프 레이어 선택</option>
-                                        <option value="default">기본 지도 레이어</option>
-                                        <option value="aerial">항공 사진 레이어</option>
-                                        <option value="gray">회색 지도 레이어</option>
-                                        <option value="night">야간 지도 레이어</option>
+                                        <option value="default">기본 지도</option>
+                                        <option value="aerial">항공 지도</option>
+                                        <option value="gray">흑백 지도</option>
+                                        <option value="night">야간 지도</option>
                                     </select>
                                 </div>
                             </div>
@@ -322,26 +322,26 @@
                     </div>
                 </div>
             </div>
-            <div class="offcanvas offcanvas-end route-containser" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1" id="offcanvasScrolling" aria-labelledby="offcanvasScrollingLabel">
-                <div class="offcanvas-header">
-                  <h5 class="offcanvas-title" id="offcanvasScrollingLabel">경로탐색 결과</h5>
-                    <div class="route-select-container">
-                        <select class="form-select form-select-sm" aria-label=".form-select-sm example" id="route-kind-select">
-                            <option selected value="1">차량 경로탐색</option>
-                            <option value="2">도보 경로탐색</option>
-                            <option value="3">자전거 경로탐색</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="offcanvas-body" id="sidenav">
-                  <p>경로탐색 데이터</p>
-                </div>
-            </div>
             <div class="col flex-fill flex-grow-1" id="map-container">
                 <a href="#" data-bs-target="#sidebar" data-bs-toggle="collapse" class="border text-decoration-none"
                     id="sidebar-toggle-button"><i class="bi bi-chevron-left" aria-hidden="true"></i></a>
                 <div id="map-body">
                     <div id="map" class="map">
+                        <div class="offcanvas offcanvas-end route-containser" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1" id="offcanvasScrolling" aria-labelledby="offcanvasScrollingLabel">
+                            <div class="offcanvas-header">
+                              <h5 class="offcanvas-title" id="offcanvasScrollingLabel">경로탐색 결과</h5>
+                                <div class="route-select-container">
+                                    <select class="form-select form-select-sm" aria-label=".form-select-sm example" id="route-kind-select">
+                                        <option selected value="1">차량 경로탐색</option>
+                                        <option value="2">도보 경로탐색</option>
+                                        <option value="3">자전거 경로탐색</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="offcanvas-body" id="sidenav">
+                              <p>경로탐색 데이터</p>
+                            </div>
+                        </div>
                         <div class="modal fade" id="videoModal" tabindex="-1" role="dialog" aria-labelledby="videoModalLabel" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
                                 <div class="modal-content">
@@ -385,7 +385,7 @@
 
                             <button title="측정레이어 삭제" id="remove-measure" type="button" class="btn btn-outline-primary"><i class="bi bi-eraser-fill"></i></button>
                           </div>
-                        <button class="btn btn-primary" id="route-result-toggle-button" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling" aria-controls="offcanvasScrolling" title="경로">
+                        <button class="btn btn-primary" id="route-result-toggle-button" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling" aria-controls="offcanvasScrolling" title="자동차 경로">
                             <i class="fa fa-car" aria-hidden="true"></i>
                         </button>
                         <div class="map-interaction" id="current-position">
@@ -494,12 +494,16 @@
         //offcanvas 메뉴가 나타나고 사라질 때 컨트롤 버튼의 아이콘을 변경하는 코드
         $('#offcanvasScrolling').on('show.bs.offcanvas', function () {
             $('#route-result-toggle-button i').removeClass().addClass('bi-x-lg');
+            $("#route-result-toggle-button").attr("title","닫기")
         });
 
         $('#offcanvasScrolling').on('hide.bs.offcanvas', function () {
             const selectedValue = $("#route-kind-select").val()
             const className = selectedValue == 1 ? "fa fa-car" : selectedValue == 2 ? "fa fa-male" : "fa fa-bicycle"
+            const title = selectedValue == 1 ? "자동차 경로" : selectedValue == 2 ? "도보 경로" : "자전거 경로"
             $('#route-result-toggle-button i').removeClass('bi-x-lg').addClass(className);
+            $("#route-result-toggle-button").attr("title",title)
+            
         });
 
         $('.dropdown-menu').on('click', function(e) {
@@ -712,6 +716,8 @@
         if(treeNode.children){
             return;
         }
+        var treeObj = $.fn.zTree.getZTreeObj(treeId);
+        //treeObj.setChkDisabled(treeNode, true, false, false);
         switch(treeNode.id){
             case 31 :{
                 radarLayerChange(treeNode.checked)
@@ -726,6 +732,7 @@
                 break;
             }
             case 34 :{
+                
                 buildLayerChange(treeNode.checked)
                 break;
             }
@@ -852,16 +859,16 @@
                 totalPages: placeResponse[0].response.page.total,
                 visiblePages: 5,
                 hideOnlyOnePage : true,
-                first : null,
-                prev : "<",
-                next : ">",
-                last : null,
+                first : '<i class="bi bi-chevron-double-left"></i>',
+                prev : '<i class="bi bi-chevron-left"></i>',
+                next : '<i class="bi bi-chevron-right"></i>',
+                last : '<i class="bi bi-chevron-double-right"></i>',
                 initiateStartPageClick : true,
                 onPageClick: function (event, page) {
                     $.when(
                         searchPlace(searchQuery, page)
                     ).done(function(response){
-                        addPlace(placeElementId, response, searchQuery, 10)
+                        addPlace(placeElementId, response, searchQuery, 10, page)
                     })
                 }
             });
@@ -870,10 +877,10 @@
                 totalPages: addressResponse[0].response.page.total,
                 visiblePages: 5,
                 hideOnlyOnePage : true,
-                first : null,
-                prev : "<",
-                next : ">",
-                last : null,
+                first : '<i class="bi bi-chevron-double-left"></i>',
+                prev : '<i class="bi bi-chevron-left"></i>',
+                next : '<i class="bi bi-chevron-right"></i>',
+                last : '<i class="bi bi-chevron-double-right"></i>',
                 initiateStartPageClick : true,
                 onPageClick: function (event, page) {
                     $.when(
@@ -888,10 +895,10 @@
                 totalPages: districtResponse[0].response.page.total,
                 visiblePages: 5,
                 hideOnlyOnePage : true,
-                first : null,
-                prev : "<",
-                next : ">",
-                last : null,
+                first : '<i class="bi bi-chevron-double-left"></i>',
+                prev : '<i class="bi bi-chevron-left"></i>',
+                next : '<i class="bi bi-chevron-right"></i>',
+                last : '<i class="bi bi-chevron-double-right"></i>',
                 initiateStartPageClick : true,
                 onPageClick: function (event, page) {
                     $.when(
@@ -906,10 +913,10 @@
                 totalPages: roadResponse[0].response.page.total,
                 visiblePages: 5,
                 hideOnlyOnePage : true,
-                first : null,
-                prev : "<",
-                next : ">",
-                last : null,
+                first : '<i class="bi bi-chevron-double-left"></i>',
+                prev : '<i class="bi bi-chevron-left"></i>',
+                next : '<i class="bi bi-chevron-right"></i>',
+                last : '<i class="bi bi-chevron-double-right"></i>',
                 initiateStartPageClick : true,
                 onPageClick: function (event, page) {
                     $.when(
@@ -1064,6 +1071,7 @@
         })
     })
 
+    //장소 검색 결과 탭 오픈
     $('#place-tab').on('shown.bs.tab', function (e) {
         //TODO 해당 탭이 오픈되면 숨겨둔 마커를 표시한다.
         console.log(e.target.id + ' tab is now active');
@@ -1075,12 +1083,14 @@
         });
     });
 
+    //장소 검색 결과 탭 클로즈
     $('#place-tab').on('hidden.bs.tab', function (e) {
         //TODO 해당 탭이 닫히면 마커를 숨긴다.
         console.log(e.target.id + ' tab is now hidden');
     });
 
 
+    //주소 검색 결과 탭 오픈
     $('#address-tab').on('shown.bs.tab', function (e) {
         //TODO 해당 탭이 오픈되면 숨겨둔 마커를 표시한다.
         console.log(e.target.id + ' tab is now active');
@@ -1092,12 +1102,14 @@
         });
     });
 
+    //주소 검색 결과 탭 클로즈
     $('#address-tab').on('hidden.bs.tab', function (e) {
         //TODO 해당 탭이 닫히면 마커를 숨긴다.
         console.log(e.target.id + ' tab is now hidden');
     });
 
 
+    //행정구역 검색 결과 탭 오픈
     $('#district-tab').on('shown.bs.tab', function (e) {
         //TODO 해당 탭이 오픈되면 숨겨둔 마커를 표시한다.
         console.log(e.target.id + ' tab is now active');
@@ -1109,12 +1121,13 @@
         });
     });
 
+    //행정구역 검색 결과 탭 클로즈
     $('#district-tab').on('hidden.bs.tab', function (e) {
         //TODO 해당 탭이 닫히면 마커를 숨긴다.
         console.log(e.target.id + ' tab is now hidden');
     });
 
-
+    //주소 검색 결과 탭 오픈
     $('#road-tab').on('shown.bs.tab', function (e) {
         //TODO 해당 탭이 오픈되면 숨겨둔 마커를 표시한다.
         console.log(e.target.id + ' tab is now active');
@@ -1126,6 +1139,7 @@
         });
     });
 
+    //주소 검색 결과 탭 클로즈
     $('#road-tab').on('hidden.bs.tab', function (e) {
         //TODO 해당 탭이 닫히면 마커를 숨긴다.
         console.log(e.target.id + ' tab is now hidden');
