@@ -2282,7 +2282,7 @@ function endMarker(obj) {
     }
 }
 
-function addMarker(coordinate, template = "", attribute = "", searchType = "", flag = false) {
+function locationMarker(coordinate) {
 
     var source = vectorLayer.getSource();
     var features = source.getFeatures();
@@ -2295,19 +2295,45 @@ function addMarker(coordinate, template = "", attribute = "", searchType = "", f
             }
         }
     }
-    template = template != "" ? template : "현재 위치",
+    template = "현재 위치",
     iconStyle = new ol.style.Style({
         image: new ol.style.Icon({
                 scale: 0.6, 
                 src: pinIcon,
-                opacity: flag ? 0 : 1, 
+                opacity: 1, 
         }),
         text: new ol.style.Text({
             offsetY: 25,
             text: template,
             font: "15px Open Sans,sans-serif",
-            fill: new ol.style.Fill({ color: flag ? 'rgba(0,0,0,0)' : '#111' }),
-            stroke: new ol.style.Stroke({ color: flag ? 'rgba(0,0,0,0)' : '#eee', width: 2 }),
+            fill: new ol.style.Fill({ color: '#111' }),
+            stroke: new ol.style.Stroke({ color: '#eee', width: 2 }),
+        }),
+    }),
+    feature = new ol.Feature({
+        type: "removable",
+        geometry: new ol.geom.Point(coordinate),
+        attribute : "position",
+    });
+
+    feature.setStyle(iconStyle);
+    vectorLayer.getSource().addFeature(feature);
+}
+
+function addMarker(coordinate, template = "", attribute = "", searchType = "") {
+    template = template != "" ? template : "현재 위치",
+    iconStyle = new ol.style.Style({
+        image: new ol.style.Icon({
+            scale: 0.6, 
+            src: pinIcon,
+            opacity: 1, 
+        }),
+        text: new ol.style.Text({
+            offsetY: 25,
+            text: template,
+            font: "15px Open Sans,sans-serif",
+            fill: new ol.style.Fill({ color: '#111' }),
+            stroke: new ol.style.Stroke({ color: '#eee', width: 2 }),
         }),
     }),
     feature = new ol.Feature({
@@ -2402,7 +2428,7 @@ document.getElementById("current-position").addEventListener("click", function (
             if(map.getView().getZoom() < 14){
                 map.getView().setZoom(14)
             }
-            addMarker(coordinate)
+            locationMarker(coordinate)
         });
       } else {
         /* geolocation IS NOT available */
@@ -2476,9 +2502,12 @@ function reverseGeoCodingToRegion(coordinateX, coordinateY){
             xhr.setRequestHeader("Authorization",`KakaoAK ${REST_API_KEY}`);
         },
         success: function (res) {
-            //console.log(res);
+            console.log(res);
             addressInfo.innerHTML = `${res.documents[1].address_name}`
-            findCodeByNames(res.documents[1].region_1depth_name, res.documents[1].region_2depth_name, res.documents[1].region_3depth_name)
+            const depth1Address = res.documents[1].region_1depth_name
+            const depth2Address = res.documents[1].region_1depth_name == "세종특별자치시" ? "세종시" : res.documents[1].region_2depth_name
+            const depth3Address = res.documents[1].region_3depth_name
+            findCodeByNames(depth1Address, depth2Address, depth3Address)
         },
         error: function(xhr, status, error){ 
 			addressInfo.innerHTML = "주소를 찾을 수 없습니다."
@@ -2807,15 +2836,17 @@ document.querySelector('.form-select-sm').addEventListener('change', function(e)
 var clusterLayer
 
 // Handle checkbox change event
-function cctvLayerChange(e) {
-    if (e) {
-        addCctvLayer(e)
+function cctvLayerChange(treeNode, treeId) {
+    if (treeNode.checked) {
+        addCctvLayer(treeNode, treeId)
     }else{
         removeCctvLayer()
     }
 }
 
-function addCctvLayer(e){
+function addCctvLayer(treeNode, treeId){
+    var treeObj = $.fn.zTree.getZTreeObj(treeId);
+    treeObj.setChkDisabled(treeNode, true, false, false);
     //대한민국 전역을 Extent로 잡기 위해 좌표를 고정하였음
     const extent4326 = ol.proj.transformExtent(koreaExtent, 'EPSG:3857', 'EPSG:4326')
 
@@ -2871,8 +2902,10 @@ function addCctvLayer(e){
 
                 clusterLayer.setZIndex(5)
                 map.addLayer(clusterLayer);
+                treeObj.setChkDisabled(treeNode, false, false, false);
             },
             error: function(xhr, stat, err) {
+                treeObj.setChkDisabled(treeNode, false, false, false);
                 //console.log('Error fetching CCTV data:', err);
                 alert("CCTV api 호출에 실패하였습니다.")
                 //e.target.checked = false;
@@ -2920,8 +2953,10 @@ function stremVideo(videoSrc, videoName){
 }
 
 //기상 레이더 레이어 체크박스 이벤트
-function radarLayerChange(e) {
-    if (e) {
+function radarLayerChange(treeNode, treeId) {
+    if (treeNode.checked) {
+        var treeObj = $.fn.zTree.getZTreeObj(treeId);
+        treeObj.setChkDisabled(treeNode, true, false, false);
         //e.target.disabled = true;
         var url = 'http://apis.data.go.kr/1360000/RadarObsInfoService/getNationalRadarRn';
     
@@ -2997,11 +3032,13 @@ function radarLayerChange(e) {
                 webGlVectorLayer.setZIndex(5)
                 map.addLayer(webGlVectorLayer);
                 //e.target.disabled = false;
+                treeObj.setChkDisabled(treeNode, false, false, false);
             },
             error: function(error) {
                 // 오류 처리
                 //e.target.checked = false;
                 //e.target.disabled = false;
+                treeObj.setChkDisabled(treeNode, false, false, false);
                 alert("레이더 api 호출에 실패하였습니다.")
                 //console.log(error);
             }
@@ -3118,7 +3155,6 @@ function toGeoJSON(data) {
         features: features
     };
 }
-
 
 //건물 레이어 체크박스 이벤트
 function buildLayerChange(e) {
@@ -3710,6 +3746,14 @@ function searchRoad(query, page = 1) {
 }
 
 function addPlace(elementId, response, searchQuery, pagenation = 3){
+    var source = vectorLayer.getSource();
+    var features = source.getFeatures();
+    for (var i = 0; i < features.length; i++) {
+        var feature = features[i];
+        if(feature.get('attribute') == "place"){
+            source.removeFeature(feature);
+        }
+    }
     $(`#${elementId}`).empty()
     let htmlContent = "";
     if(elementId.includes("all")){
@@ -3733,15 +3777,14 @@ function addPlace(elementId, response, searchQuery, pagenation = 3){
         htmlContent += '<tbody>'
         for(var i = 0; i < maxLength; i ++){
 
-            // if(!elementId.includes("all")){
-            //     console.log(page)
-            //     addMarker([response.response.result.items[i].point.x, response.response.result.items[i].point.y], response.response.result.items[i].title, "search", "place")
-            // }
+            if(!elementId.includes("all") && $('#place-tab').hasClass('active')){
+                addMarker([response.response.result.items[i].point.x, response.response.result.items[i].point.y], response.response.result.items[i].title, "place", "search")
+            }
             htmlContent += `
                 <tr class="address-table-first-child"></tr>
                 <tr>
                     <td scope="row" colspan="3" class="address-name">
-                        <span>${addHighlight(response.response.result.items[i].title, searchQuery)}</span>
+                        <span class="address-name-span">${addHighlight(response.response.result.items[i].title, searchQuery)}</span>
                     </td>
                 </tr>
                 <tr>
@@ -3749,13 +3792,13 @@ function addPlace(elementId, response, searchQuery, pagenation = 3){
                         <span>${addHighlight(response.response.result.items[i].category, searchQuery)}</span>
                     </td>
                 </tr>
-                <tr style="cursor:pointer" onclick="clickAddress(event)">
+                <tr style="cursor:pointer" onclick="clickAddress(event, '${response.response.result.items[i].title}' , 'place')">
                     <td scope="row" colspan="3" class="address-parcel">
                         <div class="badge bg-warning text-wrap" style="width: 3rem;">지번</div>
                         <span data-coord="${response.response.result.items[i].point.x}, ${response.response.result.items[i].point.y}">${addHighlight(response.response.result.items[i].address.parcel, searchQuery)}</span>
                     </td>
                 </tr>
-                <tr style="cursor:pointer" onclick="clickAddress(event)">
+                <tr style="cursor:pointer" onclick="clickAddress(event,'${response.response.result.items[i].title}', 'place')">
                     <td scope="row" colspan="3" class="address-road">
                         <div class="badge bg-primary text-wrap" style="width: 3rem;">도로명</div>
                         <span data-coord="${response.response.result.items[i].point.x}, ${response.response.result.items[i].point.y}">${addHighlight(response.response.result.items[i].address.road, searchQuery)}</span>
@@ -3769,6 +3812,14 @@ function addPlace(elementId, response, searchQuery, pagenation = 3){
 }
 
 function addAddress(elementId, response, searchQuery, pagenation = 3){
+    var source = vectorLayer.getSource();
+    var features = source.getFeatures();
+    for (var i = 0; i < features.length; i++) {
+        var feature = features[i];
+        if(feature.get('attribute') == "address"){
+            source.removeFeature(feature);
+        }
+    }
     $(`#${elementId}`).empty()
     let htmlContent = "";
     if(elementId.includes("all")){
@@ -3791,11 +3842,14 @@ function addAddress(elementId, response, searchQuery, pagenation = 3){
         const maxLength = response.response.result.items.length > pagenation ? pagenation : response.response.result.items.length
         htmlContent += '<tbody>'
         for(var i = 0; i < maxLength; i ++){
+            if(!elementId.includes("all") && $('#address-tab').hasClass('active')){
+                addMarker([response.response.result.items[i].point.x, response.response.result.items[i].point.y], response.response.result.items[i].address.road, "address", "search")
+            }
             htmlContent += `
                 <tr class="address-table-first-child"></tr>
-                <tr style="cursor:pointer" onclick="clickAddress(event)">
+                <tr style="cursor:pointer" onclick="clickAddress(event, '${response.response.result.items[i].address.road}', 'address')">
                     <td scope="row" colspan="3" class="address-name">
-                        <span data-coord="${response.response.result.items[i].point.x}, ${response.response.result.items[i].point.y}">(${response.response.result.items[i].address.zipcode}) ${addHighlight(response.response.result.items[i].address.road, searchQuery)}</span>
+                        <span class="address-name-span" data-coord="${response.response.result.items[i].point.x}, ${response.response.result.items[i].point.y}">(${response.response.result.items[i].address.zipcode}) ${addHighlight(response.response.result.items[i].address.road, searchQuery)}</span>
                     </td>
                 </tr>
                 <tr class="address-table-last-child-md"></tr>
@@ -3833,7 +3887,7 @@ function addDistrict(elementId, response, searchQuery, pagenation = 3){
                 <tr class="address-table-first-child"></tr>
                 <tr onclick="clickGeoData(event, 'district')" style="cursor:pointer">
                     <td scope="row" colspan="3" class="address-name">
-                        <span data-district-code="${response.response.result.items[i].id}" data-geo-url="${response.response.result.items[i].geometry}" data-coord="${response.response.result.items[i].point.x}, ${response.response.result.items[i].point.y}">(${response.response.result.items[i].id}) ${addHighlight(response.response.result.items[i].title, searchQuery)}</span>
+                        <span class="address-name-span" data-district-code="${response.response.result.items[i].id}" data-geo-url="${response.response.result.items[i].geometry}" data-coord="${response.response.result.items[i].point.x}, ${response.response.result.items[i].point.y}">(${response.response.result.items[i].id}) ${addHighlight(response.response.result.items[i].title, searchQuery)}</span>
                     </td>
                 </tr>
                 <tr class="address-table-last-child-md"></tr>
@@ -3871,7 +3925,7 @@ function addRoad(elementId, response, searchQuery, pagenation = 3){
                 <tr class="address-table-first-child"></tr>
                 <tr onclick="clickGeoData(event, 'road')" style="cursor:pointer">
                     <td scope="row" colspan="3" class="address-name">
-                        <span title="${response.response.result.items[i].district}" data-geo-url="${response.response.result.items[i].geometry}">(${response.response.result.items[i].id}) ${addHighlight(response.response.result.items[i].title, searchQuery)}</span>
+                        <span class="address-name-span" title="${response.response.result.items[i].district}" data-geo-url="${response.response.result.items[i].geometry}">(${response.response.result.items[i].id}) ${addHighlight(response.response.result.items[i].title, searchQuery)}</span>
                     </td>
                 </tr>
                 <tr class="address-table-last-child-md"></tr>
@@ -3883,17 +3937,30 @@ function addRoad(elementId, response, searchQuery, pagenation = 3){
     $(`#${elementId}`).append(htmlContent)
 }
 
-function clickAddress(event){
+function clickAddress(event, category, attribute){
     const target = event.target;
+
+    var source = vectorLayer.getSource();
+    var features = source.getFeatures();
+    for (var i = 0; i < features.length; i++) {
+        var feature = features[i];
+        if(feature.get('type') == "click"){
+            source.removeFeature(feature);
+        }
+    }
 
     // 클릭한 요소가 <span>인지 확인합니다.
     if (target.tagName.toLowerCase() === 'span' || 'mark') {
         // data-coord 속성의 값을 가져옵니다.
         console.log($(target).text())
         const coords = target.tagName.toLowerCase() === 'mark' ? $(target).parent().data('coord') : target.getAttribute('data-coord');
-
+        if(!coords){
+            return
+        }
         const coordinates = coords.split(", ")
+        
         const coordinate = [parseFloat(coordinates[0]), parseFloat(coordinates[1])]
+        addMarker(coordinate, category, attribute, "click")
         map.getView().setCenter(coordinate);
         if(map.getView().getZoom() < 14){
             map.getView().setZoom(14)
@@ -4179,6 +4246,7 @@ function findCodeByNames(sidoName, gugunName, dongName) {
     for (let i = 0; i < hangjungdong.sido.length; i++) {
         if (hangjungdong.sido[i].codeNm === sidoName) {
             sidoCode = hangjungdong.sido[i].sido;
+            console.log(sidoCode)
             $("#sido").val(hangjungdong.sido[i].sido).trigger('change');
             break;
         }

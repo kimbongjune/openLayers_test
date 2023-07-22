@@ -554,6 +554,23 @@
         });
     })
 
+    var accessKey;
+    $.ajax({
+        url: "https://sgisapi.kostat.go.kr/OpenAPI3/auth/authentication.json",
+        type: "GET",
+        data: {
+            consumer_key: "5ffa82fde9fa45338732",
+            consumer_secret: "42f45550972442dea2c9"
+        },
+        success: function(data) {
+            console.log(data);
+            accessKey = data.result.accessToken
+        },
+        error: function(xhr, status, error) {
+            console.error('Error:', status, error);
+        }
+    });
+
     function fn_option(code, name, polygon) {
         return '<option data-polygon="'+polygon+'" value="' + code + '">' + name + '</option>';
     }
@@ -716,15 +733,13 @@
         if(treeNode.children){
             return;
         }
-        var treeObj = $.fn.zTree.getZTreeObj(treeId);
-        //treeObj.setChkDisabled(treeNode, true, false, false);
         switch(treeNode.id){
             case 31 :{
-                radarLayerChange(treeNode.checked)
+                radarLayerChange(treeNode, treeId)
                 break;
             }
             case 32 :{
-                cctvLayerChange(treeNode.checked)
+                cctvLayerChange(treeNode, treeId)
                 break;
             }
             case 33 :{
@@ -732,7 +747,6 @@
                 break;
             }
             case 34 :{
-                
                 buildLayerChange(treeNode.checked)
                 break;
             }
@@ -868,7 +882,7 @@
                     $.when(
                         searchPlace(searchQuery, page)
                     ).done(function(response){
-                        addPlace(placeElementId, response, searchQuery, 10, page)
+                        addPlace(placeElementId, response, searchQuery, 10)
                     })
                 }
             });
@@ -959,16 +973,16 @@
         }
 
         const fullAddress = `${$("#sido option:selected").text()} ${$("#sigugun option:selected").text()} ${$("#dong option:selected").text()}`.replaceAll("선택", "").trimEnd();
-        console.log(fullAddress)
+        console.log(addressCode)
 
-        if(param == "LT_C_ADEMD_INFO"){
-            console.log("?")
-            attrFilter = "full_nm"
-            sidoName = fullAddress
-        }
-
-        console.log(addressCode, sidoName)
-        var url = `https://api.vworld.kr/req/data?service=data&request=GetFeature&data=${param}&key=A5C5E9FF-F9FC-3012-9D01-41A62F369AA7&domain=http://127.0.0.1:3000/openlayers_test.html&crs=EPSG:3857&attrFilter=${attrFilter}:=:${sidoName}`
+        // if(param == "LT_C_ADEMD_INFO"){
+        //     console.log("?")
+        //     attrFilter = "full_nm"
+        //     sidoName = fullAddress
+        // }
+        console.log(accessKey)
+        //var url = `https://api.vworld.kr/req/data?service=data&request=GetFeature&data=${param}&key=A5C5E9FF-F9FC-3012-9D01-41A62F369AA7&domain=http://127.0.0.1:3000/openlayers_test.html&crs=EPSG:3857&attrFilter=${attrFilter}:=:${sidoName}`
+        var url = `https://sgisapi.kostat.go.kr/OpenAPI3/boundary/hadmarea.geojson?year=2022&adm_cd=${addressCode}&accessToken=${accessKey}&low_search=0`
         console.log(url)
         if (clickCurrentLayer) {
             map.removeLayer(clickCurrentLayer);
@@ -981,19 +995,19 @@
         $.ajax({
             url : url,
             type: 'GET',
-            dataType: "jsonp",
-            async : false,
-            jsonpCallback: 'callback',
             success: function(data) {
                 console.log(data)
-                if(data.response.status != "OK"){
+                if(data.errMsg != "Success"){
                     return alert("api 호출 에러 발생")
                 }
-                var geoInfoObject = data.response.result.featureCollection.features[0];
+                var geoInfoObject = data.features[0];
                 var geojsonObject = geoInfoObject.geometry;
                 
                 var vectorSource = new ol.source.Vector({
-                    features: (new ol.format.GeoJSON()).readFeatures(geojsonObject)
+                    features: (new ol.format.GeoJSON()).readFeatures(geojsonObject, {
+                        dataProjection: 'EPSG:5179', 
+                        featureProjection: 'EPSG:3857' 
+                    })
                 });
 
                 //layer.getSource().getKeys()로 확인
@@ -1075,11 +1089,20 @@
     $('#place-tab').on('shown.bs.tab', function (e) {
         //TODO 해당 탭이 오픈되면 숨겨둔 마커를 표시한다.
         console.log(e.target.id + ' tab is now active');
-        $('#place-result span[data-coord]').each(function() {
-            //TODO 이런 식으로 좌표를 읽어 지도에 마커를 표시 마커는 특정 속성으로 각 탭을 비교
-            //TODO 최초 api 호출시 마커를 숨김 상태로 지도 위에 표시는 해놓음
-            var coord = $(this).attr('data-coord');
-            console.log('Coordinate:', coord);
+        var addressNameSpans = $('#place-tab-pane .address-name-span');
+    
+        // For each address-name-span
+        addressNameSpans.each(function(index, element) {
+            // Get the parent tr of the address-name-span
+            var parentTr = $(element).closest('tr');
+            // Find the coord span under the same parent tr
+            var coordSpan = parentTr.nextAll().find('span[data-coord]').first();
+            var coord = coordSpan.attr('data-coord').split(',').map(Number);
+
+            var addressName = $(element).text();
+            
+            console.log(addressName);
+            addMarker(coord, addressName, "place", "search");
         });
     });
 
@@ -1087,6 +1110,14 @@
     $('#place-tab').on('hidden.bs.tab', function (e) {
         //TODO 해당 탭이 닫히면 마커를 숨긴다.
         console.log(e.target.id + ' tab is now hidden');
+        var source = vectorLayer.getSource();
+        var features = source.getFeatures();
+        for (var i = 0; i < features.length; i++) {
+            var feature = features[i];
+            if(feature.get('attribute') == "place"){
+                source.removeFeature(feature);
+            }
+        }
     });
 
 
@@ -1094,11 +1125,13 @@
     $('#address-tab').on('shown.bs.tab', function (e) {
         //TODO 해당 탭이 오픈되면 숨겨둔 마커를 표시한다.
         console.log(e.target.id + ' tab is now active');
-        $('#address-result span[data-coord]').each(function() {
-            //TODO 이런 식으로 좌표를 읽어 지도에 마커를 표시 마커는 특정 속성으로 각 탭을 비교
-            //TODO 최초 api 호출시 마커를 숨김 상태로 지도 위에 표시는 해놓음
-            var coord = $(this).attr('data-coord');
+        $('#address-result .address-name-span').each(function() {
+            let coord = $(this).attr('data-coord').split(', ');
+            let addressName = $(this).text();
             console.log('Coordinate:', coord);
+            console.log('Address:', addressName);
+
+            addMarker(coord, addressName, "address", "search");
         });
     });
 
@@ -1106,6 +1139,14 @@
     $('#address-tab').on('hidden.bs.tab', function (e) {
         //TODO 해당 탭이 닫히면 마커를 숨긴다.
         console.log(e.target.id + ' tab is now hidden');
+        var source = vectorLayer.getSource();
+        var features = source.getFeatures();
+        for (var i = 0; i < features.length; i++) {
+            var feature = features[i];
+            if(feature.get('attribute') == "address"){
+                source.removeFeature(feature);
+            }
+        }
     });
 
 
