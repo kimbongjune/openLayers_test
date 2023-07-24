@@ -66,6 +66,8 @@ let graticuleLayer;
 let geojsonFormat = new ol.format.GeoJSON();
 //레이더 레이어를 담을 변수
 let webGlVectorLayer;
+//CCTV 레이어를 담을 변수
+let clusterLayer
 
 //openlayers 지도의 view 객체
 const mapView = new ol.View({
@@ -99,6 +101,9 @@ if(window.location.href.includes("192")){
 }else{
     VWORLD_API_KEY = "A5C5E9FF-F9FC-3012-9D01-41A62F369AA7";
 }
+
+//kakao API키를 저장하기 위한 변수
+const KAKAO_REST_API_KEY = "a75f661f8fd50587142251f0476ef2da"
 
 //swipe 레이어를 저장하기 위한 변수
 let swipeLayer;
@@ -437,7 +442,7 @@ function addExtentInteraction(){
             //console.log("Width: " + width + ", Height: " + height + ", Area: " + area);
             
             createExtentInteractionTooltip()
-            extentInteractionTooltipElement.innerHTML = extentInteractionTooltipText(
+            extentInteractionTooltipElement.innerHTML = createExtentInteractionTooltipHtml(
                 widthDistance,
                 heigthDistance,
                 area
@@ -796,7 +801,7 @@ map.on("click", function (evt) {
         return;
     }
 
-    var url = 'https://api.vworld.kr/req/data?';
+    let url = 'https://api.vworld.kr/req/data?';
     url += 'service=data';
     url += '&request=GetFeature';
     url += '&data=LP_PA_CBND_BUBUN';
@@ -817,17 +822,17 @@ map.on("click", function (evt) {
             if(data.response.status != "OK"){
                 return;
             }
-            var geoInfoObject = data.response.result.featureCollection.features[0];
-            var geojsonObject = geoInfoObject.geometry;
+            const geoInfoObject = data.response.result.featureCollection.features[0];
+            const geojsonObject = geoInfoObject.geometry;
              
-            var vectorSource = new ol.source.Vector({
+            const vectorSource = new ol.source.Vector({
                 features: (new ol.format.GeoJSON()).readFeatures(geojsonObject)
             });
             vectorSource.set("ctp_kor_nm",data.response.result.featureCollection.features[0].properties.ctp_kor_nm); 
             vectorSource.set("ctp_eng_nm",data.response.result.featureCollection.features[0].properties.ctp_eng_nm); 
             //layer.getSource().getKeys()로 확인
 
-            var vectorStyle = new ol.style.Style({
+            const vectorStyle = new ol.style.Style({
                 fill: new ol.style.Fill({
                     color: 'rgba(135,206,250, 0.5)', // Skyblue color fill with opacity
                 }),
@@ -837,7 +842,7 @@ map.on("click", function (evt) {
                 }),
             });
              
-            var vector_layer = new ol.layer.Vector({
+            const vector_layer = new ol.layer.Vector({
               source: vectorSource,
               style: vectorStyle
             })
@@ -847,12 +852,12 @@ map.on("click", function (evt) {
             map.addLayer(vector_layer);
             clickCurrentLayer = vector_layer
 
-            var selectedValue = $(".coordinate-system-selector").val();
-            var coord = ol.proj.transform(evt.coordinate, "EPSG:3857", selectedValue)
+            const selectedValue = $(".coordinate-system-selector").val();
+            const coord = ol.proj.transform(evt.coordinate, "EPSG:3857", selectedValue)
             
             console.log(coord)
 
-            var overlayElement = document.createElement('div');
+            let overlayElement = document.createElement('div');
             overlayElement.className = "ol-popup";
             overlayElement.innerHTML += `<a href="#" id="popup-closer" class="ol-popup-closer"></a>`
             overlayElement.innerHTML += `<div id="popup-content">
@@ -870,7 +875,7 @@ map.on("click", function (evt) {
                                                 <br>
                                                 <div style="float: left;">공시지가 : ${geoInfoObject.properties.jiga != "" ? geoInfoObject.properties.jiga.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : "--"}&#8361;, 지목 : ${geoInfoObject.properties.jibun.slice(-1)}</div>
                                             </div>`
-            var overlay = new ol.Overlay({
+            const overlay = new ol.Overlay({
                 element: overlayElement,
                 position: evt.coordinate
             });
@@ -878,7 +883,7 @@ map.on("click", function (evt) {
             map.addOverlay(overlay);
             clickCurrentOverlay = overlay;
 
-            var deleteButton = overlayElement.querySelector(".ol-popup-closer");
+            const deleteButton = overlayElement.querySelector(".ol-popup-closer");
             deleteButton.addEventListener("click", function () {
                 map.removeLayer(vector_layer);
                 map.removeOverlay(clickCurrentOverlay);
@@ -901,18 +906,18 @@ map.on("click", function (evt) {
 map.addControl(new ol.control.Rotate({ autoHide: false}));
 
 //직선 길이측정 레이어를 지도위에 표출하기 위한 레이어 소스.
-var lineSource = new ol.source.Vector();
+const lineSource = new ol.source.Vector();
 //직선 길이측정 레이어를 지도위에 표출하기 위한 벡터 레이어
-var lineSourceLayer = new ol.layer.Vector({
+const lineSourceLayer = new ol.layer.Vector({
     source: lineSource,
 });
 lineSourceLayer.setZIndex(5)
 map.addLayer(lineSourceLayer);
 
 //면적 측정 레이어를 지도위에 표출하기 위한 레이어 소스.
-var polygonSource = new ol.source.Vector();
+const polygonSource = new ol.source.Vector();
 //면적 측정 레이어를 지도위에 표출하기 위한 벡터 레이어
-var polygonSourceLayer = new ol.layer.Vector({
+const polygonSourceLayer = new ol.layer.Vector({
     source: polygonSource,
     style: new ol.style.Style({
         stroke: new ol.style.Stroke({
@@ -928,9 +933,9 @@ polygonSourceLayer.setZIndex(5)
 map.addLayer(polygonSourceLayer);
 
 //원형 면적 측정 레이어를 지도위에 표출하기 위한 레이어 소스.
-var cricleSource = new ol.source.Vector();
+const cricleSource = new ol.source.Vector();
 //원형 면적 측정 레이어를 지도위에 표출하기 위한 벡터 레이어
-var circleSourceLayer = new ol.layer.Vector({
+const circleSourceLayer = new ol.layer.Vector({
     source: cricleSource,
     style: new ol.style.Style({
         stroke: new ol.style.Stroke({
@@ -947,41 +952,56 @@ map.addLayer(circleSourceLayer);
 
 //지도의 이동이 종료되었을 때 발생하는 이벤트 지도 중앙좌표와 줌 레벨을 표시한다.
 map.on("moveend", function () {
-    var view = map.getView();
+    const view = map.getView();
     const center = view.getCenter();
-    var coordinate = ol.proj.transform(center , "EPSG:3857", "EPSG:4326");
+    const coordinate = ol.proj.transform(center , "EPSG:3857", "EPSG:4326");
     reverseGeoCodingToRegion(coordinate[0], coordinate[1])
-    var zoom = map.getView().getZoom();
+    const zoom = map.getView().getZoom();
     zoomInfo.innerHTML = `level: ${zoom}`;
 });
 
 //지도의 중앙 좌표를 특정 좌표계로 변환하여 표시하기 위한 함수
 function formatCoordinate(coordinate, beforCoordinateSystem, targetCoordinateSystem) {
-    let changedCoordinate = ol.proj.transform(coordinate, beforCoordinateSystem, targetCoordinateSystem)
+    const changedCoordinate = ol.proj.transform(coordinate, beforCoordinateSystem, targetCoordinateSystem)
     return `${changedCoordinate[0].toFixed(5)}, ${changedCoordinate[1].toFixed(5)}`;
 }
 
-var measureTooltipElement; // 측정값을 표시하는 툴팁 요소
-var measureTooltip; // 측정값 툴팁
+//길이측정 overlay의 html 엘리먼트
+let measureTooltipElement;
+//길이측정 overlay
+let measureTooltip;
 
-var areaTooltipElement;
-var areaTooltip;
+//면적측정 overlay의 html 엘리먼트
+let areaTooltipElement;
+//면적측정 overlay
+let areaTooltip;
 
-var routeTooltipElement;
-var routeTooltip;
+//경로탐색 overlay의 html 엘리먼트
+let routeTooltipElement;
+//경로탐색 overlay
+let routeTooltip;
 
-var circleTooltipElement;
-var circleTooltip;
+//반경측정 overlay의 html 엘리먼트
+let circleTooltipElement;
+//반경측정 overlay
+let circleTooltip;
 
-var extentInteractionTooltipElement;
-var extentInteractionTooltip;
+//Extent 인터렉션 영역의 html 엘리먼트
+let extentInteractionTooltipElement;
+//Extent 인터렉션 overlay
+let extentInteractionTooltip;
 
-var sketch; // 현재 그려지고 있는 feature
+// 현재 그려지고 있는 feature
+let sketch;
 
-var measurePolygon; // Create draw interaction outside scope for removal later
-var areaPolygon;
-var circlePolygon;
+//직선을 그리는 draw객체
+let measurePolygon;
+//면적을 그리는 draw객체
+let areaPolygon;
+//원을 그리는 draw객체
+let circlePolygon;
 
+//지도위에 길이측정 레이어, 툴팁을 표시하는 함수
 function addLineInteraction() {
     measurePolygon = new ol.interaction.Draw({
         source: lineSource,
@@ -1001,15 +1021,15 @@ function addLineInteraction() {
 
     map.addInteraction(measurePolygon);
 
-    var overlayDisplayed = false;
+    let overlayDisplayed = false;
 
     measurePolygon.on("drawstart", function (evt) {
         sketch = evt.feature;
 
         sketch.getGeometry().on("change", function (evt) {
-            var geom = evt.target;
+            const geom = evt.target;
             //var output = formatLength((geom));
-            measureTooltipElement.innerHTML = drawingAreaTooltipText(
+            measureTooltipElement.innerHTML = createDrawingAreaTooltipHtml(
                 "line",
                 this
             );
@@ -1030,7 +1050,7 @@ function addLineInteraction() {
             map.removeOverlay(measureTooltip);
         }
 
-        var feature = evt.feature; // 그리기가 완료된 feature를 가져옵니다.
+        const feature = evt.feature; // 그리기가 완료된 feature를 가져옵니다.
         feature.setStyle(
             new ol.style.Style({
                 // feature의 스타일을 설정합니다.
@@ -1040,19 +1060,19 @@ function addLineInteraction() {
                 }),
             })
         );
-        var coordinateLength = sketch.getGeometry().getCoordinates().length;
+        const coordinateLength = sketch.getGeometry().getCoordinates().length;
         if (coordinateLength < 2) {
             setTimeout(function () {
                 lineSource.removeFeature(evt.feature);
                 map.removeOverlay(measureTooltip);
             }, 0);
         }else{
-            var overlayToRemove = measureTooltip;
-            measureTooltipElement.innerHTML = createAreaTooltipText(
+            const overlayToRemove = measureTooltip;
+            measureTooltipElement.innerHTML = createDrawFinishedAreaTooltipHtml(
                 "line",
                 evt.feature.getGeometry()
             );
-            var deleteButton = measureTooltipElement.querySelector(".delete-btn");
+            const deleteButton = measureTooltipElement.querySelector(".delete-btn");
     
             //console.log(sketch.getGeometry().getCoordinates())
             //searchRouteSummury(sketch.getGeometry().getCoordinates())
@@ -1073,7 +1093,183 @@ function addLineInteraction() {
     });
 }
 
-function extentInteractionTooltipText(width, heght, measure) {
+//지도위에 면적측정 레이어, 툴팁을 표시하는 함수
+function addPolygonInteraction() {
+    areaPolygon = new ol.interaction.Draw({
+        source: polygonSource,
+        type: "Polygon",
+        style: new ol.style.Style({
+            stroke: new ol.style.Stroke({
+                color: "blue",
+                width: 3,
+            }),
+            fill: new ol.style.Fill({
+                color: "rgba(0, 0, 255, 0.1)",
+            }),
+        }),
+        stopClick: true,
+        freehandCondition : ol.events.condition.never,
+        condition: (e) =>
+            ol.events.condition.noModifierKeys(e) &&
+            ol.events.condition.primaryAction(e),
+    });
+
+    map.addInteraction(areaPolygon);
+
+    let listenerKey;
+
+    areaPolygon.on("drawstart", function (evt) {
+        sketch = evt.feature;
+
+        let lastMouseCoordinate;
+
+        listenerKey = map.on("pointermove", function (evt) {
+            lastMouseCoordinate = evt.coordinate;
+        });
+
+        // 이벤트 핸들러 추가
+        sketch.getGeometry().on("change", function (evt) {
+            var geom = evt.target;
+            //var output = formatArea((geom));
+            areaTooltipElement.innerHTML = createDrawingAreaTooltipHtml(
+                "polygon",
+                this
+            );
+            areaTooltip.setPosition(lastMouseCoordinate);
+            areaTooltipElement.parentElement.style.pointerEvents = "none";
+        });
+
+        createAreaTooltip();
+    });
+
+    areaPolygon.on("drawend", function (evt) {
+        const coordinateLength = sketch.getGeometry().getCoordinates()[0].length;
+        if (coordinateLength < 4) {
+            setTimeout(function () {
+                polygonSource.removeFeature(evt.feature);
+                map.removeOverlay(areaTooltip);
+                return;
+            }, 0);
+        }
+
+        const feature = evt.feature;
+        const geometry = feature.getGeometry();
+        const coordinates = geometry.getCoordinates()[0];
+        const lastCoordinate = coordinates[coordinates.length - 2];
+
+        const overlayToRemove = areaTooltip;
+        areaTooltipElement.innerHTML = createDrawFinishedAreaTooltipHtml(
+            "polygon",
+            evt.feature.getGeometry()
+        );
+
+        const deleteButton = areaTooltipElement.querySelector(".delete-btn");
+        deleteButton.addEventListener("click", function () {
+            // 해당 feature 제거
+            polygonSource.removeFeature(evt.feature);
+            // 해당 tooltip 제거
+            map.removeOverlay(overlayToRemove);
+        });
+
+        areaTooltip.setPosition(lastCoordinate);
+
+        map.removeInteraction(areaPolygon);
+        sketch = null;
+        areaTooltipElement = null;
+        areaTooltip = null;
+        addPolygonInteraction();
+
+        ol.Observable.unByKey(listenerKey);
+        listenerKey = null;
+    });
+}
+
+//지도위에 반경측정 레이어, 툴팁을 표시하는 함수
+function addCircleInteraction() {
+    circlePolygon = new ol.interaction.Draw({
+        source: cricleSource,
+        type: "Circle",
+        style: new ol.style.Style({
+            stroke: new ol.style.Stroke({
+                color: "green",
+                width: 3,
+            }),
+            fill: new ol.style.Fill({
+                color: "rgba(107,208,137, 0.3)",
+            }),
+        }),
+        stopClick: true,
+        freehandCondition : ol.events.condition.never,
+        condition: (e) =>
+            ol.events.condition.noModifierKeys(e) &&
+            ol.events.condition.primaryAction(e),
+    });
+
+    map.addInteraction(circlePolygon);
+
+    let listenerKey;
+
+    circlePolygon.on("drawstart", function (evt) {
+        let lastMouseCoordinate;
+
+        listenerKey = map.on("pointermove", function (evt) {
+            lastMouseCoordinate = evt.coordinate;
+        });
+
+        sketch = evt.feature;
+        //console.log(sketch.getGeometry())
+        // 이벤트 핸들러 추가
+        sketch.getGeometry().on("change", function (evt) {
+            //var output = formatCircleArea((geom));
+            circleTooltipElement.innerHTML = createDrawingAreaTooltipHtml(
+                "circle",
+                this
+            );
+            circleTooltip.setPosition(lastMouseCoordinate);
+            circleTooltipElement.parentElement.style.pointerEvents = "none";
+        });
+        createCircleAreaTooltip();
+    });
+
+    circlePolygon.on("drawend", function (evt) {
+        const geom = evt.target;
+        //console.log(geom);
+        const coordinateLength = geom.sketchCoords_.length;
+        //console.log(sketch.getGeometry())
+        if (coordinateLength < 2) {
+            setTimeout(function () {
+                cricleSource.removeFeature(evt.feature);
+                map.removeOverlay(circleTooltip);
+            }, 0);
+        }
+
+        const overlayToRemove = circleTooltip;
+        circleTooltipElement.innerHTML = createDrawFinishedAreaTooltipHtml(
+            "circle",
+            evt.feature.getGeometry()
+        );
+
+        const deleteButton = circleTooltipElement.querySelector(".delete-btn");
+        deleteButton.addEventListener("click", function () {
+            // 해당 feature 제거
+            cricleSource.removeFeature(evt.feature);
+            // 해당 tooltip 제거
+            map.removeOverlay(overlayToRemove);
+        });
+
+        map.removeInteraction(circlePolygon);
+        sketch = null;
+        circleTooltipElement = null;
+        circleTooltip = null
+        addCircleInteraction();
+
+        ol.Observable.unByKey(listenerKey);
+        listenerKey = null;
+    });
+}
+
+//Extent 인터렉션 오버레이에 표시할 html을 생성하는 함수
+function createExtentInteractionTooltipHtml(width, heght, measure) {
     let tooltipCase = "";
     let tooltipElementClass = "";
     let tooltipInfoWidth = "";
@@ -1102,7 +1298,8 @@ function extentInteractionTooltipText(width, heght, measure) {
     return text;
 }
 
-function createAreaTooltipText(targetInfo, geom) {
+//길이측정, 면적측정, 반경측정이 다 그려졌을 때 오버레이에 표시할 html을 생성하는 함수
+function createDrawFinishedAreaTooltipHtml(targetInfo, geom) {
     let tooltipCase = "";
     let tooltipElementClass = "";
     let tooltipInfo = "";
@@ -1134,7 +1331,8 @@ function createAreaTooltipText(targetInfo, geom) {
     return text;
 }
 
-function drawingAreaTooltipText(targetInfo, geom) {
+//길이측정, 면적측정, 반경측정이 그려지는 중일 때 오버레이에 표시할 html을 생성하는 함수
+function createDrawingAreaTooltipHtml(targetInfo, geom) {
     let tooltipCase = "";
     let tooltipElementClass = "";
     let tooltipInfo = "";
@@ -1167,6 +1365,7 @@ function drawingAreaTooltipText(targetInfo, geom) {
     return text;
 }
 
+//길이측정 오버레이의 html을 초기화 하는 함수
 function createMeasureTooltip() {
     measureTooltipElement = document.createElement("div");
     measureTooltipElement.className = "tooltip tooltip-measure";
@@ -1179,6 +1378,7 @@ function createMeasureTooltip() {
     map.addOverlay(measureTooltip);
 }
 
+//면적측정 오버레이의 html을 초기화 하는 함수
 function createAreaTooltip() {
     areaTooltipElement = document.createElement("div");
     areaTooltipElement.className = "tooltip tooltip-measure";
@@ -1191,6 +1391,7 @@ function createAreaTooltip() {
     map.addOverlay(areaTooltip);
 }
 
+//경로탐색 오버레이의 html을 초기화 하는 함수
 function createRouteTooltip() {
     routeTooltipElement = document.createElement("div");
     routeTooltipElement.className = "tooltip tooltip-static";
@@ -1204,6 +1405,7 @@ function createRouteTooltip() {
     map.addOverlay(routeTooltip);
 }
 
+//extent 인터렉션 오버레이의 html을 초기화 하는 함수
 function createExtentInteractionTooltip() {
     removeExtentInteractionTooltip();
     extentInteractionTooltipElement = document.createElement("div");
@@ -1217,6 +1419,7 @@ function createExtentInteractionTooltip() {
     map.addOverlay(extentInteractionTooltip);
 }
 
+//extent 인터렉션의 오버레이를 지우고, html 엘리먼트와 overlay 객체를 초기화 하는 함수
 function removeExtentInteractionTooltip() {
     if (extentInteractionTooltip) {
         map.removeOverlay(extentInteractionTooltip);
@@ -1225,6 +1428,7 @@ function removeExtentInteractionTooltip() {
     }
 }
 
+//반경측정 오버레이의 html을 초기화 하는 함수
 function createCircleAreaTooltip() {
     circleTooltipElement = document.createElement("div");
     circleTooltipElement.className = "tooltip tooltip-measure";
@@ -1237,184 +1441,11 @@ function createCircleAreaTooltip() {
     map.addOverlay(circleTooltip);
 }
 
-function addPolygonInteraction() {
-    areaPolygon = new ol.interaction.Draw({
-        source: polygonSource,
-        type: "Polygon",
-        style: new ol.style.Style({
-            stroke: new ol.style.Stroke({
-                color: "blue",
-                width: 3,
-            }),
-            fill: new ol.style.Fill({
-                color: "rgba(0, 0, 255, 0.1)",
-            }),
-        }),
-        stopClick: true,
-        freehandCondition : ol.events.condition.never,
-        condition: (e) =>
-            ol.events.condition.noModifierKeys(e) &&
-            ol.events.condition.primaryAction(e),
-    });
-
-    map.addInteraction(areaPolygon);
-
-    var listenerKey;
-
-    areaPolygon.on("drawstart", function (evt) {
-        sketch = evt.feature;
-
-        var lastMouseCoordinate;
-
-        listenerKey = map.on("pointermove", function (evt) {
-            lastMouseCoordinate = evt.coordinate;
-        });
-
-        // 이벤트 핸들러 추가
-        sketch.getGeometry().on("change", function (evt) {
-            var geom = evt.target;
-            //var output = formatArea((geom));
-            areaTooltipElement.innerHTML = drawingAreaTooltipText(
-                "polygon",
-                this
-            );
-            areaTooltip.setPosition(lastMouseCoordinate);
-            areaTooltipElement.parentElement.style.pointerEvents = "none";
-        });
-
-        createAreaTooltip();
-    });
-
-    areaPolygon.on("drawend", function (evt) {
-        var coordinateLength = sketch.getGeometry().getCoordinates()[0].length;
-        if (coordinateLength < 4) {
-            setTimeout(function () {
-                polygonSource.removeFeature(evt.feature);
-                map.removeOverlay(areaTooltip);
-                return;
-            }, 0);
-        }
-
-        var feature = evt.feature;
-        var geometry = feature.getGeometry();
-        var coordinates = geometry.getCoordinates()[0];
-        var lastCoordinate = coordinates[coordinates.length - 2];
-
-        var overlayToRemove = areaTooltip;
-        areaTooltipElement.innerHTML = createAreaTooltipText(
-            "polygon",
-            evt.feature.getGeometry()
-        );
-
-        var deleteButton = areaTooltipElement.querySelector(".delete-btn");
-        deleteButton.addEventListener("click", function () {
-            // 해당 feature 제거
-            polygonSource.removeFeature(evt.feature);
-            // 해당 tooltip 제거
-            map.removeOverlay(overlayToRemove);
-        });
-
-        areaTooltip.setPosition(lastCoordinate);
-
-        map.removeInteraction(areaPolygon);
-        sketch = null;
-        areaTooltipElement = null;
-        areaTooltip = null;
-        addPolygonInteraction();
-
-        ol.Observable.unByKey(listenerKey);
-        listenerKey = null;
-    });
-}
-
-function addCircleInteraction() {
-    circlePolygon = new ol.interaction.Draw({
-        source: cricleSource,
-        type: "Circle",
-        style: new ol.style.Style({
-            stroke: new ol.style.Stroke({
-                color: "green",
-                width: 3,
-            }),
-            fill: new ol.style.Fill({
-                color: "rgba(107,208,137, 0.3)",
-            }),
-        }),
-        stopClick: true,
-        freehandCondition : ol.events.condition.never,
-        condition: (e) =>
-            ol.events.condition.noModifierKeys(e) &&
-            ol.events.condition.primaryAction(e),
-    });
-
-    map.addInteraction(circlePolygon);
-
-    var listenerKey;
-
-    circlePolygon.on("drawstart", function (evt) {
-        var lastMouseCoordinate;
-
-        listenerKey = map.on("pointermove", function (evt) {
-            lastMouseCoordinate = evt.coordinate;
-        });
-
-        sketch = evt.feature;
-        //console.log(sketch.getGeometry())
-        // 이벤트 핸들러 추가
-        sketch.getGeometry().on("change", function (evt) {
-            //var output = formatCircleArea((geom));
-            circleTooltipElement.innerHTML = drawingAreaTooltipText(
-                "circle",
-                this
-            );
-            circleTooltip.setPosition(lastMouseCoordinate);
-            circleTooltipElement.parentElement.style.pointerEvents = "none";
-        });
-        createCircleAreaTooltip();
-    });
-
-    circlePolygon.on("drawend", function (evt) {
-        var geom = evt.target;
-        //console.log(geom);
-        var coordinateLength = geom.sketchCoords_.length;
-        //console.log(sketch.getGeometry())
-        if (coordinateLength < 2) {
-            setTimeout(function () {
-                cricleSource.removeFeature(evt.feature);
-                map.removeOverlay(circleTooltip);
-            }, 0);
-        }
-
-        var overlayToRemove = circleTooltip;
-        circleTooltipElement.innerHTML = createAreaTooltipText(
-            "circle",
-            evt.feature.getGeometry()
-        );
-
-        var deleteButton = circleTooltipElement.querySelector(".delete-btn");
-        deleteButton.addEventListener("click", function () {
-            // 해당 feature 제거
-            cricleSource.removeFeature(evt.feature);
-            // 해당 tooltip 제거
-            map.removeOverlay(overlayToRemove);
-        });
-
-        map.removeInteraction(circlePolygon);
-        sketch = null;
-        circleTooltipElement = null;
-        circleTooltip = null
-        addCircleInteraction();
-
-        ol.Observable.unByKey(listenerKey);
-        listenerKey = null;
-    });
-}
-
-// 거리를 계산하는 함수입니다.
+//지도에서 주어진 거리를 지구의 구형을 적용하여 실제 길이를 게산하는 함수
 function formatLength(line) {
-    var length = ol.sphere.getLength(line);
-    var output;
-    var outputUnit;
+    const length = ol.sphere.getLength(line);
+    let output;
+    let outputUnit;
     if (length > 100) {
         output = Math.round((length / 1000) * 100) / 100;
         outputUnit = "km";
@@ -1425,9 +1456,10 @@ function formatLength(line) {
     return [output, outputUnit];
 }
 
+//주어진 숫자를 km / m로 변환하는 함수
 function convertingLength(line) {
-    var output;
-    var outputUnit;
+    let output;
+    let outputUnit;
     if (line > 1000) {
         output = Math.round((line / 1000) * 100) / 100;
         outputUnit = "km";
@@ -1438,9 +1470,10 @@ function convertingLength(line) {
     return [output, outputUnit];
 }
 
+//주어진 숫자를 km^ / m^로 변환하는 함수
 function convertingMeasure(area) {
-    var output;
-    var outputUnit;
+    let output;
+    let outputUnit;
     if (area > 10000) {
         // 1km^2 이상인 경우 km^2 단위로 표시
         output = Math.round((area / 1000000) * 100) / 100;
@@ -1453,12 +1486,11 @@ function convertingMeasure(area) {
     return [output, outputUnit];
 }
 
-//165320022
-// 면적을 계산하는 함수입니다.
+//지도에서 주어진 면적을 지구의 구형을 적용하여 실제 면적을 게산하는 함수
 function formatArea(polygon) {
-    var area = ol.sphere.getArea(polygon);
-    var output;
-    var outputUnit;
+    const area = ol.sphere.getArea(polygon);
+    let output;
+    let outputUnit;
     if (area > 10000) {
         // 1km^2 이상인 경우 km^2 단위로 표시
         output = Math.round((area / 1000000) * 100) / 100;
@@ -1471,13 +1503,14 @@ function formatArea(polygon) {
     return [output, outputUnit];
 }
 
+//지도에서 주어진 구형 면적/반경 을 지구의 구형을 적용하여 실제 구형 면적/반경을 게산하는 함수
 function formatCircleArea(polygon) {
-    var radiusInMeters = new ol.geom.Polygon.fromCircle(polygon, 100);
-    var area = ol.sphere.getArea(radiusInMeters);
-    var distance = Math.sqrt(area / Math.PI);
-    var output;
-    var outputUnit;
-    var distanceUnit;
+    const radiusInMeters = new ol.geom.Polygon.fromCircle(polygon, 100);
+    const area = ol.sphere.getArea(radiusInMeters);
+    let distance = Math.sqrt(area / Math.PI);
+    let output;
+    let outputUnit;
+    let distanceUnit;
     if (area > 10000) {
         // 1km^2 이상인 경우 km^2 단위로 표시
         output = Math.round((area / 1000000) * 100) / 100;
@@ -1497,7 +1530,7 @@ function formatCircleArea(polygon) {
     return [output, outputUnit, distance, distanceUnit];
 }
 
-//면적/길이측정 체크박스 끼리 간섭이 발생하지 않도록 트리거된 체크박스를 제외한 나머지 체크박스를 해제한다.
+//체크박스의 중복 체크를 해제하기 위한 함수. 그리기도구의 체크박스가 체크될 때 동작하며, 자신을 제외한 체크박스의 체크를 해제한다.
 function uncheckedCheckBox(selectCheckBox) {
     //체크박스에 부여된 클래스 이름으로 체크박스를 순회한다.
     document.querySelectorAll(".measure").forEach(function (e) {
@@ -1505,12 +1538,13 @@ function uncheckedCheckBox(selectCheckBox) {
         if (e !== selectCheckBox && e.checked) {
             e.checked = false;
             //체크박스의 onChange 이벤트를 강제로 트리거시킨다.
-            var event = new Event("change");
+            const event = new Event("change");
             e.dispatchEvent(event);
         }
     });
 }
 
+//길이측정 체크박스의 체크가 변경될 때 발생하는 이벤트
 document.getElementById("measureCheckbox").addEventListener("change", function () {
     //console.log($(".measure"));
     if (this.checked) {
@@ -1536,6 +1570,7 @@ document.getElementById("measureCheckbox").addEventListener("change", function (
     }
 });
 
+//면적측정 체크박스의 체크가 변경될 때 발생하는 이벤트
 document.getElementById("areaCheckbox").addEventListener("change", function () {
     if (this.checked) {
         uncheckedCheckBox(this);
@@ -1560,6 +1595,7 @@ document.getElementById("areaCheckbox").addEventListener("change", function () {
     }
 });
 
+//반경측정 체크박스의 체크가 변경될 때 발생하는 이벤트
 document.getElementById("areaCircleCheckbox").addEventListener("change", function () {
     if (this.checked) {
         uncheckedCheckBox(this);
@@ -1584,7 +1620,7 @@ document.getElementById("areaCircleCheckbox").addEventListener("change", functio
     }
 });
 
-//ESC 키 입력 이벤트
+//ESC키가 입력될 때 발생하는 이벤트
 window.addEventListener("keydown", function (event) {
     if (event.key === "Escape") {
         if (measurePolygon) {
@@ -1636,35 +1672,38 @@ window.addEventListener("keydown", function (event) {
     }
 });
 
-//spectrum 라이브러리 호출 함수
-$("#color-picker").spectrum({
-    flat: false,
-    preferredFormat: "hex", //hex hex3 hsl rgb name
-    togglePaletteOnly: true, //줄이기버튼
-    showInput: true,
-    showInitial: true,
-    showButtons: true,
-    showAlpha: true,
-    change: function (color) {
-        //console.log("change");
-        //console.log(color.toRgbString());
-    },
-    show: function (color) {
-        //console.log("show");
-    },
-    move: function (color) {
-        //console.log("move");
-    },
-});
+//spectrum 라이브러리 초기화 함수
+function initSpectrum(){
+    $("#color-picker").spectrum({
+        flat: false,
+        preferredFormat: "hex", //hex hex3 hsl rgb name
+        togglePaletteOnly: true, //줄이기버튼
+        showInput: true,
+        showInitial: true,
+        showButtons: true,
+        showAlpha: true,
+        change: function (color) {
+            //console.log("change");
+            //console.log(color.toRgbString());
+        },
+        show: function (color) {
+            //console.log("show");
+        },
+        move: function (color) {
+            //console.log("move");
+        },
+    });
+}
 
+//OSRM을 이용한 경로탐색 요청 및 지도위에 표출하는 함수
 function searchRouteSummury(startFeature, endFeature, routeFlag) {
 
     //let osrmUrl = `https://router.project-osrm.org/route/v1/driving/`;
     let osrmCarUrl = `http://192.168.10.99:6001/route/v1/driving/`;
     let osrmFootUrl = `http://192.168.10.99:6002/route/v1/driving/`;
     let osrBikemUrl = `http://192.168.10.99:6003/route/v1/driving/`;
-    var startCoordinate = ol.proj.transform(startFeature.getGeometry().getCoordinates(), "EPSG:3857", "EPSG:4326")
-    var endCoordinate = ol.proj.transform(endFeature.getGeometry().getCoordinates(), "EPSG:3857", "EPSG:4326")
+    const startCoordinate = ol.proj.transform(startFeature.getGeometry().getCoordinates(), "EPSG:3857", "EPSG:4326")
+    const endCoordinate = ol.proj.transform(endFeature.getGeometry().getCoordinates(), "EPSG:3857", "EPSG:4326")
     // console.log(coord4326)
     // console.log(index, routeCoordinates.length)
     osrmCarUrl += `${startCoordinate};${endCoordinate}`
@@ -1725,9 +1764,9 @@ function searchRouteSummury(startFeature, endFeature, routeFlag) {
         routeTooltipElement.innerHTML = text
         routeTooltip.setPosition(endFeature.getGeometry().getCoordinates());
         routeTooltipElement.parentElement.style.pointerEvents = "none";
-        var deleteButton = routeTooltipElement.querySelector(".delete-btn");
+        const deleteButton = routeTooltipElement.querySelector(".delete-btn");
 
-        var lineStyle = [
+        const lineStyle = [
             new ol.style.Style({
                 stroke: new ol.style.Stroke({
                     color: '#E9E9E8', // 외곽선 색상 (회색)
@@ -1749,8 +1788,8 @@ function searchRouteSummury(startFeature, endFeature, routeFlag) {
         const osrmEnd = ol.proj.transform(data.routes[0].legs[0].steps[data.routes[0].legs[0].steps.length-1].geometry.coordinates[0], "EPSG:4326", "EPSG:3857");
     
         // 사용자가 선택한 시작지점과 OSRM이 계산한 시작지점 사이에 선을 그림
-        var startLineString = new ol.geom.LineString([osrmStart, startFeature.getGeometry().getCoordinates()]);
-        var startLineFeature = new ol.Feature({
+        const startLineString = new ol.geom.LineString([osrmStart, startFeature.getGeometry().getCoordinates()]);
+        const startLineFeature = new ol.Feature({
             geometry: startLineString,
             name: 'Start Line'
         });
@@ -1759,8 +1798,8 @@ function searchRouteSummury(startFeature, endFeature, routeFlag) {
         //console.log(osrmStart, startFeature.getGeometry().getCoordinates())
         
         // 사용자가 선택한 종료지점과 OSRM이 계산한 종료지점 사이에 선을 그림
-        var endLineString = new ol.geom.LineString([osrmEnd, endFeature.getGeometry().getCoordinates()]);
-        var endLineFeature = new ol.Feature({
+        const endLineString = new ol.geom.LineString([osrmEnd, endFeature.getGeometry().getCoordinates()]);
+        const endLineFeature = new ol.Feature({
             geometry: endLineString,
             name: 'End Line'
         });
@@ -1825,7 +1864,7 @@ function searchRouteSummury(startFeature, endFeature, routeFlag) {
                 padding: [200, 200, 200, 200],  // 상, 우, 하, 좌 방향으로의 패딩
             });
 
-            var element = document.getElementById("offcanvasScrolling");
+            const element = document.getElementById("offcanvasScrolling");
             if (!element.classList.contains("show")) {
                 document.getElementById("route-result-toggle-button").click()
             } else {
@@ -1837,43 +1876,46 @@ function searchRouteSummury(startFeature, endFeature, routeFlag) {
 }
 
 //ol-context 마커 아이콘
-var pinIcon = "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/pin_drop.png";
+const pinIcon = "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/pin_drop.png";
 //ol-context 지도 중앙위치 아이콘
-var centerIcon = "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/center.png";
+const centerIcon = "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/center.png";
 //ol-context 목록 아이콘
-var listIcon = "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/view_list.png";
+const listIcon = "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/view_list.png";
 
-var pdfIcon = "./resources/img/pdf.png"
+//pdf 아이콘
+const pdfIcon = "./resources/img/pdf.png"
+//이미지 아이콘
+const imageIcon = "./resources/img/image.png"
+//삭제 아이콘
+const deleteIcon = "./resources/img/delete.png"
+//새로고침 아이콘
+const refreshIcon = "./resources/img/refresh.png"
+//시작 마커 아이콘
+const startMarkerIcon = "./resources/img/red_marker.png"
+//종료 마커 아이콘
+const endMarkerIcon = "./resources/img/green_marker.png"
+//북마커 마커 아이콘
+const bookMarkerIcon = "./resources/img/book_mark.png"
 
-var imageIcon = "./resources/img/image.png"
+//ol-context zoom 클래스 설정
+const namespace = "ol-ctx-menu";
+const icon_class = "-icon";
+const zoom_in_class = "-zoom-in";
+const zoom_out_class = "-zoom-out";
 
-var deleteIcon = "./resources/img/delete.png"
-
-var refreshIcon = "./resources/img/refresh.png"
-
-var startMarkerIcon = "./resources/img/red_marker.png"
-var endMarkerIcon = "./resources/img/green_marker.png"
-
-var bookMarkerIcon = "./resources/img/book_mark.png"
-
-var namespace = "ol-ctx-menu";
-var icon_class = "-icon";
-var zoom_in_class = "-zoom-in";
-var zoom_out_class = "-zoom-out";
-
-//ol-context 메뉴 아이템 구성 리스트
-var contextmenuItems = [
+//ol-context 기본 메뉴 아이템 구성 리스트
+const contextmenuItems = [
     {
         text: '출발',
         classname: 'start-item',
         icon: startMarkerIcon,
-        callback: startMarker, // 적절한 콜백 함수
+        callback: startMarker,
     },
     {
         text: '도착',
         classname: 'end-item',
         icon: endMarkerIcon,
-        callback: endMarker, // 적절한 콜백 함수
+        callback: endMarker,
     },
     {
         text: "지도 중앙 이동",
@@ -1935,7 +1977,7 @@ var contextmenuItems = [
     },
 ];
 
-//ol-context callback 함수 줌 레벨을 한단계 확대한다.
+//ol-context callback 함수. 줌 레벨을 한단계 확대한다.
 function zoomIn(obj, map) {
     if(map.getView().getZoom() >= MAX_ZOOM_LEVEL){
         return alert("줌 인 불가능")
@@ -1947,7 +1989,7 @@ function zoomIn(obj, map) {
     });
 }
 
-//ol-context callback 함수 줌 레벨을 한단계 축소한다
+//ol-context callback 함수. 줌 레벨을 한단계 축소한다
 function zoomOut(obj, map) {
     if(map.getView().getZoom() <= MIN_ZOOM_LEVEL){
         return alert("줌 아웃 불가능")
@@ -1959,13 +2001,13 @@ function zoomOut(obj, map) {
     });
 }
 
-//ol-context callback 함수 화면을 새로고침 한다.
+//ol-context callback 함수. 화면을 새로고침 한다.
 function refresh(obj) {
     window.location.reload(); 
 }
 
-//ol-context 이벤트 메뉴가 오픈될 때 트리거된다.
-var contextmenu = new ContextMenu({
+//ol-context 초기화
+const contextmenu = new ContextMenu({
   width: 300,
   defaultItems: false,
   items: contextmenuItems
@@ -2020,11 +2062,11 @@ contextmenu.on('beforeopen', function (evt) {
 
 //ol-context 메뉴가 열릴 때 발생하는 이벤트
 contextmenu.on('open', function (evt) {
-    var isInsideExtent = false;
+    let isInsideExtent = false;
     if(extentInteraction.getExtent()){
         isInsideExtent = ol.extent.containsCoordinate(extentInteraction.getExtent(), evt.coordinate);
     }
-    var feature =	map.forEachFeatureAtPixel(evt.pixel, ft => ft);
+    const feature = map.forEachFeatureAtPixel(evt.pixel, ft => ft);
 
     if (feature && feature.get('type') === 'removable') {
         contextmenu.clear();
@@ -2035,11 +2077,11 @@ contextmenu.on('open', function (evt) {
         captureItem[2].data = { extent: extentInteraction.getExtent() };
         contextmenu.extend(captureItem);
     } else {
-        var selectedValue = $(".coordinate-system-selector").val();
-        let coord4326 = ol.proj.transform(evt.coordinate, "EPSG:3857", "EPSG:4326");
-        let coordinate = ol.proj.transform(evt.coordinate, "EPSG:3857", selectedValue);
+        const selectedValue = $(".coordinate-system-selector").val();
+        const coord4326 = ol.proj.transform(evt.coordinate, "EPSG:3857", "EPSG:4326");
+        const coordinate = ol.proj.transform(evt.coordinate, "EPSG:3857", selectedValue);
         //console.log(coordinate);
-        let address = reverseGeoCoding(coord4326[0], coord4326[1])
+        const address = reverseGeoCoding(coord4326[0], coord4326[1])
         contextmenu.clear();
         contextmenuItems[3].data = { address : address}
         contextmenu.extend(contextmenuItems);
@@ -2048,16 +2090,16 @@ contextmenu.on('open', function (evt) {
     }
 });
 
-//ol-context의 엘리먼트, 마커 위에서 동작했을 때 트리거된다.
-var removeMarkerItem = {
+//ol-context 마커 위에서 발생하는 메뉴 아이템 구성 리스트
+const removeMarkerItem = {
     text: "마커 삭제",
     classname: "marker",
     icon : deleteIcon,
     callback: removeMarker,
 };
 
-//ol-context의 엘리먼트, extentInteraction 위에서 동작했을 때 트리거된다.
-var captureItem = [
+//ol-context extentInteraction 위에서 발생하는 메뉴 아이템 구성 리스트
+const captureItem = [
     {
         text: "이미지 저장",
         classname: "center",
@@ -2085,15 +2127,15 @@ var captureItem = [
 ]
 
 
-//지도 위에서 마우스가 이동할 때 발생하는 이벤트 길이와 면적 측정시 마우스 커서를 변경하고, 지도 위에 특정 레이어가 존재한다면 커서를 변경한다.
+//지도 위에서 마우스가 이동할 때 발생하는 이벤트. 길이와 면적 측정시 마우스 커서를 변경하고, 지도 위에 특정 레이어가 존재한다면 커서를 변경한다.
 map.on("pointermove", function (e) {
     const center = mapView.getCenter();
-    var selectedValue = $(".coordinate-system-selector").val();
+    const selectedValue = $(".coordinate-system-selector").val();
     info.innerHTML = formatCoordinate(center, "EPSG:3857", selectedValue);
     if (e.dragging) return;
 
-    var pixel = map.getEventPixel(e.originalEvent);
-    var hit = map.hasFeatureAtPixel(pixel);
+    const pixel = map.getEventPixel(e.originalEvent);
+    const hit = map.hasFeatureAtPixel(pixel);
 
     if (
         $(areaCheckbox).is(":checked") ||
@@ -2106,14 +2148,7 @@ map.on("pointermove", function (e) {
     }
 });
 
-// from https://github.com/DmitryBaranovskiy/raphael
-// function elastic(t) {
-//     return (
-//         Math.pow(2, -10 * t) * Math.sin(((t - 0.075) * (2 * Math.PI)) / 0.3) + 1
-//     );
-// }
-
-//ol-context callback 함수 맵의 중앙 위치를 이동한다.
+//ol-context callback 함수. 맵의 중앙 위치를 이동한다.
 function center(obj) {
     mapView.animate({
         duration: 700,
@@ -2121,9 +2156,9 @@ function center(obj) {
     });
 }
 
-//ol-context callback 함수 해당 위치를 북마크로 등록한다.
+//ol-context callback 함수. 북마크에 주소, 좌표, 줌레벨을 등록한다.
 function addBookMark(obj){
-    var modal = new bootstrap.Modal(document.getElementById('bookmark-modal'), {
+    const modal = new bootstrap.Modal(document.getElementById('bookmark-modal'), {
         keyboard: true,
         x : obj.coordinate[0],
         y : obj.coordinate[1],
@@ -2134,12 +2169,12 @@ function addBookMark(obj){
     //console.log(obj)
 }
 
-//특정 영역의 이미지 캡쳐를 위한 함수
+//ol-context callback 함수. extentInteraction로 선택된 영역을 이미지로 저장한다.
 function imageCapture() {
     saveExtentAsImage()
 }
 
-//특정 영역만큼으로 줌을 당기는 함수
+//ol-context callback 함수. extentInteraction로 선택된 영역만큼 bound한다.
 function zoomExntent(obj) {
     //view.setConstrainResolution(false)
     //console.log(obj.data.extent)
@@ -2147,12 +2182,12 @@ function zoomExntent(obj) {
     //view.setConstrainResolution(true)
 }
 
-//특정 영역의 PDF 저장을 위한 함수
+//ol-context callback 함수. extentInteraction로 선택된 영역을 PDF로 저장한다.
 function exportPdf(obj) {
     saveExtentAsPdf()
 }
 
-//extent 영역을 삭제한다.
+//ol-context callback 함수. extentInteraction로 선택된 영역 제거한다.
 function removeExtent(obj){
     if(extentInteraction){
         extentInteraction.setExtent(undefined);
@@ -2160,7 +2195,7 @@ function removeExtent(obj){
     }
 }
 
-//ol-context callback 함수 특정 마커를 삭제한다.
+//ol-context callback 함수. 특정 마커를 삭제한다.
 function removeMarker(obj) {
     if(obj.data.marker.get('attribute') == "start" || obj.data.marker.get('attribute') == "end"){
         map.getOverlays().getArray().slice(0).forEach(function(overlay) {
@@ -2177,10 +2212,10 @@ function removeMarker(obj) {
     objectControllVectorLayer.getSource().removeFeature(obj.data.marker);
 }
 
-//ol-context callback 함수 지도위에 마커를 그린다.
+//ol-context callback 함수. 지도위에 마커를 그린다.
 function marker(obj) {
-    var template = "좌표 : ({x}, {y})",
-        iconStyle = new ol.style.Style({
+    const template = "좌표 : ({x}, {y})"
+    const iconStyle = new ol.style.Style({
             image: new ol.style.Icon({ scale: 0.6, src: pinIcon }),
             text: new ol.style.Text({
                 offsetY: 25,
@@ -2189,8 +2224,8 @@ function marker(obj) {
                 fill: new ol.style.Fill({ color: "#111" }),
                 stroke: new ol.style.Stroke({ color: "#eee", width: 2 }),
             }),
-        }),
-        feature = new ol.Feature({
+        })
+    const feature = new ol.Feature({
             type: "removable",
             geometry: new ol.geom.Point(obj.coordinate),
         });
@@ -2199,6 +2234,7 @@ function marker(obj) {
     objectControllVectorLayer.getSource().addFeature(feature);
 }
 
+//ol-context callback 함수. 지도위에 경로탐색 시작 마커를 그린다
 function startMarker(obj) {
     map.getOverlays().getArray().slice(0).forEach(function(overlay) {
         if (overlay.get('type') === 'route') {
@@ -2210,17 +2246,17 @@ function startMarker(obj) {
             map.removeLayer(layer);
         }
     });
-    let coord4326 = ol.proj.transform(obj.coordinate, "EPSG:3857", "EPSG:4326");
-    let address = reverseGeoCoding(coord4326[0], coord4326[1])
-    var source = objectControllVectorLayer.getSource();
-    var features = source.getFeatures();
-    for (var i = 0; i < features.length; i++) {
-        var feature = features[i];
+    const coord4326 = ol.proj.transform(obj.coordinate, "EPSG:3857", "EPSG:4326");
+    const address = reverseGeoCoding(coord4326[0], coord4326[1])
+    const source = objectControllVectorLayer.getSource();
+    const features = source.getFeatures();
+    for (let i = 0; i < features.length; i++) {
+        let feature = features[i];
         if(feature && feature.get('attribute') == "start"){
             source.removeFeature(feature);
         }
     }
-    var iconStyle = new ol.style.Style({
+    const iconStyle = new ol.style.Style({
             image: new ol.style.Icon({ scale: 0.6, src: startMarkerIcon }),
             text: new ol.style.Text({
                 offsetY: 25,
@@ -2229,8 +2265,8 @@ function startMarker(obj) {
                 fill: new ol.style.Fill({ color: "#111" }),
                 stroke: new ol.style.Stroke({ color: "#eee", width: 2 }),
             }),
-        }),
-        feature = new ol.Feature({
+        })
+    const feature = new ol.Feature({
             type: "removable",
             geometry: new ol.geom.Point(obj.coordinate),
             attribute : "start",
@@ -2240,22 +2276,15 @@ function startMarker(obj) {
     feature.setStyle(iconStyle);
     objectControllVectorLayer.getSource().addFeature(feature);
 
-    var endFeature = features.find(feature => feature.get('attribute') === 'end');
+    const endFeature = features.find(feature => feature.get('attribute') === 'end');
     if (endFeature) {
-        var endCoordinates = endFeature.getGeometry().getCoordinates();
-        // console.log("시작지점 지점 좌표",obj.coordinate)
-        // console.log("끝 지점 좌표",endCoordinates);
-        // console.log(obj.coordinate.concat(endCoordinates))
-
-        var selectElement = document.querySelector('.form-select-sm');
-        var selectedOption = selectElement.value;
+        const selectElement = document.querySelector('.form-select-sm');
+        const selectedOption = selectElement.value;
         searchRouteSummury(feature, endFeature, selectedOption)
-        
-        // console.log('Current selected option:', selectedOption);
-        // console.log("시작 마커를 찍었고 끝지점의 마커도 존재한다")
     }
 }
 
+//ol-context callback 함수. 지도위에 경로탐색 종료 마커를 그린다
 function endMarker(obj) {
     map.getOverlays().getArray().slice(0).forEach(function(overlay) {
         //console.log("@")
@@ -2268,18 +2297,18 @@ function endMarker(obj) {
             map.removeLayer(layer);
         }
     });
-    let coord4326 = ol.proj.transform(obj.coordinate, "EPSG:3857", "EPSG:4326");
-    let address = reverseGeoCoding(coord4326[0], coord4326[1])
-    var source = objectControllVectorLayer.getSource();
-    var features = source.getFeatures();
-    for (var i = 0; i < features.length; i++) {
-        var feature = features[i];
+    const coord4326 = ol.proj.transform(obj.coordinate, "EPSG:3857", "EPSG:4326");
+    const address = reverseGeoCoding(coord4326[0], coord4326[1])
+    const source = objectControllVectorLayer.getSource();
+    const features = source.getFeatures();
+    for (let i = 0; i < features.length; i++) {
+        let feature = features[i];
         if(feature && feature.get('attribute') == "end"){
             source.removeFeature(feature);
         }
     }
     
-    var iconStyle = new ol.style.Style({
+    const iconStyle = new ol.style.Style({
             image: new ol.style.Icon({ scale: 0.6, src: endMarkerIcon }),
             text: new ol.style.Text({
                 offsetY: 25,
@@ -2288,8 +2317,8 @@ function endMarker(obj) {
                 fill: new ol.style.Fill({ color: "#111" }),
                 stroke: new ol.style.Stroke({ color: "#eee", width: 2 }),
             }),
-        }),
-        feature = new ol.Feature({
+        })
+    const feature = new ol.Feature({
             type: "removable",
             geometry: new ol.geom.Point(obj.coordinate),
             attribute : "end",
@@ -2298,11 +2327,11 @@ function endMarker(obj) {
 
     feature.setStyle(iconStyle);
     objectControllVectorLayer.getSource().addFeature(feature);
-    var startFeature = features.find(feature => feature.get('attribute') === 'start');
+    const startFeature = features.find(feature => feature.get('attribute') === 'start');
     if (startFeature) {
 
-        var selectElement = document.querySelector('.form-select-sm');
-        var selectedOption = selectElement.value;
+        const selectElement = document.querySelector('.form-select-sm');
+        const selectedOption = selectElement.value;
 
         searchRouteSummury(startFeature, feature, selectedOption)
 
@@ -2311,12 +2340,12 @@ function endMarker(obj) {
     }
 }
 
+//현재 위치(geoLocation)를 얻어와 해당 좌표에 마커를 찍는 함수
 function locationMarker(coordinate) {
-
-    var source = objectControllVectorLayer.getSource();
-    var features = source.getFeatures();
-    for (var i = 0; i < features.length; i++) {
-        var feature = features[i];
+    const source = objectControllVectorLayer.getSource();
+    const features = source.getFeatures();
+    for (let i = 0; i < features.length; i++) {
+        let feature = features[i];
         if (ol.coordinate.equals(feature.getGeometry().getCoordinates(), coordinate)) {
             // If a marker already exists at the coordinate, remove it
             if(feature.get('attribute') == "position"){
@@ -2324,8 +2353,8 @@ function locationMarker(coordinate) {
             }
         }
     }
-    template = "현재 위치",
-    iconStyle = new ol.style.Style({
+    const template = "현재 위치"
+    const iconStyle = new ol.style.Style({
         image: new ol.style.Icon({
                 scale: 0.6, 
                 src: pinIcon,
@@ -2338,8 +2367,8 @@ function locationMarker(coordinate) {
             fill: new ol.style.Fill({ color: '#111' }),
             stroke: new ol.style.Stroke({ color: '#eee', width: 2 }),
         }),
-    }),
-    feature = new ol.Feature({
+    })
+    const feature = new ol.Feature({
         type: "removable",
         geometry: new ol.geom.Point(coordinate),
         attribute : "position",
@@ -2349,9 +2378,10 @@ function locationMarker(coordinate) {
     objectControllVectorLayer.getSource().addFeature(feature);
 }
 
+//지도 위에 마커를 찍는 함수. 커스텀 속성을 이용해 마커 객체를 컨트롤 한다.
 function addMarker(coordinate, template = "", attribute = "", searchType = "") {
-    template = template != "" ? template : "현재 위치",
-    iconStyle = new ol.style.Style({
+    const templates = template != "" ? template : "현재 위치"
+    const iconStyle = new ol.style.Style({
         image: new ol.style.Icon({
             scale: 0.6, 
             src: pinIcon,
@@ -2359,13 +2389,13 @@ function addMarker(coordinate, template = "", attribute = "", searchType = "") {
         }),
         text: new ol.style.Text({
             offsetY: 25,
-            text: template,
+            text: templates,
             font: "15px Open Sans,sans-serif",
             fill: new ol.style.Fill({ color: '#111' }),
             stroke: new ol.style.Stroke({ color: '#eee', width: 2 }),
         }),
-    }),
-    feature = new ol.Feature({
+    })
+    const feature = new ol.Feature({
         type:  searchType != "" ? searchType : "removable",
         geometry: new ol.geom.Point(coordinate),
         attribute : attribute != "" ? attribute : "position",
@@ -2375,16 +2405,11 @@ function addMarker(coordinate, template = "", attribute = "", searchType = "") {
     objectControllVectorLayer.getSource().addFeature(feature);
 }
 
-//새로고침 버튼 클릭 이벤트 클릭시 지도 영역만 새로고침한다.
-// document.getElementById("refresh").addEventListener("click", function () {
-//     $("#refresh").load(window.location.href + " #refresh");
-// });
-
-//툴팁 클릭 이벤트 클릭시 해당 툴팁이 툴팁 오버레이중 최 상단으로 올라온다. 
+//툴팁 overlay 클릭 이벤트. 클릭시 해당 툴팁이 툴팁 오버레이중 최 상단으로 올라온다. 
 $(document).on("click", ".tooltip-content", function (event) {
     event.stopPropagation(); // 자식 엘리먼트의 클릭 이벤트 전파(stopPropagation)
 
-    let overlays = map.getOverlays().getArray();
+    const overlays = map.getOverlays().getArray();
     let highestZIndex = 0;
 
     overlays.forEach((overlay) => {
@@ -2401,7 +2426,7 @@ $(document).on("click", ".tooltip-content", function (event) {
     });
 
     // 선택된 오버레이의 ZIndex를 가장 높게 설정합니다.
-    let selectedOverlayElement = $(this).parent()[0];
+    const selectedOverlayElement = $(this).parent()[0];
     $(selectedOverlayElement.parentElement).css("z-index", highestZIndex + 1);
     selectedOverlayElement.style.zIndex = highestZIndex + 1;
 });
@@ -2419,7 +2444,7 @@ function changeMouseCursor() {
     }
 }
 
-//지도 위의 면적 및 길이측적 벡터 레이어와 툴팁 오버레이를 전부 삭제한다.
+//측정레이어 삭제 버튼을 클릭했을 때 발생하는 이벤트. 지도 위의 면적 및 길이측적 벡터 레이어와 툴팁 오버레이를 전부 삭제한다.
 document.getElementById("remove-measure").addEventListener("click", function () {
 
     map.getOverlays().getArray().slice(0).forEach(function(overlay) {
@@ -2435,7 +2460,7 @@ document.getElementById("remove-measure").addEventListener("click", function () 
             objectControllVectorLayer.getSource().removeFeature(feature);
         }
     });
-    let instructionsElement = document.getElementById('sidenav');
+    const instructionsElement = document.getElementById('sidenav');
     instructionsElement.innerHTML = ""
     if (extentInteraction) {
         extentInteraction.setExtent(undefined);
@@ -2445,7 +2470,7 @@ document.getElementById("remove-measure").addEventListener("click", function () 
     cricleSource.clear()
 })
 
-//현재 내 위치에 마커를 찍고 지도 센터를 옮기는 이벤트
+//내위치 버튼을 클릭했을 때 발생하는 이벤트. 현재 내 위치에 마커를 찍고 지도 센터를 옮긴다.
 document.getElementById("current-position").addEventListener("click", function () {
     if ("geolocation" in navigator) {
         /* geolocation is available */
@@ -2464,31 +2489,8 @@ document.getElementById("current-position").addEventListener("click", function (
       }
 })
 
-//카카오 API를 이용해 주소를 검색하는 API
-// function searchAddress(address){
-//     const REST_API_KEY = "a75f661f8fd50587142251f0476ef2da"
-//     $.ajax({
-//         type: "GET",
-//         url: "https://dapi.kakao.com/v2/local/search/address.json",
-//         data: {query : address},
-//         beforeSend: function (xhr) {
-//             xhr.setRequestHeader("Authorization",`KakaoAK ${REST_API_KEY}`);
-//         },
-//         success: function (res) {
-//             //console.log(res);
-//             //console.log(ol.proj.transform([res.documents[0].x, res.documents[0].y], "EPSG:4326", "EPSG:3857"));
-//             const corrdinate = ol.proj.transform([res.documents[0].address.x, res.documents[0].address.y], 'EPSG:4326', 'EPSG:3857');
-//             map.getView().setCenter(corrdinate);
-//         },
-//         error: function(xhr, status, error){ 
-// 			//alert(error); 
-// 		}
-//     });
-// }
-
-//카카오 API를 이용해 좌표를 상세 주소로 변환하는 API
+//카카오 좌표를 상세 주소로 변환하는 API를 호출하는 함수
 function reverseGeoCoding(coordinateX, coordinateY){
-    const REST_API_KEY = "a75f661f8fd50587142251f0476ef2da"
     let result = "";
     $.ajax({
         type: "GET",
@@ -2499,7 +2501,7 @@ function reverseGeoCoding(coordinateX, coordinateY){
             y : coordinateY,
         },
         beforeSend: function (xhr) {
-            xhr.setRequestHeader("Authorization",`KakaoAK ${REST_API_KEY}`);
+            xhr.setRequestHeader("Authorization",`KakaoAK ${KAKAO_REST_API_KEY}`);
         },
         success: function (res) {
             //console.log(res);
@@ -2517,9 +2519,8 @@ function reverseGeoCoding(coordinateX, coordinateY){
     return result;
 }
 
-//카카오 API를 이용해 좌표를 행정구역으로 변환하는 API
+//카카오 좌표를 행정구역으로 변환하는 API를 호출하는 함수
 function reverseGeoCodingToRegion(coordinateX, coordinateY){
-    const REST_API_KEY = "a75f661f8fd50587142251f0476ef2da"
     $.ajax({
         type: "GET",
         url: "https://dapi.kakao.com/v2/local/geo/coord2regioncode.json",
@@ -2528,10 +2529,9 @@ function reverseGeoCodingToRegion(coordinateX, coordinateY){
             y : coordinateY,
         },
         beforeSend: function (xhr) {
-            xhr.setRequestHeader("Authorization",`KakaoAK ${REST_API_KEY}`);
+            xhr.setRequestHeader("Authorization",`KakaoAK ${KAKAO_REST_API_KEY}`);
         },
         success: function (res) {
-            console.log(res);
             addressInfo.innerHTML = `${res.documents[1].address_name}`
             const depth1Address = res.documents[1].region_1depth_name
             const depth2Address = res.documents[1].region_1depth_name == "세종특별자치시" ? "세종시" : res.documents[1].region_2depth_name
@@ -2544,6 +2544,7 @@ function reverseGeoCodingToRegion(coordinateX, coordinateY){
     });
 }
 
+//다음의 주소검색 API를 호출하는 함수
 function sample4_execDaumPostcode() {
     new daum.Postcode({
         oncomplete: function(data) {
@@ -2551,8 +2552,8 @@ function sample4_execDaumPostcode() {
 
             // 도로명 주소의 노출 규칙에 따라 주소를 표시한다.
             // 내려오는 변수가 값이 없는 경우엔 공백('')값을 가지므로, 이를 참고하여 분기 한다.
-            var roadAddr = data.roadAddress; // 도로명 주소 변수
-            var extraRoadAddr = ''; // 참고 항목 변수
+            const roadAddr = data.roadAddress; // 도로명 주소 변수
+            let extraRoadAddr = ''; // 참고 항목 변수
 
             // 법정동명이 있을 경우 추가한다. (법정리는 제외)
             // 법정동의 경우 마지막 문자가 "동/로/가"로 끝난다.
@@ -2577,27 +2578,21 @@ function sample4_execDaumPostcode() {
     }).open();
 }
 
-// document.getElementById("search-address").addEventListener("click", function () {
-//     let searchValue = document.getElementById("search-address-text").value;
-//     if(searchValue === ""){
-//         return alert("검색어를 입력해주세요")
-//     }
-//     searchAddress(searchValue)
-// })
-
-
-document.getElementById("olcontrolBookmarkMinimizeDiv").addEventListener("click", function () {
-    $("#olControlBookmarkContent").toggle()
-    $("#olcontrolBookmarkMinimizeDiv").css("display", "none")
-    $("#olcontrolBookmarkMaximizeDiv").css("display", "block")
-})
-
+//북마크 열기 버튼을 클릭했을 때 발생하는 이벤트. 북마크 목록을 표출한다.
 document.getElementById("olcontrolBookmarkMaximizeDiv").addEventListener("click", function () {
     $("#olControlBookmarkContent").toggle()
     $("#olcontrolBookmarkMaximizeDiv").css("display", "none")
     $("#olcontrolBookmarkMinimizeDiv").css("display", "block")
 })
 
+//북마크 닫기 버튼을 클릭했을 때 발생하는 이벤트. 북마크 목록을 숨긴다.
+document.getElementById("olcontrolBookmarkMinimizeDiv").addEventListener("click", function () {
+    $("#olControlBookmarkContent").toggle()
+    $("#olcontrolBookmarkMinimizeDiv").css("display", "none")
+    $("#olcontrolBookmarkMaximizeDiv").css("display", "block")
+})
+
+//북마크 추가 버튼을 클릭했을 때 발생하는 이벤트. 로컬스토리지에 주소, 좌표, 줌레벨을 등록한다.
 document.getElementById("btn-add-bookmark").addEventListener("click", function (e) {
     const myModalEl = document.getElementById("bookmark-modal")
     const modal = bootstrap.Modal.getInstance(myModalEl)
@@ -2626,15 +2621,20 @@ document.getElementById("btn-add-bookmark").addEventListener("click", function (
     modal.hide();
 })
 
-$(document).on('show.bs.modal', '.modal', function () {
+//북마크 모달창이 열릴 때 발생하는 이벤트. 마우스 오른쪽클릭을 방지한다.
+$(document).on('show.bs.modal', '.bookmark-modal', function () {
     $(document).on('contextmenu', function (e) {
         e.preventDefault();
     });
-}).on('hidden.bs.modal', '.modal', function () {
+})
+
+//북마크 모달창이 닫힐 때 발생하는 이벤트. 북마크 이름입력 input을 초기화한다.
+$(document).on('hidden.bs.modal', '.bookmark-modal', function () {
     document.getElementById("recipient-name").value = ""
     $(document).off('contextmenu');
 });
 
+//html 엘리먼트가 로드가 완료되면 실행되는 이벤트. 북마크 로컬스토리지를 조회하여 북마크 엘리먼트에 세팅한다.
 $(document).ready(function(){
     //window.localStorage.clear();
     const container = $("#bookmark-container")
@@ -2658,9 +2658,10 @@ $(document).ready(function(){
 
 });
 
+//북마크의 아이템을 클릭했을 때 발생하는 이벤트. 로컬스토리지에서 해당하는 데이터를 가져와 저장했던 줌 레벨, 좌표를 이용해 해당 위치로 이동한다.
 $('#bookmark-container').on('click', '.olControlBookmarkLink', function() {
-    var index = $('.olControlBookmarkLink').index(this);
-    var storageKey = $('.olControlBookmarkLink').eq(index).text();
+    const index = $('.olControlBookmarkLink').index(this);
+    const storageKey = $('.olControlBookmarkLink').eq(index).text();
     // console.log('Clicked link at index: ', index);
     // console.log(storageKey);
 
@@ -2673,13 +2674,14 @@ $('#bookmark-container').on('click', '.olControlBookmarkLink', function() {
     map.getView().setZoom(value.zoom)
 });
 
+//북마크의 삭제버튼을 클릭했을 때 발생하는 이벤트. 로컬스토리지에서 해당하는 데이터를 삭제한다.
 $('#bookmark-container').on('click', '.olControlBookmarkRemove', function() {
 
     if (!confirm("북마크를 삭제하시겠습니까?")) {
         // 취소(아니오) 버튼 클릭 시 이벤트
     } else {
-        var index = $('.olControlBookmarkRemove').index(this);
-        var storageKey = $('.olControlBookmarkLink').eq(index).text();
+        const index = $('.olControlBookmarkRemove').index(this);
+        const storageKey = $('.olControlBookmarkLink').eq(index).text();
     
         $('.olControlBookmarkLink').eq(index).remove();
         $('.olControlBookmarkRemove').eq(index).remove();
@@ -2689,7 +2691,7 @@ $('#bookmark-container').on('click', '.olControlBookmarkRemove', function() {
     }
 });
 
-
+//배경지도 변경 드롭다운 메뉴의 아이템을 클릭했을 때 발생하는 이벤트. 기존 이벤트(아이템 클릭시 드롭다운 닫힘)를 취소시키고 해당하는 아이템으로 메인 지도의 레이어를 세팅한다.
 $('ul.dropdown-menu a.dropdown-item').click(function(e) {
     e.preventDefault(); // This will prevent the default action of the a tag
     const clickedId = this.id;
@@ -2729,60 +2731,25 @@ $('ul.dropdown-menu a.dropdown-item').click(function(e) {
     }
     map.renderSync()
 });
-document.querySelectorAll('input[name="map-layer"]').forEach((elem) => {
-    elem.addEventListener("change", function(event) {
-    var layerType = event.target.value; // 선택된 레이어 타입
 
-    map.getLayers().getArray().slice().forEach(function(layer) {
-        if (layer.get('type') === 'map') {
-            map.removeLayer(layer);
-        }else if(layer.get('type') === 'submap'){
-            layer.setZIndex(1)
-        }else{
-            layer.setZIndex(2)
-        }
-    });
-    
-    switch (layerType) {
-      case 'basic':
-        map.addLayer(baseLayer);
-        break;
-      case 'hybrid':
-        map.addLayer(satelliteLayer)
-        map.addLayer(textLayer);
-        break;
-    case 'satellite':
-        map.addLayer(satelliteLayer)
-        break;
-    case 'gray':
-        map.addLayer(greyLayer)
-        break;
-    case 'night':
-        map.addLayer(midnightLayer)
-        break;
-    }
-    
-    map.renderSync()
-    });
-  });
+// $('#sample4_roadAddress').on('change', function() {
+//     // 이벤트 핸들러 코드를 여기에 작성
+//     if($(this).val() != ""){
+//         searchAddress($(this).val())
+//     }
+//     //console.log('Value changed to:', $(this).val());
+// });
 
-  $('#sample4_roadAddress').on('change', function() {
-    // 이벤트 핸들러 코드를 여기에 작성
-    if($(this).val() != ""){
-        searchAddress($(this).val())
-    }
-    //console.log('Value changed to:', $(this).val());
-});
-
+//경로탐색 결과 컨테이너에 마우스가 호버될 때 발생하는 이벤트. a태그위에 마우스가 호버될 때 data로 저장된 좌표를 가져와 지도 위에 포인트를 찍는다.
 document.querySelector('#sidenav').addEventListener('mouseover', function (event) {
     if(event.target.tagName === 'A') {
-        var customValue = event.target.getAttribute('data-coordinate');
+        const customValue = event.target.getAttribute('data-coordinate');
 
         const coordinates = customValue.split(',').map(Number);
-        var x = parseFloat(coordinates[0]);
-        var y = parseFloat(coordinates[1]);
+        const x = parseFloat(coordinates[0]);
+        const y = parseFloat(coordinates[1]);
 
-        var pointFeature = new ol.Feature(new ol.geom.Point([x, y]));
+        const pointFeature = new ol.Feature(new ol.geom.Point([x, y]));
     
         // 기존의 포인트를 지우고 새로운 포인트를 추가합니다.
         routeVectorSource.clear();
@@ -2790,15 +2757,17 @@ document.querySelector('#sidenav').addEventListener('mouseover', function (event
     }
 });
 
+//경로탐색 결과 컨테이너에 마우스가 호버 해제될 때 발생하는 이벤트. 지도 위에 찍었던 포인트를 지운다.
 document.querySelector('#sidenav').addEventListener('mouseout', function (event) {
     if(event.target.tagName === 'A') {
         routeVectorSource.clear();
     }
 });
 
+//경로탐색 결과 컨테이너를 클릭할 때 발생하는 이벤트. a태그를 클릭할 때 data로 저장된 좌표를 이용해 지도의 중앙을 이동한다.
 document.querySelector('#sidenav').addEventListener('click', function (event) {
     if(event.target.tagName === 'A') {
-        var customValue = event.target.getAttribute('data-coordinate');
+        const customValue = event.target.getAttribute('data-coordinate');
 
         const coords = customValue.split(',').map(Number);
         map.getView().animate({
@@ -2811,8 +2780,8 @@ document.querySelector('#sidenav').addEventListener('click', function (event) {
 
 //초를 시간 + 분으로 만들어주는 함수
 function convertSecondsToHoursAndMinutes(totalSeconds) {
-    var hours = Math.floor(totalSeconds / 3600);
-    var minutes = Math.floor((totalSeconds % 3600) / 60);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
 
     if (hours === 0) {
         if (minutes < 1) {
@@ -2826,8 +2795,8 @@ function convertSecondsToHoursAndMinutes(totalSeconds) {
 
 //미터를 키로미터 + 미터로 만들어주는 함수
 function convertMetersToKilometersAndMeters(totalMeters) {
-    var kilometers = totalMeters / 1000;
-    var meters = totalMeters % 1000;
+    const kilometers = totalMeters / 1000;
+    const meters = totalMeters % 1000;
     if (kilometers < 1) {
         return meters + "m";
     } else {
@@ -2835,15 +2804,15 @@ function convertMetersToKilometersAndMeters(totalMeters) {
     }
 }
 
-//경로탐색 셀렉트박스의 값이 변경될 때 발생하는 이벤트
-document.querySelector('.form-select-sm').addEventListener('change', function(e) {
-    var selectedOption = e.target.value;
-    //console.log('Selected option:', selectedOption);
+//경로탐색 셀렉트박스의 값이 변경될 때 발생하는 이벤트. 시작, 도착 마커가 찍혀있는 여부에 따라 경로탐색을 진행한다.
+document.querySelector('#route-kind-select').addEventListener('change', function(e) {
+    const selectedOption = e.target.value;
+    console.log('Selected option:', selectedOption);
 
-    var source = objectControllVectorLayer.getSource();
-    var features = source.getFeatures();
-    var startFeature = features.find(feature => feature.get('attribute') === 'start');
-    var endFeature = features.find(feature => feature.get('attribute') === 'end');
+    const source = objectControllVectorLayer.getSource();
+    const features = source.getFeatures();
+    const startFeature = features.find(feature => feature.get('attribute') === 'start');
+    const endFeature = features.find(feature => feature.get('attribute') === 'end');
     //console.log(startFeature, endFeature)
     if(startFeature && endFeature){
         map.getOverlays().getArray().slice(0).forEach(function(overlay) {
@@ -2862,9 +2831,7 @@ document.querySelector('.form-select-sm').addEventListener('change', function(e)
     // 여기에서 원하는 작업을 수행하세요
 });
 
-var clusterLayer
-
-// Handle checkbox change event
+//CCTV 레이어 토글 함수.
 function cctvLayerChange(treeNode, treeId) {
     if (treeNode.checked) {
         addCctvLayer(treeNode, treeId)
@@ -2873,8 +2840,9 @@ function cctvLayerChange(treeNode, treeId) {
     }
 }
 
+//CCTV 레이어 표출 함수.
 function addCctvLayer(treeNode, treeId){
-    var treeObj = $.fn.zTree.getZTreeObj(treeId);
+    const treeObj = $.fn.zTree.getZTreeObj(treeId);
     treeObj.setChkDisabled(treeNode, true, false, false);
     //대한민국 전역을 Extent로 잡기 위해 좌표를 고정하였음
     const extent4326 = ol.proj.transformExtent(koreaExtent, 'EPSG:3857', 'EPSG:4326')
@@ -2901,12 +2869,12 @@ function addCctvLayer(treeNode, treeId){
                 if(data.response.datacount <= 0){
                     return;
                 }
-                var cctvSource = new ol.source.Vector({});
+                const cctvSource = new ol.source.Vector({});
 
-                for (var i = 0; i < data.response.data.length; i++) {
-                    var feature = data.response.data[i];
+                for (let i = 0; i < data.response.data.length; i++) {
+                    let feature = data.response.data[i];
 
-                    var cctvFeature = new ol.Feature({
+                    let cctvFeature = new ol.Feature({
                         geometry: new ol.geom.Point(ol.proj.transform([feature.coordx, feature.coordy], 'EPSG:4326', 'EPSG:3857')),
                         cctvname : feature.cctvname,
                         cctvformat : feature.cctvformat,
@@ -2917,7 +2885,7 @@ function addCctvLayer(treeNode, treeId){
                     cctvSource.addFeature(cctvFeature);
                 }
 
-                var clusterSource = new ol.source.Cluster({
+                const clusterSource = new ol.source.Cluster({
                     distance: 30,
                     source: cctvSource,
                 });
@@ -2943,6 +2911,7 @@ function addCctvLayer(treeNode, treeId){
         });
 }
 
+//CCTV 레이어 제거 함수.
 function removeCctvLayer(){
     if (clusterLayer) {
         map.removeLayer(clusterLayer);
@@ -2950,14 +2919,15 @@ function removeCctvLayer(){
     }
 }
 
+//CCTV API에서 제공하는 도로 CCTV 영상 재생 함수
 function stremVideo(videoSrc, videoName){
-    var modal = document.getElementById('videoModal');
+    const modal = document.getElementById('videoModal');
 
-    var modalTitle = document.getElementById('videoModalLabel');
+    const modalTitle = document.getElementById('videoModalLabel');
     modalTitle.innerText = `${videoName} CCTV 영상`
 
     // 비디오 플레이어 요소 선택
-    var videoPlayer = document.getElementById('video');
+    const videoPlayer = document.getElementById('video');
 
     // 비디오 소스 업데이트
     videoPlayer.src = videoSrc;
@@ -2965,7 +2935,7 @@ function stremVideo(videoSrc, videoName){
     // 모달 열기
     $(modal).modal('show');
 
-    var player = videojs('video');
+    const player = videojs('video');
     
     // Update the source
     player.src({
@@ -2981,7 +2951,7 @@ function stremVideo(videoSrc, videoName){
     });
 }
 
-//기상 레이더 레이어 체크박스 이벤트
+//기상 레이더 레이어 토글 함수
 function radarLayerChange(treeNode, treeId) {
     if (treeNode.checked) {
         var treeObj = $.fn.zTree.getZTreeObj(treeId);
@@ -3080,7 +3050,7 @@ function radarLayerChange(treeNode, treeId) {
     }
 }
 
-//base64로 인코딩되고, 압축되어있는 csv 데이터를 디코딩하고 압축을 해제하는 함수 2차원 배열로 반환된다.
+//base64로 인코딩되고, 압축되어있는 csv 데이터를 디코딩하고 압축을 해제하는 함수. 2차원 배열로 반환된다.
 function decodeCAPPIData(cappiCompressData) {
     // BASE64 디코딩
     var decodedData = atob(cappiCompressData);
@@ -3185,7 +3155,7 @@ function toGeoJSON(data) {
     };
 }
 
-//건물 레이어 체크박스 이벤트
+//건물 레이어 토글 함수
 function buildLayerChange(e) {
     if (e) {
         if(buildingLayer){
@@ -3201,7 +3171,7 @@ function buildLayerChange(e) {
     }
 }
 
-//시도 경계 레이어 체크박스 이벤트
+//시도 경계 레이어 토글 함수
 function sidoLayerChange(e) {
     if (e) {
         if(sidoLayer){
@@ -3217,7 +3187,7 @@ function sidoLayerChange(e) {
     }
 }
 
-//시 군 구 경계 레이어 체크박스 이벤트
+//시 군 구 경계 레이어 토글 함수
 function sigunLayerChange(e) {
     if (e) {
         if(sigunguLayer){
@@ -3233,7 +3203,7 @@ function sigunLayerChange(e) {
     }
 }
 
-//읍 면 동 경계 레이어 체크박스 이벤트
+//읍 면 동 경계 레이어 토글 함수
 function dongLayerChange(e) {
     if (e) {
         if(myeondongLayer){
@@ -3249,7 +3219,7 @@ function dongLayerChange(e) {
     }
 }
 
-//리 경계 레이어 체크박스 이벤트
+//리 경계 레이어 토글 함수
 function riLayerChange(e) {
     if (e) {
         if(riLayer){
@@ -3265,7 +3235,7 @@ function riLayerChange(e) {
     }
 }
 
-//전국 도로 레이어 체크박스 이벤트
+//전국 도로 레이어 토글 함수
 function roadLayerChange(e) {
     if (e) {
         if(roadLayer){
@@ -3281,7 +3251,7 @@ function roadLayerChange(e) {
     }
 }
 
-//연속지적도 레이어 체크박스 이벤트
+//연속지적도 레이어 토글 함수
 function cadastralLayerChange(e) {
     if (e) {
         if(cadastralMapLayer){
@@ -3342,6 +3312,7 @@ function cadastralLayerChange(e) {
 //     }
 // })
 
+//격자보기 체크박스 체크 이벤트. 지도 위에 위,경도의 격자를 표시한다.
 document.getElementById('map-graticule-checkbox').addEventListener('change', function() {
     if (this.checked) {
         if(graticuleLayer){
@@ -3419,6 +3390,7 @@ function getTwentyMinutesBefore() {
     }, 0);
 });
 
+//스와이프레이어 선택 셀렉트 변경시 발생 이벤트. 선택된 레이어를 기본 지도 레이어의 우측에 배치하고 동기화한다.
 document.getElementById('mapLayerSelect').addEventListener('change', function() {
     const selectedLayer = this.value;
     if(swipeLayer){
@@ -3516,6 +3488,7 @@ document.getElementById('mapLayerSelect').addEventListener('change', function() 
     });
 });
 
+//스와이프레이어 range 변경 이벤트. range의 값에 따라 스와이프 레이어의 width를 변경하고 기본 지도와 동기화한다.
 swipe.addEventListener('input', function (e) {
     var rangeValue = e.target.value;
     var swipeWidth = e.target.offsetWidth;
@@ -3526,15 +3499,16 @@ swipe.addEventListener('input', function (e) {
     map.render();
 });
 
+//ol-ext의 printDialog 컨트롤 객체 생성
 var printControl = new ol.control.PrintDialog({ 
     lang : "ko",
     scales : false,
     className : "ol-print"
 });
-
 printControl.setSize('A4');
 map.addControl(printControl);
 
+//printDialog가 보여질 떄 발생하는 이벤트. 새로운 지도가 표출되기 때문에 기존에 존재하는 이벤트를 전부 제거하고, 새로운 지도에서의 행위가 기존 지도에 영향을 미쳐 기존 지도의 줌, 센터, 회전각 등을 저장함
 printControl.on("show", function(){
     extentInteraction.setActive(false)
     map.removeInteraction(dragBox);
@@ -3549,6 +3523,7 @@ printControl.on("show", function(){
     window.localStorage.setItem("beforeState", objString)
 })
 
+//printDialog가 사라질 떄 발생하는 이벤트. 제거했던 이벤트를 다시 생성하고, 기존 지도의 값을 불러와  줌, 센터, 회전각을 재설정함
 printControl.on("hide", function(){
     extentInteraction.setActive(true)
     map.addInteraction(dragBox);
@@ -3560,31 +3535,45 @@ printControl.on("hide", function(){
     window.localStorage.removeItem("beforeState");
 })
   
-  /* On print > save image file */
-printControl.on(['print', 'error'], function(e) {
+//printDialog의 이미지저장, PDF저장 이벤트
+printControl.on(["print", "error"], function (e) {
     // Print success
     if (e.image) {
-      if (e.pdf) {
-        // Export pdf using the print info
-        var pdf = new jspdf.jsPDF({
-          orientation: e.print.orientation,
-          unit: e.print.unit,
-          format: e.print.size
-        });
-        pdf.addImage(e.image, 'JPEG', e.print.position[0], e.print.position[0], e.print.imageWidth, e.print.imageHeight);
-        pdf.save(e.print.legend ? 'legend.pdf' : 'map.pdf');
-      } else {
-        // Save image as file
-        e.canvas.toBlob(function(blob) {
-          var name = (e.print.legend ? 'legend.' : 'map.')+e.imageType.replace('image/','');
-          saveAs(blob, name);
-        }, e.imageType, e.quality);
-      }
+        if (e.pdf) {
+            // Export pdf using the print info
+            var pdf = new jspdf.jsPDF({
+                orientation: e.print.orientation,
+                unit: e.print.unit,
+                format: e.print.size,
+            });
+            pdf.addImage(
+                e.image,
+                "JPEG",
+                e.print.position[0],
+                e.print.position[0],
+                e.print.imageWidth,
+                e.print.imageHeight
+            );
+            pdf.save(e.print.legend ? "legend.pdf" : "map.pdf");
+        } else {
+            // Save image as file
+            e.canvas.toBlob(
+                function (blob) {
+                    var name =
+                        (e.print.legend ? "legend." : "map.") +
+                        e.imageType.replace("image/", "");
+                    saveAs(blob, name);
+                },
+                e.imageType,
+                e.quality
+            );
+        }
     } else {
-      console.warn('No canvas to export');
+        console.warn("No canvas to export");
     }
-  });
+});
 
+//좌표계 셀렉트 변경 이벤트. 클릭 팝업, context-menu, 중앙 좌표 등 좌표값을 좌표계 값에 따라 변경함.
 $('.coordinate-system-selector').change(function() {
     const prevValue = $(this).data('prevValue');
     const selectedValue = $(this).val();
@@ -3614,7 +3603,7 @@ $('.coordinate-system-selector').change(function() {
     
 }).data('prevValue', $('.coordinate-system-selector').val()); 
 
-
+//기본수치지도의 tree node의 커스텀 엘리먼트 range의 콜백 함수. WMS feature의 투명도를 조절한다.
 function layerOpacityChage(treeNode, opacity){
     if(treeNode.children){
         return;
@@ -3774,6 +3763,7 @@ function searchRoad(query, page = 1) {
     });
 }
 
+//특정 엘리먼트에 장소검색 결과를 동적으로 생성하는 함수
 function addPlace(elementId, response, searchQuery, pagenation = 3){
     var source = objectControllVectorLayer.getSource();
     var features = source.getFeatures();
@@ -3840,6 +3830,7 @@ function addPlace(elementId, response, searchQuery, pagenation = 3){
     $(`#${elementId}`).append(htmlContent)
 }
 
+//특정 엘리먼트에 주소검색 결과를 동적으로 생성하는 함수
 function addAddress(elementId, response, searchQuery, pagenation = 3){
     var source = objectControllVectorLayer.getSource();
     var features = source.getFeatures();
@@ -3889,6 +3880,7 @@ function addAddress(elementId, response, searchQuery, pagenation = 3){
     $(`#${elementId}`).append(htmlContent)
 }
 
+//특정 엘리먼트에 행정구역 검색 결과를 동적으로 생성하는 함수
 function addDistrict(elementId, response, searchQuery, pagenation = 3){
     $(`#${elementId}`).empty()
     let htmlContent = "";
@@ -3927,6 +3919,7 @@ function addDistrict(elementId, response, searchQuery, pagenation = 3){
     $(`#${elementId}`).append(htmlContent)
 }
 
+//특정 엘리먼트에 도로명 검색 결과를 동적으로 생성하는 함수
 function addRoad(elementId, response, searchQuery, pagenation = 3){
     $(`#${elementId}`).empty()
     let htmlContent = "";
@@ -3966,6 +3959,7 @@ function addRoad(elementId, response, searchQuery, pagenation = 3){
     $(`#${elementId}`).append(htmlContent)
 }
 
+//장소검색, 주소검색시 생성한 엘리먼트를 클릭할 시 해당 위치에 마커, feature, overlay를 생성하고 지도 중앙을 이동하는 함수
 function clickAddress(event, category, attribute){
     const target = event.target;
 
@@ -4097,6 +4091,7 @@ function clickAddress(event, category, attribute){
     }
 }
 
+//TODO 추후 추가 예정, 행정구역, 도로명 검색결과는 feature를 요청하는 API url이기 떄문에 서버 생성 이후 이어서 개발
 function clickGeoData(event, type){
     const target = event.target;
 
@@ -4233,10 +4228,12 @@ function clickGeoData(event, type){
     }
 }
 
+//텍스트에 하이라이트를 넣는 함수.
 function addHighlight(html, query){
     return html.replaceAll(query, `<mark style="padding:0px;">${query}</mark>`)
 }
 
+//오버레이의 주소를 클릭하면 동작하는 함수. 해당 주소를 이용해 검색 API를 호출하고 해당 탭으로 이동한다.
 function searchLocalAddress(e){
     console.log(e.innerText)
     var depth1Element = new bootstrap.Tab(document.getElementById('profile-tab'));
@@ -4249,7 +4246,7 @@ function searchLocalAddress(e){
     depth2Element.show();
 }
 
-
+//외부 라이브러리에서 기본으로 제공되는 html의 title값을 변경하는 함수.
 function addControlTitle(){
     $(".ol-zoom-in").attr("title", "줌인")
     $(".ol-zoom-out").attr("title", "줌아웃")
@@ -4262,21 +4259,22 @@ function addControlTitle(){
     $(".ol-scale-bar .ol-scale-bar-inner").attr("title", "축적/거리")
 }
 
+//시도, 시군구, 읍면동을 코드를 이용해 조회 및 셀렉트에 적용하는 함수
 function findCodeByNames(sidoName, gugunName, dongName) {
     var sidoCode, gugunCode, dongCode;
-    if(sidoName == "" && gugunName == "" && dongName == ""){
-        console.log("?")
-        $("#sido").val("").trigger('change');
-        $("#sigugun").val("").trigger('change');
-        $("#dong").val("").trigger('change');
-        return
+    if (sidoName == "" && gugunName == "" && dongName == "") {
+        console.log("?");
+        $("#sido").val("").trigger("change");
+        $("#sigugun").val("").trigger("change");
+        $("#dong").val("").trigger("change");
+        return;
     }
-    console.log(sidoName, gugunName, dongName)
+    console.log(sidoName, gugunName, dongName);
     for (let i = 0; i < hangjungdong.sido.length; i++) {
         if (hangjungdong.sido[i].codeNm === sidoName) {
             sidoCode = hangjungdong.sido[i].sido;
-            console.log(sidoCode)
-            $("#sido").val(hangjungdong.sido[i].sido).trigger('change');
+            console.log(sidoCode);
+            $("#sido").val(hangjungdong.sido[i].sido).trigger("change");
             break;
         }
     }
@@ -4284,7 +4282,7 @@ function findCodeByNames(sidoName, gugunName, dongName) {
     for (let i = 0; i < hangjungdong.sigugun.length; i++) {
         if (hangjungdong.sigugun[i].codeNm === gugunName && hangjungdong.sigugun[i].sido === sidoCode) {
             gugunCode = hangjungdong.sigugun[i].sigugun;
-            $("#sigugun").val(hangjungdong.sigugun[i].sigugun).trigger('change');
+            $("#sigugun").val(hangjungdong.sigugun[i].sigugun).trigger("change");
             break;
         }
     }
@@ -4292,9 +4290,9 @@ function findCodeByNames(sidoName, gugunName, dongName) {
     for (let i = 0; i < hangjungdong.dong.length; i++) {
         if (hangjungdong.dong[i].codeNm === dongName && hangjungdong.dong[i].sido === sidoCode && hangjungdong.dong[i].sigugun === gugunCode) {
             dongCode = hangjungdong.dong[i].dong;
-            $("#dong").val(hangjungdong.dong[i].dong).trigger('change');
+            $("#dong").val(hangjungdong.dong[i].dong).trigger("change");
             break;
         }
     }
     return dongCode;
-  }
+}
