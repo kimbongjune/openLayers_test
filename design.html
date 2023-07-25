@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    
+
     <link rel="stylesheet" href="./design.css">
     <!-- Bootstrap 5 css -->
     <link href="./lib/css/bootstrap-5.2.min.css" rel="stylesheet">
@@ -19,7 +20,7 @@
     <!-- OpenLayers 7.4 js -->
     <script src="./lib/js/openlayers-7.4.0.js"></script>
     <!-- OpenLayers 7.4 css -->
-	<link rel="stylesheet" href="./lib/css/openlayers-7.4.0.css">
+    <link rel="stylesheet" href="./lib/css/openlayers-7.4.0.css">
 
     <!-- proj4 2.4.4 -->
     <script src="./lib/js/proj4js-2.4.4.js"></script>
@@ -27,12 +28,12 @@
     <!-- colorpicker2 js -->
     <script src="./lib/js/colorpicker2.js"></script>
     <!-- colorpicker2 css -->
-	<link rel="stylesheet" type="text/css" href="./lib/css/colorpicker2.css">
+    <link rel="stylesheet" type="text/css" href="./lib/css/colorpicker2.css">
 
     <!-- ol-contextmenu 5.2.1 css -->
     <link href="./lib/css/ol-contextmenu-5.1.2.css" rel="stylesheet">
     <!-- ol-contextmenu 5.2.1 js -->
-	<script src="./lib/js/ol-contextmenu-5.1.2.js"></script>
+    <script src="./lib/js/ol-contextmenu-5.1.2.js"></script>
 
     <!-- elm-pep 1.0.6 -->
     <script src="./lib/js/elm-pep-1.0.6.js"></script>
@@ -51,7 +52,7 @@
     <!-- ol-ext 4.0.9 js -->
     <script src="./lib/js/ol-ext-4.0.10.js"></script>
     <!-- ol-ext 4.0.9 css -->
-	<link rel="stylesheet" href="./lib/css/ol-ext-4.0.10.css">
+    <link rel="stylesheet" href="./lib/css/ol-ext-4.0.10.css">
 
     <!-- pako 2.0.4 -->
     <script src="./lib/js/pako-2.0.4.js"></script>
@@ -81,7 +82,11 @@
 
     <!-- 시군구 데이터 -->
     <script src="./lib/js/hangjungdong.js"></script>
+
+    <!-- Axios 1.4.0 -->
+    <script src="./lib/js/axios-1.4.0.js"></script>
 </head>
+
 <body>
     <div class="container-fluid">
         <div class="row flex-nowrap">
@@ -90,218 +95,279 @@
                     <div id="top-sidebar-content">
                         <ul class="nav nav-tabs" id="myTab" role="tablist">
                             <li class="nav-item" role="presentation">
-                              <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">지도 레이어</button>
+                                <button class="nav-link active" id="home-tab" data-bs-toggle="tab"
+                                    data-bs-target="#home-tab-pane" type="button" role="tab"
+                                    aria-controls="home-tab-pane" aria-selected="true">지도 레이어</button>
                             </li>
                             <li class="nav-item" role="presentation">
-                              <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">주소 검색</button>
+                                <button class="nav-link" id="profile-tab" data-bs-toggle="tab"
+                                    data-bs-target="#profile-tab-pane" type="button" role="tab"
+                                    aria-controls="profile-tab-pane" aria-selected="false">주소 검색</button>
                             </li>
                             <li class="nav-item" role="presentation">
-                              <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact-tab-pane" type="button" role="tab" aria-controls="contact-tab-pane" aria-selected="false">몰?루</button>
+                                <button class="nav-link" id="contact-tab" data-bs-toggle="tab"
+                                    data-bs-target="#contact-tab-pane" type="button" role="tab"
+                                    aria-controls="contact-tab-pane" aria-selected="false">몰?루</button>
                             </li>
-                          </ul>
+                        </ul>
                     </div>
                 </div>
                 <div id="sidebar" class="collapse collapse-horizontal show border-end vh-90 shadow-sm">
                     <div id="sidebar-nav" class="list-group border-0 rounded-0">
                         <div class="tab-content" id="myTabContent">
-                            <div class="accordion accordion-flush tab-pane fade show active" id="home-tab-pane" aria-labelledby="home-tab" tabindex="0">
+                            <div class="accordion accordion-flush tab-pane fade show active" id="home-tab-pane"
+                                aria-labelledby="home-tab" tabindex="0">
                                 <div class="accordion-item">
                                     <div class="p-2">
                                         <h4>지도 서비스</h4>
                                     </div>
                                     <h3 class="accordion-header" id="flush-headingOne">
-                                        <button class="accordion-button treeview-button" type="button" data-bs-toggle="collapse"
-                                            data-bs-target="#first-treeview" aria-expanded="false"
-                                            aria-controls="first-treeview">기본수치지도</button>
+                                        <button class="accordion-button treeview-button" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#first-treeview"
+                                            aria-expanded="false" aria-controls="first-treeview">기본수치지도</button>
                                     </h3>
                                     <div class="collapse show" id="first-treeview">
                                         <ul id="basic-thematic-map-node" class="ztree"></ul>
-                                        <nav aria-label="Page navigation example" class="basic-thematic-map-item thematic-map-item">
+                                        <nav aria-label="Page navigation example"
+                                            class="basic-thematic-map-item thematic-map-item">
                                             <ul class="pagination pagination-sm justify-content-center">
-                                                <li class="page-item" title="모두 체크" id="basic-thematic-map-treeview-check-all"><i class="text-success bi bi-check-lg" href="#"></i></li>
-                                                <li class="page-item" title="모두 체크해제" id="basic-thematic-map-treeview-uncheck-all"><i class="text-danger bi bi-x-lg" href="#"></i></li>
-                                              <li class="page-item" title="모두 펼치기" id="basic-thematic-map-treeview-expand-all"><i class="text-primary bi bi-arrows-angle-expand" href="#"></i></li>
-                                              <li class="page-item" title="모두 접기" id="basic-thematic-map-treeview-collapse-all"><i class="text-primary bi bi-arrows-angle-contract" href="#"></i></li>
+                                                <li class="page-item" title="모두 체크"
+                                                    id="basic-thematic-map-treeview-check-all"><i
+                                                        class="text-success bi bi-check-lg" href="#"></i></li>
+                                                <li class="page-item" title="모두 체크해제"
+                                                    id="basic-thematic-map-treeview-uncheck-all"><i
+                                                        class="text-danger bi bi-x-lg" href="#"></i></li>
+                                                <li class="page-item" title="모두 펼치기"
+                                                    id="basic-thematic-map-treeview-expand-all"><i
+                                                        class="text-primary bi bi-arrows-angle-expand" href="#"></i>
+                                                </li>
+                                                <li class="page-item" title="모두 접기"
+                                                    id="basic-thematic-map-treeview-collapse-all"><i
+                                                        class="text-primary bi bi-arrows-angle-contract" href="#"></i>
+                                                </li>
                                             </ul>
                                         </nav>
                                     </div>
 
                                     <h3 class="accordion-header" id="flush-headingTwo">
-                                        <button class="accordion-button treeview-button" type="button" data-bs-toggle="collapse"
-                                            data-bs-target="#second-treeview" aria-expanded="false"
-                                            aria-controls="second-treeview">행정주제도(관상용;)</button>
+                                        <button class="accordion-button treeview-button" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#second-treeview"
+                                            aria-expanded="false" aria-controls="second-treeview">행정주제도(관상용;)</button>
                                     </h3>
                                     <div class="collapse show" id="second-treeview">
                                         <ul id="administractive-thematic-map-node" class="ztree"></ul>
-                                        <nav aria-label="Page navigation example" class="administractive-thematic-map-item thematic-map-item">
+                                        <nav aria-label="Page navigation example"
+                                            class="administractive-thematic-map-item thematic-map-item">
                                             <ul class="pagination pagination-sm justify-content-center">
-                                              <li class="page-item" title="모두 체크" id="administractive-thematic-map-treeview-check-all"><i class="text-success bi bi-check-lg" href="#"></i></li>
-                                              <li class="page-item" title="모두 체크해제" id="administractive-thematic-map-treeview-uncheck-all"><i class="text-danger bi bi-x-lg" href="#"></i></li>
-                                              <li class="page-item" title="모두 펼치기" id="administractive-thematic-map-treeview-expand-all"><i class="text-primary bi bi-arrows-angle-expand" href="#"></i></li>
-                                              <li class="page-item" title="모두 접기" id="administractive-thematic-map-treeview-collapse-all"><i class="text-primary bi bi-arrows-angle-contract" href="#"></i></li>
+                                                <li class="page-item" title="모두 체크"
+                                                    id="administractive-thematic-map-treeview-check-all"><i
+                                                        class="text-success bi bi-check-lg" href="#"></i></li>
+                                                <li class="page-item" title="모두 체크해제"
+                                                    id="administractive-thematic-map-treeview-uncheck-all"><i
+                                                        class="text-danger bi bi-x-lg" href="#"></i></li>
+                                                <li class="page-item" title="모두 펼치기"
+                                                    id="administractive-thematic-map-treeview-expand-all"><i
+                                                        class="text-primary bi bi-arrows-angle-expand" href="#"></i>
+                                                </li>
+                                                <li class="page-item" title="모두 접기"
+                                                    id="administractive-thematic-map-treeview-collapse-all"><i
+                                                        class="text-primary bi bi-arrows-angle-contract" href="#"></i>
+                                                </li>
                                             </ul>
                                         </nav>
                                     </div>
                                 </div>
                             </div>
-                        <div class="tab-pane fade" id="profile-tab-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="1">
-                            <div class="p-2">
-                                <h4>주소 서비스</h4>
-                            </div>
-                            <div class="input-group search-container">
-                                <input class="form-control border-end-0 border" type="search" placeholder="장소, 주소, 행정동, 도로명 검색" id="search-input" title="검색어">
-                                <span class="input-group-append">
-                                    <button class="btn btn-outline-secondary bg-white border ms-n5 serach-button" type="button" id="serach-button" title="검색">
-                                        <i class="bi bi-search"></i>
-                                    </button>
-                                </span>
-                            </div>
-                            <div id="middle-sidebar-content">
-                                <ul class="nav nav-tabs" id="search-category-tab" role="tablist">
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link active" id="all-tab" data-bs-toggle="tab"
-                                            data-bs-target="#all-tab-pane" type="button" role="tab"
-                                            aria-controls="all-tab-pane" aria-selected="true">전체</button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link" id="place-tab" data-bs-toggle="tab"
-                                            data-bs-target="#place-tab-pane" type="button" role="tab"
-                                            aria-controls="place-tab-pane" aria-selected="true">장소</button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link" id="address-tab" data-bs-toggle="tab"
-                                            data-bs-target="#address-tab-pane" type="button" role="tab"
-                                            aria-controls="address-tab-pane" aria-selected="true">주소</button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link" id="district-tab" data-bs-toggle="tab"
-                                            data-bs-target="#district-tab-pane" type="button" role="tab"
-                                            aria-controls="district-tab-pane" aria-selected="false">행정구역</button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link" id="road-tab" data-bs-toggle="tab"
-                                            data-bs-target="#road-tab-pane" type="button" role="tab"
-                                            aria-controls="road-tab-pane" aria-selected="false">도로명</button>
-                                    </li>
-                                </ul>
-                            </div>
-                            <div class="tab-content" id="address-content">
-                                <div class="accordion accordion-flush tab-pane fade show active" id="all-tab-pane" aria-labelledby="all-tab" tabindex="1">
-                                    <p class="search-addres-result-text text-sm-start text-secondary">
-                                        <span class="text-danger" id="all-search-content-name">"한누리대로 2130"</span> 검색결과 : <span class="text-danger" id="all-search-content-count">4 </span>건
-                                    </p>
-                                    <table class="table table-sm search-address-result-table all-result" id="all-place-result">
-                                        
-                                    </table>
+                            <div class="tab-pane fade" id="profile-tab-pane" role="tabpanel"
+                                aria-labelledby="profile-tab" tabindex="1">
+                                <div class="p-2">
+                                    <h4>주소 서비스</h4>
+                                </div>
+                                <div class="input-group search-container">
+                                    <input class="form-control border-end-0 border" type="search"
+                                        placeholder="장소, 주소, 행정동, 도로명 검색" id="search-input" title="검색어">
+                                    <span class="input-group-append">
+                                        <button class="btn btn-outline-secondary bg-white border ms-n5 serach-button"
+                                            type="button" id="serach-button" title="검색">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </span>
+                                </div>
+                                <div id="middle-sidebar-content">
+                                    <ul class="nav nav-tabs" id="search-category-tab" role="tablist">
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link active" id="all-tab" data-bs-toggle="tab"
+                                                data-bs-target="#all-tab-pane" type="button" role="tab"
+                                                aria-controls="all-tab-pane" aria-selected="true">전체</button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="place-tab" data-bs-toggle="tab"
+                                                data-bs-target="#place-tab-pane" type="button" role="tab"
+                                                aria-controls="place-tab-pane" aria-selected="true">장소</button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="address-tab" data-bs-toggle="tab"
+                                                data-bs-target="#address-tab-pane" type="button" role="tab"
+                                                aria-controls="address-tab-pane" aria-selected="true">주소</button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="district-tab" data-bs-toggle="tab"
+                                                data-bs-target="#district-tab-pane" type="button" role="tab"
+                                                aria-controls="district-tab-pane" aria-selected="false">행정구역</button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="road-tab" data-bs-toggle="tab"
+                                                data-bs-target="#road-tab-pane" type="button" role="tab"
+                                                aria-controls="road-tab-pane" aria-selected="false">도로명</button>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="tab-content" id="address-content">
+                                    <div class="accordion accordion-flush tab-pane fade show active" id="all-tab-pane"
+                                        aria-labelledby="all-tab" tabindex="1">
+                                        <p class="search-addres-result-text text-sm-start text-secondary">
+                                            <span class="text-danger" id="all-search-content-name">"한누리대로 2130"</span>
+                                            검색결과 : <span class="text-danger" id="all-search-content-count">4 </span>건
+                                        </p>
+                                        <table class="table table-sm search-address-result-table all-result"
+                                            id="all-place-result">
 
-                                    <table class="table table-sm search-address-result-table address-result" id="all-address-result">
-                                        
-                                    </table>
+                                        </table>
 
-                                    <table class="table table-sm search-address-result-table district-result" id="all-district-result">
-                                        
-                                    </table>
+                                        <table class="table table-sm search-address-result-table address-result"
+                                            id="all-address-result">
 
-                                    <table class="table table-sm search-address-result-table road-result" id="all-road-result">
-                                        
-                                    </table>
+                                        </table>
+
+                                        <table class="table table-sm search-address-result-table district-result"
+                                            id="all-district-result">
+
+                                        </table>
+
+                                        <table class="table table-sm search-address-result-table road-result"
+                                            id="all-road-result">
+
+                                        </table>
+                                    </div>
+                                    <div class="tab-pane fade" id="place-tab-pane" aria-labelledby="place-tab"
+                                        tabindex="1">
+                                        <p class="search-addres-result-text text-sm-start text-secondary">
+                                            <span class="text-danger" id="place-search-content-name">"한누리대로 2130"</span>
+                                            검색결과 : <span id="place-search-content-count" class="text-danger">1</span>건
+                                        </p>
+                                        <nav aria-label="Page navigation example">
+                                            <ul class="pagination pagination-sm justify-content-center place-pagination-container mb-3 mt-4"
+                                                id="place-pagination-container">
+
+                                            </ul>
+                                        </nav>
+                                        <table class="table table-sm search-address-result-table place-result"
+                                            id="place-result">
+
+                                        </table>
+                                        <nav aria-label="Page navigation example">
+                                            <ul class="pagination pagination-sm justify-content-center place-pagination-container"
+                                                id="place-pagination-container">
+
+                                            </ul>
+                                        </nav>
+                                    </div>
+                                    <div class="tab-pane fade" id="address-tab-pane" aria-labelledby="address-tab"
+                                        tabindex="2">
+                                        <p class="search-addres-result-text text-sm-start text-secondary">
+                                            <span class="text-danger" id="address-search-content-name">"한누리대로
+                                                2130"</span> 검색결과 : <span id="address-search-content-count"
+                                                class="text-danger">1</span>건
+                                        </p>
+                                        <nav aria-label="Page navigation example">
+                                            <ul class="pagination pagination-sm justify-content-center address-pagination-container mb-3 mt-4"
+                                                id="address-pagination-container">
+
+                                            </ul>
+                                        </nav>
+                                        <table class="table table-sm search-address-result-table address-result"
+                                            id="address-result">
+
+                                        </table>
+                                        <nav aria-label="Page navigation example">
+                                            <ul class="pagination pagination-sm justify-content-center address-pagination-container"
+                                                id="address-pagination-container">
+
+                                            </ul>
+                                        </nav>
+                                    </div>
+                                    <div class="tab-pane fade" id="district-tab-pane" aria-labelledby="district-tab"
+                                        tabindex="3">
+                                        <p class="search-addres-result-text text-sm-start text-secondary">
+                                            <span class="text-danger" id="district-search-content-name">"한누리대로
+                                                2130"</span> 검색결과 : <span id="district-search-content-count"
+                                                class="text-danger">1</span>건
+                                        </p>
+                                        <nav aria-label="Page navigation example">
+                                            <ul class="pagination pagination-sm justify-content-center district-pagination-container mb-3 mt-4"
+                                                id="district-pagination-container">
+
+                                            </ul>
+                                        </nav>
+                                        <table class="table table-sm search-address-result-table district-result"
+                                            id="district-result">
+
+                                        </table>
+                                        <nav aria-label="Page navigation example">
+                                            <ul class="pagination pagination-sm justify-content-center district-pagination-container"
+                                                id="district-pagination-container">
+
+                                            </ul>
+                                        </nav>
+                                    </div>
+                                    <div class="tab-pane fade" id="road-tab-pane" aria-labelledby="road-tab"
+                                        tabindex="4">
+                                        <p class="search-addres-result-text text-sm-start text-secondary">
+                                            <span class="text-danger" id="road-search-content-name">"한누리대로 2130"</span>
+                                            검색결과 : <span id="road-search-content-count" class="text-danger">1</span>건
+                                        </p>
+                                        <nav aria-label="Page navigation example">
+                                            <ul class="pagination pagination-sm justify-content-center road-pagination-container mb-3 mt-4"
+                                                id="road-pagination-container">
+
+                                            </ul>
+                                        </nav>
+                                        <table class="table table-sm search-address-result-table road-result"
+                                            id="road-result">
+
+                                        </table>
+                                        <nav aria-label="Page navigation example">
+                                            <ul class="pagination pagination-sm justify-content-center road-pagination-container"
+                                                id="road-pagination-container">
+
+                                            </ul>
+                                        </nav>
+                                    </div>
                                 </div>
-                                <div class="tab-pane fade" id="place-tab-pane" aria-labelledby="place-tab" tabindex="1">
-                                    <p class="search-addres-result-text text-sm-start text-secondary">
-                                        <span class="text-danger" id="place-search-content-name">"한누리대로 2130"</span> 검색결과 : <span id="place-search-content-count" class="text-danger">1</span>건
-                                    </p>
-                                    <nav aria-label="Page navigation example">
-                                        <ul class="pagination pagination-sm justify-content-center place-pagination-container mb-3 mt-4" id="place-pagination-container">
-                                          
-                                        </ul>
-                                    </nav>
-                                    <table class="table table-sm search-address-result-table place-result" id="place-result">
-                                        
-                                    </table>
-                                    <nav aria-label="Page navigation example">
-                                        <ul class="pagination pagination-sm justify-content-center place-pagination-container" id="place-pagination-container">
-                                          
-                                        </ul>
-                                    </nav>
-                                </div>
-                                <div class="tab-pane fade" id="address-tab-pane" aria-labelledby="address-tab" tabindex="2">
-                                    <p class="search-addres-result-text text-sm-start text-secondary">
-                                        <span class="text-danger" id="address-search-content-name">"한누리대로 2130"</span> 검색결과 : <span id="address-search-content-count" class="text-danger">1</span>건
-                                    </p>
-                                    <nav aria-label="Page navigation example">
-                                        <ul class="pagination pagination-sm justify-content-center address-pagination-container mb-3 mt-4" id="address-pagination-container">
-                                          
-                                        </ul>
-                                      </nav>
-                                    <table class="table table-sm search-address-result-table address-result" id="address-result">
-                                        
-                                    </table>
-                                    <nav aria-label="Page navigation example">
-                                        <ul class="pagination pagination-sm justify-content-center address-pagination-container" id="address-pagination-container">
-                                          
-                                        </ul>
-                                      </nav>
-                                </div>
-                                <div class="tab-pane fade" id="district-tab-pane" aria-labelledby="district-tab" tabindex="3">
-                                    <p class="search-addres-result-text text-sm-start text-secondary">
-                                        <span class="text-danger" id="district-search-content-name">"한누리대로 2130"</span> 검색결과 : <span id="district-search-content-count" class="text-danger">1</span>건
-                                    </p>
-                                    <nav aria-label="Page navigation example">
-                                        <ul class="pagination pagination-sm justify-content-center district-pagination-container mb-3 mt-4" id="district-pagination-container">
-                                          
-                                        </ul>
-                                      </nav>
-                                    <table class="table table-sm search-address-result-table district-result" id="district-result">
-                                        
-                                    </table>
-                                    <nav aria-label="Page navigation example">
-                                        <ul class="pagination pagination-sm justify-content-center district-pagination-container" id="district-pagination-container">
-                                          
-                                        </ul>
-                                      </nav>
-                                </div>
-                                <div class="tab-pane fade" id="road-tab-pane" aria-labelledby="road-tab" tabindex="4">
-                                    <p class="search-addres-result-text text-sm-start text-secondary">
-                                        <span class="text-danger" id="road-search-content-name">"한누리대로 2130"</span> 검색결과 : <span id="road-search-content-count" class="text-danger">1</span>건
-                                    </p>
-                                    <nav aria-label="Page navigation example">
-                                        <ul class="pagination pagination-sm justify-content-center road-pagination-container mb-3 mt-4" id="road-pagination-container">
-                                          
-                                        </ul>
-                                      </nav>
-                                    <table class="table table-sm search-address-result-table road-result" id="road-result">
-                                        
-                                    </table>
-                                    <nav aria-label="Page navigation example">
-                                        <ul class="pagination pagination-sm justify-content-center road-pagination-container" id="road-pagination-container">
-                                          
-                                        </ul>
-                                      </nav>
+                            </div>
+                            <div class="tab-pane fade" id="contact-tab-pane" role="tabpanel"
+                                aria-labelledby="contact-tab" tabindex="0">
+                                <div class="p-2">
+                                    <h4>몰?루</h4>
+                                    <input id="color-picker" type='button' value='#000000' />
+                                    <input type="button" onclick="sample4_execDaumPostcode()" value="우편번호 찾기"><br>
+                                    <input type="text" id="sample4_postcode" placeholder="우편번호" disabled>
+                                    <input type="text" id="sample4_roadAddress" placeholder="도로명주소" disabled>
+                                    <input type="text" id="sample4_jibunAddress" placeholder="지번주소" disabled>
+                                    <form class="form">
+                                        <label for="format">pdf 영역 저장 size </label>
+                                        <select id="format">
+                                            <option value="a0">A0 (slow)</option>
+                                            <option value="a1">A1</option>
+                                            <option value="a2">A2</option>
+                                            <option value="a3">A3</option>
+                                            <option value="a4" selected>A4</option>
+                                            <option value="a5">A5 (fast)</option>
+                                        </select>
+                                    </form>
                                 </div>
                             </div>
                         </div>
-                        <div class="tab-pane fade" id="contact-tab-pane" role="tabpanel" aria-labelledby="contact-tab" tabindex="0">
-                            <div class="p-2">
-                                <h4>몰?루</h4>
-                                <input id="color-picker" type='button' value='#000000' />
-                                <input type="button" onclick="sample4_execDaumPostcode()" value="우편번호 찾기"><br>
-                                <input type="text" id="sample4_postcode" placeholder="우편번호" disabled>
-                                <input type="text" id="sample4_roadAddress" placeholder="도로명주소" disabled>
-                                <input type="text" id="sample4_jibunAddress" placeholder="지번주소" disabled>
-                                <form class="form">
-                                    <label for="format">pdf 영역 저장 size </label>
-                                    <select id="format">
-                                      <option value="a0">A0 (slow)</option>
-                                      <option value="a1">A1</option>
-                                      <option value="a2">A2</option>
-                                      <option value="a3">A3</option>
-                                      <option value="a4" selected>A4</option>
-                                      <option value="a5">A5 (fast)</option>
-                                    </select>
-                                  </form>
-                            </div>
-                        </div>
-                      </div>
                     </div>
                 </div>
                 <div class="bottom-area collapse collapse-horizontal show" id="bottom-sidebar">
@@ -327,11 +393,14 @@
                     id="sidebar-toggle-button"><i class="bi bi-chevron-left" aria-hidden="true"></i></a>
                 <div id="map-body">
                     <div id="map" class="map">
-                        <div class="offcanvas offcanvas-end route-containser" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1" id="offcanvasScrolling" aria-labelledby="offcanvasScrollingLabel">
+                        <div class="offcanvas offcanvas-end route-containser" data-bs-scroll="true"
+                            data-bs-backdrop="false" tabindex="-1" id="offcanvasScrolling"
+                            aria-labelledby="offcanvasScrollingLabel">
                             <div class="offcanvas-header">
-                              <h5 class="offcanvas-title" id="offcanvasScrollingLabel">경로탐색 결과</h5>
+                                <h5 class="offcanvas-title" id="offcanvasScrollingLabel">경로탐색 결과</h5>
                                 <div class="route-select-container">
-                                    <select class="form-select form-select-sm" aria-label=".form-select-sm example" id="route-kind-select">
+                                    <select class="form-select form-select-sm" aria-label=".form-select-sm example"
+                                        id="route-kind-select">
                                         <option selected value="1">차량 경로탐색</option>
                                         <option value="2">도보 경로탐색</option>
                                         <option value="3">자전거 경로탐색</option>
@@ -339,25 +408,30 @@
                                 </div>
                             </div>
                             <div class="offcanvas-body" id="sidenav">
-                              <p>경로탐색 데이터</p>
+                                <p>경로탐색 데이터</p>
                             </div>
                         </div>
-                        <div class="modal fade" id="videoModal" tabindex="-1" role="dialog" aria-labelledby="videoModalLabel" aria-hidden="true">
+                        <div class="modal fade" id="videoModal" tabindex="-1" role="dialog"
+                            aria-labelledby="videoModalLabel" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
                                 <div class="modal-content">
                                     <div class="modal-header">
                                         <h5 class="modal-title" id="videoModalLabel">CCTV 영상</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
-                                        <video id="video" style="display: block; margin: 0 auto;" class="video-js vjs-default-skin" preload="none" crossorigin="true" controls width="640" height="268" controls></video>
+                                        <video id="video" style="display: block; margin: 0 auto;"
+                                            class="video-js vjs-default-skin" preload="none" crossorigin="true" controls
+                                            width="640" height="268" controls></video>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <label id="zoom-info" title="줌 레벨">Level: </label>
                         <div class="dropdown">
-                            <button class="btn btn-outline-primary dropdown-toggle btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="배경지도 변경">
+                            <button class="btn btn-outline-primary dropdown-toggle btn-sm" type="button"
+                                data-bs-toggle="dropdown" aria-expanded="false" title="배경지도 변경">
                                 <i class="bi bi-map"></i><span>배경지도</span>
                             </button>
                             <ul class="dropdown-menu">
@@ -367,25 +441,33 @@
                                 <li><a id="bwMap" class="dropdown-item" href="#">흑백 지도</a></li>
                                 <li><a id="nightMap" class="dropdown-item" href="#">야간 지도</a></li>
                             </ul>
-                          </div>
+                        </div>
                         <input id="swipe" type="range" min="0" max="100" value="50">
                         <div id="line"></div>
-                        <div class="btn-group-vertical btn-group-sm" role="group" aria-label="Basic checkbox toggle button group">
+                        <div class="btn-group-vertical btn-group-sm" role="group"
+                            aria-label="Basic checkbox toggle button group">
                             <input type="checkbox" id="measureCheckbox" class="btn-check measure" autocomplete="off">
-                            <label title="거리 측정" class="btn btn-outline-primary" for="measureCheckbox"><i class="bi bi-rulers"></i></label>
-                          
+                            <label title="거리 측정" class="btn btn-outline-primary" for="measureCheckbox"><i
+                                    class="bi bi-rulers"></i></label>
+
                             <input type="checkbox" id="areaCheckbox" class="btn-check measure" autocomplete="off">
-                            <label title="면적 측정" class="btn btn-outline-primary" for="areaCheckbox"><i class="bi bi-bounding-box-circles"></i></label>
-                          
+                            <label title="면적 측정" class="btn btn-outline-primary" for="areaCheckbox"><i
+                                    class="bi bi-bounding-box-circles"></i></label>
+
                             <input type="checkbox" id="areaCircleCheckbox" class="btn-check measure" autocomplete="off">
-                            <label title="반경 측정" class="btn btn-outline-primary" for="areaCircleCheckbox"><i class="bi bi-vinyl"></i></label>
+                            <label title="반경 측정" class="btn btn-outline-primary" for="areaCircleCheckbox"><i
+                                    class="bi bi-vinyl"></i></label>
 
                             <input type="checkbox" id="map-graticule-checkbox" class="btn-check" autocomplete="off">
-                            <label title="격자 보기" class="btn btn-outline-primary" for="map-graticule-checkbox"><i class="bi bi-grid-3x3"></i></label>
+                            <label title="격자 보기" class="btn btn-outline-primary" for="map-graticule-checkbox"><i
+                                    class="bi bi-grid-3x3"></i></label>
 
-                            <button title="측정레이어 삭제" id="remove-measure" type="button" class="btn btn-outline-primary"><i class="bi bi-eraser-fill"></i></button>
-                          </div>
-                        <button class="btn btn-primary" id="route-result-toggle-button" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling" aria-controls="offcanvasScrolling" title="자동차 경로">
+                            <button title="측정레이어 삭제" id="remove-measure" type="button"
+                                class="btn btn-outline-primary"><i class="bi bi-eraser-fill"></i></button>
+                        </div>
+                        <button class="btn btn-primary" id="route-result-toggle-button" type="button"
+                            data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling"
+                            aria-controls="offcanvasScrolling" title="자동차 경로">
                             <i class="fa fa-car" aria-hidden="true"></i>
                         </button>
                         <div class="map-interaction" id="current-position">
@@ -401,802 +483,93 @@
                                     </div>
                                 </div>
                             </div>
-                            <div id="olcontrolBookmarkMaximizeDiv" class="olControlBookmarkMaximizeButton" title="북마크 열기"></div>
-                            <div id="olcontrolBookmarkMinimizeDiv" class="olControlBookmarkMinimizeButton" title="북마크 닫기"></div>
+                            <div id="olcontrolBookmarkMaximizeDiv" class="olControlBookmarkMaximizeButton"
+                                title="북마크 열기"></div>
+                            <div id="olcontrolBookmarkMinimizeDiv" class="olControlBookmarkMinimizeButton"
+                                title="북마크 닫기"></div>
                         </div>
                     </div>
-                    <div class="modal hide bookmark-modal" id="bookmark-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" style="position: absolute;">
+                    <div class="modal hide bookmark-modal" id="bookmark-modal" tabindex="-1"
+                        aria-labelledby="exampleModalLabel" aria-hidden="true" style="position: absolute;">
                         <div class="modal-dialog modal-sm modal-dialog-centered">
-                          <div class="modal-content">
-                            <div class="modal-header" style="padding : 0.5rem 0.5rem;">
-                              <h5 class="modal-title" id="exampleModalLabel" style="font-size: 1rem;">북마크</h5>
-                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <div class="modal-content">
+                                <div class="modal-header" style="padding : 0.5rem 0.5rem;">
+                                    <h5 class="modal-title" id="exampleModalLabel" style="font-size: 1rem;">북마크</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body" style="padding: 0.5rem 0.5rem;">
+                                    <form>
+                                        <div class="mb-3" style="margin-bottom: 0px !important;">
+                                            <input type="text" class="form-control" id="recipient-name"
+                                                placeholder="북마크 기본값은 아래 주소입니다." style="font-size: 0.7rem;">
+                                            <div id="form-control-address"></div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer" style="padding: 0.2rem;">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                                        style="font-size: 0.7rem;">닫기</button>
+                                    <button type="button" class="btn btn-primary" style="font-size: 0.7rem;"
+                                        id="btn-add-bookmark">북마크 추가</button>
+                                </div>
                             </div>
-                            <div class="modal-body" style="padding: 0.5rem 0.5rem;">
-                                <form>
-                                    <div class="mb-3" style="margin-bottom: 0px !important;">
-                                      <input type="text" class="form-control" id="recipient-name" placeholder="북마크 기본값은 아래 주소입니다." style="font-size: 0.7rem;">
-                                      <div id="form-control-address"></div>
-                                    </div>
-                                </form>
-                            </div>
-                            <div class="modal-footer" style="padding: 0.2rem;">
-                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="font-size: 0.7rem;">닫기</button>
-                              <button type="button" class="btn btn-primary" style="font-size: 0.7rem;" id="btn-add-bookmark">북마크 추가</button>
-                            </div>
-                          </div>
                         </div>
-                      </div>
+                    </div>
                     <div id="map-info-container">
                         <div id="map-info-coordinate-system"><span class="fw-normal">좌표계</span></div>
-                            <div class="row coordinate-system-selector-container">
-                                <div class="col">
-                                    <select class="form-select coordinate-system-selector">
-                                        <option value="EPSG:3857">Web Mercator(EPSG:3857)</option>
-                                        <option value="EPSG:4326">WGS84(EPSG:4326)</option>
-                                        <option value="EPSG:5178">KATEC(EPSG:5178)</option>
-                                        <option value="EPSG:5179">TMK(EPSG:5179)</option>
-                                        <option value="EPSG:5181">UTM-K(EPSG:5181)</option>
-                                    </select>
-                                </div>
+                        <div class="row coordinate-system-selector-container">
+                            <div class="col">
+                                <select class="form-select coordinate-system-selector">
+                                    <option value="EPSG:3857">Web Mercator(EPSG:3857)</option>
+                                    <option value="EPSG:4326">WGS84(EPSG:4326)</option>
+                                    <option value="EPSG:5178">KATEC(EPSG:5178)</option>
+                                    <option value="EPSG:5179">TMK(EPSG:5179)</option>
+                                    <option value="EPSG:5181">UTM-K(EPSG:5181)</option>
+                                </select>
                             </div>
+                        </div>
 
-                            <div class="collapse justify-content-center" id="address-collpase">
-                                <div class="card card-body">
-                                    <!-- Grid system for horizontal select boxes -->
-                                    <div class="row">
-                                        <div class="col">
-                                            <select id="sido" class="form-select form-select-sm" aria-label="Default select example">
-                                                <option value="">선택</option>
-                                            </select>
-                                        </div>
-                                        <div class="col">
-                                            <select id="sigugun" class="form-select form-select-sm" aria-label="Default select example">
-                                                <option value="">선택</option>
-                                            </select>
-                                        </div>
-                                        <div class="col">
-                                            <select id="dong" class="form-select form-select-sm" aria-label="Default select example">
-                                                <option value="">선택</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-auto">
-                                            <button type="button" class="btn btn-outline-primary" style="font-size: 0.7rem;" id="btn-move-address">이동</button>
-                                        </div>
+                        <div class="collapse justify-content-center" id="address-collpase">
+                            <div class="card card-body">
+                                <!-- Grid system for horizontal select boxes -->
+                                <div class="row">
+                                    <div class="col">
+                                        <select id="sido" class="form-select form-select-sm"
+                                            aria-label="Default select example">
+                                            <option value="">선택</option>
+                                        </select>
+                                    </div>
+                                    <div class="col">
+                                        <select id="sigugun" class="form-select form-select-sm"
+                                            aria-label="Default select example">
+                                            <option value="">선택</option>
+                                        </select>
+                                    </div>
+                                    <div class="col">
+                                        <select id="dong" class="form-select form-select-sm"
+                                            aria-label="Default select example">
+                                            <option value="">선택</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-auto">
+                                        <button type="button" class="btn btn-outline-primary" style="font-size: 0.7rem;"
+                                            id="btn-move-address">이동</button>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                        <div id="map-info-coordinate"><span class="fw-normal" id="coordinate">14123658.12, 4513950.36</span></div>
-                        <div id="map-info-address" data-bs-toggle="collapse" data-bs-target="#address-collpase" aria-expanded="false" aria-controls="address-collpase"><span class="fw-normal" id="address">서울특별시 양천구 목동</span></div>
+                        <div id="map-info-coordinate"><span class="fw-normal" id="coordinate">14123658.12,
+                                4513950.36</span></div>
+                        <div id="map-info-address" data-bs-toggle="collapse" data-bs-target="#address-collpase"
+                            aria-expanded="false" aria-controls="address-collpase"><span class="fw-normal"
+                                id="address">서울특별시 양천구 목동</span></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </body>
-<script>
-    $(document).ready(function() {
-        //좌측 Collapse 메뉴가 보여질 때 실행되는 이벤트 Collapse 메뉴 토글 버튼의 아이콘을 변경한다.
-        $('#sidebar').on('show.bs.collapse', function () {
-            $("#sidebar-toggle-button i").removeClass('bi bi-chevron-right').addClass('bi bi-chevron-left');
-        });
-
-        //좌측 Collapse 메뉴가 가려질 때 실행되는 이벤트. Collapse 메뉴 토글 버튼의 아이콘을 변경한다.
-        $('#sidebar').on('hide.bs.collapse', function () {
-            $("#sidebar-toggle-button i").removeClass('bi bi-chevron-left').addClass('bi bi-chevron-right');
-        });
-
-        //Collapse 메뉴 토글 버튼 클릭 이벤트. 분리된 상단 사이드바와 하단 사이드바를 같이 토글 시킨다.
-        $("#sidebar-toggle-button").on("click", function(){
-            $("#bottom-sidebar").collapse('toggle')
-            $("#top-sidebar").collapse('toggle')
-        })
-
-        //우측 경로탐색 offcanvas 메뉴가 보여질 때 실행되는 이벤트. 토글 버튼의 아이콘을 변경한다.
-        $('#offcanvasScrolling').on('show.bs.offcanvas', function () {
-            $('#route-result-toggle-button i').removeClass().addClass('bi-x-lg');
-            $("#route-result-toggle-button").attr("title","닫기")
-        });
-
-        //우측 경로탐색 offcanvas 메뉴가 보여질 때 실행되는 이벤트. 토글 버튼의 아이콘, title을 경로탐색 셀렉트의 값에 따라 변경한다.
-        $('#offcanvasScrolling').on('hide.bs.offcanvas', function () {
-            //경로탐색 셀렉트의 밸류 1:차량, 2:도보, 3:자전거
-            const selectedValue = $("#route-kind-select").val()
-            //토글 버튼의 아이콘 클래스 이름을 담을 변수. fontawsome 아이콘을 이용함.
-            const className = selectedValue == 1 ? "fa fa-car" : selectedValue == 2 ? "fa fa-male" : "fa fa-bicycle"
-            //토글 버튼의 title 이름을 담을 변수.
-            const title = selectedValue == 1 ? "자동차 경로" : selectedValue == 2 ? "도보 경로" : "자전거 경로"
-            $('#route-result-toggle-button i').removeClass('bi-x-lg').addClass(className);
-            $("#route-result-toggle-button").attr("title",title)
-            
-        });
-
-        //지도의 기본 레이어를 변경하는 dropdown menu의 아이템이 클릭되었을 때 발생하는 이벤트. 아이템 클릭시 dropdown menu가 닫히는 것을 원치 않아 기본 이벤트를 방지함.
-        $('.dropdown-menu').on('click', function(e) {
-            e.stopPropagation();
-        });
-
-        //SGIS API를 이용해 저장한 행정동 정보 파일을 이용해 행정동 셀렉트 박스의 값을 변경하기 위한 코드(시도)
-        $.each(hangjungdong.sido, function (idx, code) {
-            //append를 이용하여 option 하위에 붙여넣음
-            $('#sido').append(changeAddressSelectValue(code.sido, code.codeNm));
-        });
-
-        //시도 셀렉트가 변경될 때 발생하는 이벤트. 시군구, 읍면동 셀렉트를 초기화하고 시도 코드가 일치하는 코드를 가져와 옵션의 밸류에 세팅한다.
-        $('#sido').change(function () {
-            $('#sigugun').empty();
-            $('#sigugun').append(changeAddressSelectValue('', '선택')); //
-            $('#dong').empty();
-            $('#dong').append(changeAddressSelectValue('', '선택')); //
-            $.each(hangjungdong.sigugun, function (idx, code) {
-                if ($('#sido > option:selected').val() == code.sido)
-                    $('#sigugun').append(changeAddressSelectValue(code.sigugun, code.codeNm));
-            });
-        });
-
-        //시군구 셀렉트가 변경될 때 발생하는 이벤트. 읍면동 셀렉트를 초기화하고 시도, 시군구 코드가 일치하는 코드를 가져와 옵션의 밸류에 세팅한다.
-        $('#sigugun').change(function () {
-            //option 제거
-            $('#dong').empty();
-            $.each(hangjungdong.dong, function (idx, code) {
-                if ($('#sido > option:selected').val() == code.sido && $('#sigugun > option:selected').val() == code.sigugun)
-                    $('#dong').append(changeAddressSelectValue(code.dong, code.codeNm));
-            });
-            //option의 맨앞에 추가
-            $('#dong').prepend(changeAddressSelectValue('', '선택'));
-            //option중 선택을 기본으로 선택
-            $('#dong option:eq("")').attr('selected', 'selected');
-        });
-
-        //읍면동 셀렉트가 변경될 때 발생하는 이벤트.
-        $('#dong').change(function () {
-            const sido = $('#sido option:selected');
-            const sigugun = $('#sigugun option:selected');
-            const dong = $('#dong option:selected');
-
-            const dongName = sido.text() + ' ' + sigugun.text() + ' ' + dong.text(); // 시도/시군구/읍면동 이름
-            console.log(dongName)
-        });
-    })
-
-    //SGIS의 API를 호출하기 위한 API Accesss 키를 저장하기 위한 변수
-    var SgisApiAccessKey;
-    //SGIS의 API Accesss키를 받아오기 위한 API 호출 코드. ref : https://sgis.kostat.go.kr/developer/html/newOpenApi/api/dataApi/basics.html
-    $.ajax({
-        url: "https://sgisapi.kostat.go.kr/OpenAPI3/auth/authentication.json",
-        type: "GET",
-        data: {
-            consumer_key: "5ffa82fde9fa45338732",
-            consumer_secret: "42f45550972442dea2c9"
-        },
-        success: function(data) {
-            console.log(data);
-            SgisApiAccessKey = data.result.accessToken
-        },
-        error: function(xhr, status, error) {
-            console.error('Error:', status, error);
-        }
-    });
-
-    //시도, 시군구, 읍면동 셀렉트에 옵션을 추가하기 위한 함수
-    function changeAddressSelectValue(code, name) {
-        return '<option value="' + code + '">' + name + '</option>';
-    }
-
-    //검색 API를 이용한 전체 검색 결과 페이지의 장소 탭 "더보기" 버튼을 클릭하면 발생하는 이벤트. 장소 탭을 트리거시켜 해당 탭으로 이동함
-    $(document).on('click', '.place-more-view', function(event) {
-        event.preventDefault();
-
-        // Get the tab element
-        const tabElement = new bootstrap.Tab(document.getElementById('place-tab'));
-        
-        // Show the tab
-        tabElement.show();
-    })
-
-    //검색 API를 이용한 전체 검색 결과 페이지의 주소 탭 "더보기" 버튼을 클릭하면 발생하는 이벤트. 장소 탭을 트리거시켜 해당 탭으로 이동함
-    $(document).on('click', '.address-more-view', function(event) {
-        event.preventDefault();
-
-        // Get the tab element
-        const tabElement = new bootstrap.Tab(document.getElementById('address-tab'));
-        
-        // Show the tab
-        tabElement.show();
-    })
-
-    //검색 API를 이용한 전체 검색 결과 페이지의 행정구역 탭 "더보기" 버튼을 클릭하면 발생하는 이벤트. 장소 탭을 트리거시켜 해당 탭으로 이동함
-    $(document).on('click', '.district-more-view', function(event) {
-        event.preventDefault();
-
-        // Get the tab element
-        const tabElement = new bootstrap.Tab(document.getElementById('district-tab'));
-        
-        // Show the tab
-        tabElement.show();
-    })
-
-    //검색 API를 이용한 전체 검색 결과 페이지의 도로명 탭 "더보기" 버튼을 클릭하면 발생하는 이벤트. 장소 탭을 트리거시켜 해당 탭으로 이동함
-    $(document).on('click', '.road-more-view', function(event) {
-        event.preventDefault();
-
-        // Get the tab element
-        const tabElement = new bootstrap.Tab(document.getElementById('road-tab'));
-        
-        // Show the tab
-        tabElement.show();
-    })
-
-    //행정주제도 zTree Setting
-    const administrativeZTreeSetting = {
-        check: {
-            enable: true,
-            autoCheckTrigger: true
-        },
-        data: {
-            simpleData: {
-                enable: true
-            }
-        },
-        view:{
-            addDiyDom: addDiyDom
-        },
-        callback: {
-            onCheck: administrativeNodeChecked,
-            beforeClick : function(treeId, treeNode, clickFlag) {
-                return false;
-            }
-        }
-    };
-
-    //기본수치지도 zTree Setting
-    const basicZTreeSetting = {
-        check: {
-            enable: true,
-            autoCheckTrigger: true
-        },
-        data: {
-            simpleData: {
-                enable: true
-            }
-        },
-        view:{
-            addDiyDom: addDiyDom
-        },
-        callback: {
-            onCheck: basicNodeChecked,
-            beforeClick : function(treeId, treeNode, clickFlag) {
-                return false;
-            }
-        }
-    };
-
-    //zTree의 각 노드에 커스텀 엘리먼트를 추가하는 함수. range 엘리먼트를 추가하여 각 레이어의 opacity를 제어한다.
-    function addDiyDom(treeId, treeNode){
-        const aObj = $("#" + treeNode.tId + "_span");
-        if ($("#diyBtn_"+treeNode.id).length>0) return;
-        const editStr = "<input type='range' id='diyBtn_space_" +treeNode.id+ "' class='range-input' min='0' max='1' step='0.01' value='1' />";
-        aObj.append(editStr);
-        aObj.off('click');  // remove click event
-        const rangeElement = $("#diyBtn_space_" +treeNode.id);
-        //range의 밸류가 변경될 때 발생할 콜백 함수
-        rangeElement.on('input', function(e) {
-            const rangeValue = e.target.value
-            //console.log(treeNode, rangeValue);
-            //레이어의 opacity를 변경하는 함수
-            layerOpacityChage(treeNode, rangeValue)
-            //하위노드가 존재한다면 하위 노드의 range 밸류도 같이 변경하기 위한 함수
-            changeChildrenRange(treeNode, rangeValue);
-        });
-    }
-    
-    //range의 벨류가 변경될 때 발생하는 함수. 하위 노드가 존재한다면 부모 노드의 range 밸류가 변경될 때 같이 변경된다.
-    function changeChildrenRange(treeNode, newValue) {
-        const childrenNodes = treeNode.children;
-        if (childrenNodes) {
-            for (let i = 0; i < childrenNodes.length; i++) {
-                const childNode = childrenNodes[i];
-                const childRangeElement = $("#diyBtn_space_" + childNode.id);
-                childRangeElement.val(newValue); // 부모 노드의 range 값으로 설정
-                //console.log(childNode, newValue);
-                layerOpacityChage(childNode, newValue)
-                changeChildrenRange(childNode, newValue); // 현재 노드의 자식 노드들도 변경
-            }
-        }
-    }
-    
-
-    //행정주제도의 tree node 객체
-    const administrativeThematicMapNodes = [
-        { id:1, pId:0, name:"용도지역", open:true, iconClose : "./resources/img/layer_open.png", iconOpen : "./resources/img/layer_open.png"},
-        { id:11, pId:1, name:"도시지역", icon : "./resources/img/layer_item.png"},
-        { id:12, pId:1, name:"관리지역", icon : "./resources/img/layer_item.png"},
-        { id:13, pId:1, name:"농림지역", icon : "./resources/img/layer_item.png"},
-        { id:14, pId:1, name:"자연환경보전지역", icon : "./resources/img/layer_item.png"},
-        { id:15, pId:1, name:"개발제한구역", icon : "./resources/img/layer_item.png"},
-        { id:16, pId:1, name:"개발행위허가제한지역", icon : "./resources/img/layer_item.png"},
-        { id:2, pId:0, name:"환경/보호관리", open:true, iconClose : "./resources/img/layer_open.png", iconOpen : "./resources/img/layer_open.png"},
-        { id:21, pId:2, name:"생태자연도", icon : "./resources/img/layer_item.png"},
-        { id:22, pId:2, name:"국토환경성평가도", icon : "./resources/img/layer_item.png"},
-        { id:23, pId:2, name:"상수원보호도", icon : "./resources/img/layer_item.png"},
-        { id:24, pId:2, name:"문화재보호도", icon : "./resources/img/layer_item.png"},
-    ];
-
-    //기본수치지도 tree node 객체
-    const basicThematicMapNodes = [
-        { id:3, pId:0, name:"기본도", open:true, iconClose : "./resources/img/layer_open.png", iconOpen : "./resources/img/layer_open.png"},
-        { id:31, pId:3, name:"기상 레이더영상", icon : "./resources/img/layer_item.png"},
-        { id:32, pId:3, name:"도로 CCTV", icon : "./resources/img/layer_item.png"},
-        { id:33, pId:3, name:"전국도로", icon : "./resources/img/layer_item.png"},
-        { id:34, pId:3, name:"건물", icon : "./resources/img/layer_item.png"},
-        { id:35, pId:3, name:"연속지적도", icon : "./resources/img/layer_item.png"},
-        { id:4, pId:3, name:"행정경계", open:false, iconClose : "./resources/img/layer_open.png", iconOpen : "./resources/img/layer_open.png"},
-        { id:41, pId:4, name:"시도경계", icon : "./resources/img/layer_item.png"},
-        { id:42, pId:4, name:"시군구경계", icon : "./resources/img/layer_item.png"},
-        { id:43, pId:4, name:"읍면동경계", icon : "./resources/img/layer_item.png"},
-        { id:44, pId:4, name:"리경계", icon : "./resources/img/layer_item.png"},
-    ];
-
-    //행정주제도의 tree node의 체크 콜백 함수. 추후 함수의 내용은 추가할 예정
-    function administrativeNodeChecked(event, treeId, treeNode) {
-        console.log(treeNode);  // 체크된 노드에 대한 데이터가 출력됩니다.
-    }
-
-    //기본수치지도의 tree node의 체크 콜백 함수. node의 아이디 값, 체크 여부에 따라 특정 레이어를 지도 위에 표출한다.
-    function basicNodeChecked(event, treeId, treeNode) {
-        //자식이 있는 노드에는 이벤트를 발생시키지 않는다.
-        if(treeNode.children){
-            return;
-        }
-        switch(treeNode.id){
-            case 31 :{
-                //기상 레이더 레이어 표출 함수
-                radarLayerChange(treeNode, treeId)
-                break;
-            }
-            case 32 :{
-                //도로 CCTV 레이어 표출 함수
-                cctvLayerChange(treeNode, treeId)
-                break;
-            }
-            case 33 :{
-                //전국 도로 레이어 표출 함수
-                roadLayerChange(treeNode.checked)
-                break;
-            }
-            case 34 :{
-                //건물 레이어 표출 함수
-                buildLayerChange(treeNode.checked)
-                break;
-            }
-            case 35 :{
-                //연속지적도 표출 함수
-                cadastralLayerChange(treeNode.checked)
-                break;
-            }
-            case 41 :{
-                //시도 경계 표출 함수
-                sidoLayerChange(treeNode.checked)
-                break;
-            }
-            case 42 :{
-                //시군구 경계 표출 함수
-                sigunLayerChange(treeNode.checked)
-                break;
-            }
-            case 43 :{
-                //읍면동 경계 표출 함수
-                dongLayerChange(treeNode.checked)
-                break;
-            }
-            case 44 :{
-                //리 경계 표출 함수
-                riLayerChange(treeNode.checked)
-                break;
-            }
-        }
-    }
-
-    //행정주제도의 zTree를 초기화 하고 해당 객체를 담는 변수. 트리가 추가 될 엘리먼트, setting 값, node 객체를 이용해 초기화 한다.
-    const administrativeThematicMapTree = $.fn.zTree.init($("#administractive-thematic-map-node"), administrativeZTreeSetting, administrativeThematicMapNodes);
-
-    //행정주제도의 모두체크 버튼을 클릭했을 때 발생하는 이벤트. 트리 객체 전체를 체크한다.
-    $("#administractive-thematic-map-treeview-check-all").on("click", function(){
-        //모두 체크
-        administrativeThematicMapTree.checkAllNodes(true);
-    })
-
-    //행정주제도의 모두체크 해제 버튼을 클릭했을 때 발생하는 이벤트. 트리 객체 전체를 체크 해제한다.
-    $("#administractive-thematic-map-treeview-uncheck-all").on("click", function(){
-        administrativeThematicMapTree.checkAllNodes(false);
-    })
-
-    //행정주제도의 모두펼침 버튼을 클릭했을 때 발생하는 이벤트. 접혀있는 트리 객체 전체를 펼친다.
-    $("#administractive-thematic-map-treeview-expand-all").on("click", function(){
-        administrativeThematicMapTree.expandAll(true);
-    })
-
-    //행정주제도의 모두접음 버튼을 클릭했을 때 발생하는 이벤트. 펼쳐져 있는 트리 객체 전체를 접는다.
-    $("#administractive-thematic-map-treeview-collapse-all").on("click", function(){
-        administrativeThematicMapTree.expandAll(false);
-    })
-
-    //기본수치지도의 zTree를 초기화 하고 해당 객체를 담는 변수. 트리가 추가 될 엘리먼트, setting 값, node 객체를 이용해 초기화 한다.
-    const basicThematicMapTree = $.fn.zTree.init($("#basic-thematic-map-node"), basicZTreeSetting, basicThematicMapNodes);
-
-    //기본수치지도의 모두체크 버튼을 클릭했을 때 발생하는 이벤트. 트리 객체 전체를 체크한다.
-    $("#basic-thematic-map-treeview-check-all").on("click", function(){
-        basicThematicMapTree.checkAllNodes(true);
-    })
-
-    //기본수치지도의 모두체크 해제 버튼을 클릭했을 때 발생하는 이벤트. 트리 객체 전체를 체크 해제한다.
-    $("#basic-thematic-map-treeview-uncheck-all").on("click", function(){
-        basicThematicMapTree.checkAllNodes(false);
-    })
-
-    //기본수치지도의 모두펼침 버튼을 클릭했을 때 발생하는 이벤트. 접혀있는 트리 객체 전체를 펼친다.
-    $("#basic-thematic-map-treeview-expand-all").on("click", function(){
-        basicThematicMapTree.expandAll(true);
-    })
-
-    //기본수치지도의 모두접음 버튼을 클릭했을 때 발생하는 이벤트. 펼쳐져 있는 트리 객체 전체를 접는다.
-    $("#basic-thematic-map-treeview-collapse-all").on("click", function(){
-        basicThematicMapTree.expandAll(false);
-    })
-
-    //주소검색 input에 포커스가 있고, 키보드의 키 이벤트가 발생했을 때 동작하는 이벤트. 엔터키가 눌렸을 때 검색 주소검색 버튼을 클릭하여 주소검색 API를 호출한다.
-    $('#search-input').on('keypress', function(e) {
-        if (e.which == 13) {  // Check if the key pressed is the Enter key (ASCII value 13)
-            $('#serach-button').click();
-        }
-    });
-
-    //주소검색 버튼이 클릭 되었을 때 발생하는 이벤트. vworld의 검색 API 4건을 호출한다(장소, 주소, 행정구역, 도로명)
-    $("#serach-button").on("click", function(){
-        const searchQuery = $("#search-input").val();
-        if(searchQuery.length == 0){
-            return alert("검색어 입력은 필수입니다.")
-        }
-        //promise 객체를 반환받아. api 4건의 요청을 한번에 묶어서 요청하고 응답받기 위해 when을 사용함 각각의 함수는 Ajax 객체 자체를 리턴함
-        $.when(
-            searchPlace(searchQuery),       //장소검색 API
-            searchAddress(searchQuery),     //주소검색 API
-            searchDistrict(searchQuery),    //행정구역검색 API
-            searchRoad(searchQuery)         //도로명검색 API
-        ).done(function(placeResponse, addressResponse, districtResponse, roadResponse) {
-            //API 응답을 처리한다. 4건의 API의 요청에 대한 응답은 요청 순서대로 반환된다.
-            const placeCount = parseInt(placeResponse[0].response.record.total)
-            const addressCount = parseInt(addressResponse[0].response.record.total)
-            const districeCount = parseInt(districtResponse[0].response.record.total)
-            const roadCount = parseInt(roadResponse[0].response.record.total)
-            const totalCount = placeCount + addressCount + districeCount + roadCount
-
-            $("#all-search-content-name").text(`"${searchQuery}"`)
-            $("#all-search-content-count").text(totalCount.toLocaleString('ko-KR'))
-
-            $("#place-search-content-name").text(`"${searchQuery}"`)
-            $("#place-search-content-count").text(placeCount.toLocaleString('ko-KR'))
-
-            $("#address-search-content-name").text(`"${searchQuery}"`)
-            $("#address-search-content-count").text(addressCount.toLocaleString('ko-KR'))
-
-            $("#district-search-content-name").text(`"${searchQuery}"`)
-            $("#district-search-content-count").text(districeCount.toLocaleString('ko-KR'))
-
-            $("#road-search-content-name").text(`"${searchQuery}"`)
-            $("#road-search-content-count").text(roadCount.toLocaleString('ko-KR'))
-
-            const allPlaceElementId = $('#all-place-result')[0].id
-            const placeElementId = $('#place-result')[0].id
-            const allAddressElementId = $('#all-address-result')[0].id
-            const addressElementId = $('#address-result')[0].id
-            const allDistrictElementId = $('#all-district-result')[0].id
-            const districtElementId = $('#district-result')[0].id
-            const allRoadElementId = $('#all-road-result')[0].id
-            const roadElementId = $('#road-result')[0].id
-
-            //twbsPagination 라이브러리를 이용해 페이지네이션을 처리한다. 페이지네이션 삭제. ref : https://github.com/josecebe/twbs-pagination
-            $('.place-pagination-container').twbsPagination('destroy');
-            $('.address-pagination-container').twbsPagination('destroy');
-            $('.district-pagination-container').twbsPagination('destroy');
-            $('.road-pagination-container').twbsPagination('destroy');
-
-            //장소 검색 페이지네이션 초기화.
-            $('.place-pagination-container').twbsPagination({
-                totalPages: placeResponse[0].response.page.total,
-                visiblePages: 5,
-                hideOnlyOnePage : true,
-                first : '<i class="bi bi-chevron-double-left"></i>',
-                prev : '<i class="bi bi-chevron-left"></i>',
-                next : '<i class="bi bi-chevron-right"></i>',
-                last : '<i class="bi bi-chevron-double-right"></i>',
-                initiateStartPageClick : true,
-                onPageClick: function (event, page) {
-                    $.when(
-                        searchPlace(searchQuery, page)
-                    ).done(function(response){
-                        addPlace(placeElementId, response, searchQuery, 10)
-                    })
-                }
-            });
-
-            //주소 검색 페이지네이션 초기화.
-            $('.address-pagination-container').twbsPagination({
-                totalPages: addressResponse[0].response.page.total,
-                visiblePages: 5,
-                hideOnlyOnePage : true,
-                first : '<i class="bi bi-chevron-double-left"></i>',
-                prev : '<i class="bi bi-chevron-left"></i>',
-                next : '<i class="bi bi-chevron-right"></i>',
-                last : '<i class="bi bi-chevron-double-right"></i>',
-                initiateStartPageClick : true,
-                onPageClick: function (event, page) {
-                    $.when(
-                        searchAddress(searchQuery, page)
-                    ).done(function(response){
-                        addAddress(addressElementId, response, searchQuery, 10)
-                    })
-                }
-            });
-
-            //행정구역 검색 페이지네이션 초기화.
-            $('.district-pagination-container').twbsPagination({
-                totalPages: districtResponse[0].response.page.total,
-                visiblePages: 5,
-                hideOnlyOnePage : true,
-                first : '<i class="bi bi-chevron-double-left"></i>',
-                prev : '<i class="bi bi-chevron-left"></i>',
-                next : '<i class="bi bi-chevron-right"></i>',
-                last : '<i class="bi bi-chevron-double-right"></i>',
-                initiateStartPageClick : true,
-                onPageClick: function (event, page) {
-                    $.when(
-                        searchDistrict(searchQuery, page)
-                    ).done(function(response){
-                        addDistrict(districtElementId, response, searchQuery, 10)
-                    })
-                }
-            });
-
-            //도로명 검색 페이지네이션 초기화.
-            $('.road-pagination-container').twbsPagination({
-                totalPages: roadResponse[0].response.page.total,
-                visiblePages: 5,
-                hideOnlyOnePage : true,
-                first : '<i class="bi bi-chevron-double-left"></i>',
-                prev : '<i class="bi bi-chevron-left"></i>',
-                next : '<i class="bi bi-chevron-right"></i>',
-                last : '<i class="bi bi-chevron-double-right"></i>',
-                initiateStartPageClick : true,
-                onPageClick: function (event, page) {
-                    $.when(
-                        searchRoad(searchQuery, page)
-                    ).done(function(response){
-                        addRoad(roadElementId, response, searchQuery, 10)
-                    })
-                }
-            });
-
-            //전체검색 엘리먼트에 최초 검색 결과를 표출.
-            addPlace(allPlaceElementId, placeResponse[0], searchQuery)
-            addAddress(allAddressElementId, addressResponse[0], searchQuery)
-            addDistrict(allDistrictElementId, districtResponse[0], searchQuery)
-            addRoad(allRoadElementId, roadResponse[0], searchQuery)
-
-            //가려졌던 검색탭 하위탭을 다시 보여준다.
-            $("#middle-sidebar-content").css("display","block")
-            $("#address-content").css("display","block")
-        }).fail(function(err){
-            console.error(err);
-        });
-    })
-
-    //주소 이동 버튼 클릭이벤트. 주소 셀렉트의 값을 이용해 SGIS API를 호출하여 Feature 객체를 반환받아 지도에 오버레이와 같이 표시한다.
-    $("#btn-move-address").on("click", function(){
-        let addressCode = $("#dong").val()
-        let param = "LT_C_ADEMD_INFO"
-        let sidoName = $("#dong option:selected").text()
-        let attrFilter = "emd_kor_nm"
-        if(addressCode == ""){
-            addressCode = $("#sigugun").val()
-            param = "LT_C_ADSIGG_INFO"
-            sidoName = $("#sigugun option:selected").text()
-            attrFilter = "sig_kor_nm"
-        }
-        if(addressCode == ""){
-            addressCode = $("#sido").val()
-            param = "LT_C_ADSIDO_INFO"
-            sidoName = $("#sido option:selected").text()
-            attrFilter = "ctp_kor_nm"
-        }
-        if(addressCode == ""){
-           return alert("시도 / 시군구 / 읍면동 중 하나 이상을 선택해주세요")
-        }
-
-        const fullAddress = `${$("#sido option:selected").text()} ${$("#sigugun option:selected").text()} ${$("#dong option:selected").text()}`.replaceAll("선택", "").trimEnd();
-        console.log(addressCode)
-
-        console.log(SgisApiAccessKey)
-        //var url = `https://api.vworld.kr/req/data?service=data&request=GetFeature&data=${param}&key=A5C5E9FF-F9FC-3012-9D01-41A62F369AA7&domain=http://127.0.0.1:3000/openlayers_test.html&crs=EPSG:3857&attrFilter=${attrFilter}:=:${sidoName}`
-        var url = `https://sgisapi.kostat.go.kr/OpenAPI3/boundary/hadmarea.geojson?year=2022&adm_cd=${addressCode}&accessToken=${SgisApiAccessKey}&low_search=0`
-
-        if (clickCurrentLayer) {
-            map.removeLayer(clickCurrentLayer);
-        }
-
-        if (clickCurrentOverlay) {
-            map.removeOverlay(clickCurrentOverlay);
-        }
-
-        $.ajax({
-            url : url,
-            type: 'GET',
-            success: function(data) {
-                console.log(data)
-                if(data.errMsg != "Success"){
-                    return alert("api 호출 에러 발생")
-                }
-                var geoInfoObject = data.features[0];
-                var geojsonObject = geoInfoObject.geometry;
-                
-                var vectorSource = new ol.source.Vector({
-                    features: (new ol.format.GeoJSON()).readFeatures(geojsonObject, {
-                        dataProjection: 'EPSG:5179', 
-                        featureProjection: 'EPSG:3857' 
-                    })
-                });
-
-                //layer.getSource().getKeys()로 확인
-
-                var vectorStyle = new ol.style.Style({
-                    fill: new ol.style.Fill({
-                        color: 'rgba(135,206,250, 0.5)', // Skyblue color fill with opacity
-                    }),
-                    stroke: new ol.style.Stroke({
-                        color: 'orange', // Orange stroke color
-                        width: 2
-                    }),
-                });
-                
-                var vector_layer = new ol.layer.Vector({
-                    source: vectorSource,
-                    style: vectorStyle
-                })
-                //layer.getKeys() 로 확인
-                 
-                map.addLayer(vector_layer);
-                clickCurrentLayer = vector_layer
-
-                var overlayElement = document.createElement('div');
-                overlayElement.className = "ol-popup";
-                overlayElement.innerHTML += `<a href="#" id="popup-closer" class="ol-popup-closer"></a>`
-                overlayElement.innerHTML += `<div id="popup-content">
-                                                <div class="ol-popup-title">정보</div>
-                                                    <code class="code">
-                                                        <div class="popup-coordinate">${ol.extent.getCenter(vectorSource.getExtent())}</div><span>주소</span><br>
-                                                        <div class="leftBottom__etcBtn">
-                                                            <ul>
-                                                                <li class="select customSelect">
-                                                                    <p onclick="searchLocalAddress(this)">${fullAddress}</p>
-                                                                </li>
-                                                            </ul>
-                                                        </div>
-                                                    </code>
-                                                    <br>
-                                                </div>`
-                var overlay = new ol.Overlay({
-                    element: overlayElement,
-                    position: ol.extent.getCenter(vectorSource.getExtent())
-                });
-
-                map.getView().fit(vectorSource.getExtent());
-                map.getView().setCenter(ol.extent.getCenter(vectorSource.getExtent()));
-                let zoomLevel;
-                if(param == "LT_C_ADSIDO_INFO"){
-                    zoomLevel = 8
-                }else if(param == "LT_C_ADSIGG_INFO"){
-                    zoomLevel = 10
-                }else{
-                    zoomLevel = 12
-                }
-                if(map.getView().getZoom() < zoomLevel){
-                    map.getView().setZoom(zoomLevel)
-                }
-                
-                // Add the overlay to the map
-                map.addOverlay(overlay);
-                clickCurrentOverlay = overlay;
-    
-                var deleteButton = overlayElement.querySelector(".ol-popup-closer");
-                deleteButton.addEventListener("click", function () {
-                    map.removeLayer(vector_layer);
-                    map.removeOverlay(clickCurrentOverlay);
-                });
-            },beforesend: function(){
-                
-            },
-            error: function(xhr, stat, err) {
-                console.log(xhr, stat, err)
-            }
-        })
-    })
-
-    //검색결과 장소 탭이 보여질 때 실행되는 이벤트. 각 span에 data로 저장되어있던 좌표와, 장소 이름을 이용해 지도 위에 마커를 표시한다.
-    $('#place-tab').on('shown.bs.tab', function (e) {
-        var addressNameSpans = $('#place-tab-pane .address-name-span');
-
-        addressNameSpans.each(function(index, element) {
-            var parentTr = $(element).closest('tr');
-            var coordSpan = parentTr.nextAll().find('span[data-coord]').first();
-            var coord = coordSpan.attr('data-coord').split(',').map(Number);
-
-            var addressName = $(element).text();
-            
-            addMarker(coord, addressName, "place", "search");
-        });
-    });
-
-    //검색결과 장소 탭이 닫힐 때 실행되는 이벤트. 장소 마커를 전체 삭제한다.
-    $('#place-tab').on('hidden.bs.tab', function (e) {
-        var source = objectControllVectorLayer.getSource();
-        var features = source.getFeatures();
-        for (var i = 0; i < features.length; i++) {
-            var feature = features[i];
-            if(feature.get('attribute') == "place"){
-                source.removeFeature(feature);
-            }
-        }
-    });
-
-
-    //검색결과 주소 탭이 보여질 때 실행되는 이벤트. 각 span에 data로 저장되어있던 좌표와, 장소 이름을 이용해 지도 위에 마커를 표시한다.
-    $('#address-tab').on('shown.bs.tab', function (e) {
-        $('#address-result .address-name-span').each(function() {
-            let coord = $(this).attr('data-coord').split(', ');
-            let addressName = $(this).text();
-            addMarker(coord, addressName, "address", "search");
-        });
-    });
-
-    //검색결과 주소 탭이 닫힐 때 실행되는 이벤트. 주소 마커를 전체 삭제한다.
-    $('#address-tab').on('hidden.bs.tab', function (e) {
-        var source = objectControllVectorLayer.getSource();
-        var features = source.getFeatures();
-        for (var i = 0; i < features.length; i++) {
-            var feature = features[i];
-            if(feature.get('attribute') == "address"){
-                source.removeFeature(feature);
-            }
-        }
-    });
-
-
-    //검색결과 행정구역 탭이 보여질 때 실행되는 이벤트. TODO : API를 이용해 해당하는 행정구역을 지도 위에 feature와 overlay를 이용해 표시한다.
-    $('#district-tab').on('shown.bs.tab', function (e) {
-        $('#district-result span[data-coord]').each(function() {
-            var coord = $(this).attr('data-coord');
-            console.log('Coordinate:', coord);
-        });
-    });
-
-    //검색결과 행정구역 탭이 닫힐 때 실행되는 이벤트. TODO : 표시된 행정구역 feature와 overlay를 삭제한다.
-    $('#district-tab').on('hidden.bs.tab', function (e) {
-        console.log(e.target.id + ' tab is now hidden');
-    });
-
-    //검색결과 도로명 탭이 보여질 때 실행되는 이벤트. TODO : API를 이용해 해당하는 도로를 지도 위에 feature와 overlay를 이용해 표시한다.
-    $('#road-tab').on('shown.bs.tab', function (e) {
-        $('#road-result span[data-coord]').each(function() {
-            var coord = $(this).attr('data-coord');
-            console.log('Coordinate:', coord);
-        });
-    });
-
-    //검색결과 도로명 탭이 닫힐 때 실행되는 이벤트. TODO : 표시된 도로명 feature와 overlay를 삭제한다.
-    $('#road-tab').on('hidden.bs.tab', function (e) {
-        console.log(e.target.id + ' tab is now hidden');
-    });
-</script>
 <script src="./design.js"></script>
 </html>
