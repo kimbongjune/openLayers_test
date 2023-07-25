@@ -1,46 +1,3 @@
-//좌표계 변환을 위한 epsg:5178 좌표계 정의
-proj4.defs(
-    "EPSG:5178",
-    "+proj=tmerc +lat_0=38 +lon_0=127.5 +k=0.9996 +x_0=500000 +y_0=2000000 +ellps=GRS80 +units=m +no_defs"
-);
-//좌표계 변환을 위한 epsg:5179 좌표계 정의
-proj4.defs(
-    "EPSG:5179",
-    "+proj=tmerc +lat_0=38 +lon_0=127.5 +k=0.9996 +x_0=1000000 +y_0=2000000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs "
-);
-//좌표계 변환을 위한 epsg:5181 좌표계 정의
-proj4.defs("EPSG:5181", "+proj=utm +zone=52 +ellps=GRS80 +units=m +no_defs");
-//openlayer에 좌표계 정의 내용을 적용
-ol.proj.proj4.register(proj4);
-
-//지도의 최대 줌 레벨
-const MAX_ZOOM_LEVEL = 20;
-//지도의 최소 줌 레벨
-const MIN_ZOOM_LEVEL = 6;
-//지도의 최초 줌 레벨
-const DEFAULT_ZOOM_LEVEL = 15;
-
-//vworld 건물 레이어 WMS API 요청 아이디
-const BUILDING_LAYER_ID = "lt_c_spbd";
-//vworld 시도 경계 레이어 WMS API 요청 아이디
-const SIDO_LAYER_ID = "lt_c_adsido";
-//vworld 시/군/구 경계 레이어 WMS API 요청 아이디
-const SIGUNGU_LAYER_ID = "lt_c_adsigg";
-//vworld 읍/면/동 경계 레이어 WMS API 요청 아이디
-const MYEONDONG_LAYER_ID = "lt_c_ademd";
-//vworld 리 경계 레이어 WMS API 요청 아이디
-const RI_LAYER_ID = "lt_c_adri";
-//vworld 도로 레이어 WMS API 요청 아이디
-const ROAD_LAYER_ID = "lt_l_moctlink";
-//vworld 연속지적도 WMS API 요청 아이디
-const CADASTRAL_MAP_LAYER_ID = "lp_pa_cbnd_bubun";
-//vworld 산불위험 예측지도 WMS API 요청 아이디
-const MOUNTAIN_FIRE_MAP_LAYER_ID = "lt_c_kfdrssigugrade";
-//vworld 소방서관할구역 WMS API 요청 아이디
-const FIRESTATION_JURISDICTION = "lt_c_usfsffb";
-//vworld 재해위험지구 WMS API 요청 아이디
-const DISASTER_DANGER_LAYER_ID = "lt_c_up201";
-
 //지도의 클릭 레이어를 담을 변수
 let clickCurrentLayer;
 //지도의 팝업 오버레이를 담을 변수
@@ -78,44 +35,458 @@ let clusterLayer;
 //SGIS의 API를 호출하기 위한 API Accesss 키를 저장하기 위한 변수
 let SgisApiAccessKey;
 
-//openlayers 지도의 view 객체
-const mapView = new ol.View({
-    center: [14128579.82, 4512570.74],
-    maxZoom: MAX_ZOOM_LEVEL,
-    zoom: DEFAULT_ZOOM_LEVEL,
-    minZoom: MIN_ZOOM_LEVEL,
-    constrainResolution: true,
-    rotation: 0,
-    // center: [-8910887.277395891, 5382318.072437216],
-    // maxZoom: 19,
-    // zoom: 15
-});
-
-//openlayers 지도 객체
-const map = new ol.Map({
-    target: document.getElementById("map"),
-    pixelRatio: 1,
-    view: mapView,
-    interactions: ol.interaction.defaults.defaults({
-        shiftDragZoom: false,
-    }),
-});
-
-//vworld API 키를 저장하기 위한 변수.
-let VWORLD_API_KEY;
-
-//vworld API 키는 현재 url에 따라 달라지기에 내부망 접속 설정을 위해 두개 발급받고, 상황에 따라 API키를 다르게 사용함
-if (window.location.href.includes("192")) {
-    VWORLD_API_KEY = "055CF644-B04A-3772-BF8A-B31B9CDD6364";
-} else {
-    VWORLD_API_KEY = "A5C5E9FF-F9FC-3012-9D01-41A62F369AA7";
-}
-
-//kakao API키를 저장하기 위한 변수
-const KAKAO_REST_API_KEY = "a75f661f8fd50587142251f0476ef2da";
-
 //swipe 레이어를 저장하기 위한 변수
 let swipeLayer;
+
+//지도 위에 GPX, GeoJson, IGC, KML, TopoJson 파일을 Drag & Drop으로 표시하기 위한 인터렉션을 담을 변수
+let dragAndDropInteraction;
+
+//길이측정 overlay의 html 엘리먼트
+let measureTooltipElement;
+//길이측정 overlay
+let measureTooltip;
+
+//면적측정 overlay의 html 엘리먼트
+let areaTooltipElement;
+//면적측정 overlay
+let areaTooltip;
+
+//경로탐색 overlay의 html 엘리먼트
+let routeTooltipElement;
+//경로탐색 overlay
+let routeTooltip;
+
+//반경측정 overlay의 html 엘리먼트
+let circleTooltipElement;
+//반경측정 overlay
+let circleTooltip;
+
+//Extent 인터렉션 영역의 html 엘리먼트
+let extentInteractionTooltipElement;
+//Extent 인터렉션 overlay
+let extentInteractionTooltip;
+
+// 현재 그려지고 있는 feature
+let sketch;
+
+//직선을 그리는 draw객체
+let measurePolygon;
+//면적을 그리는 draw객체
+let areaPolygon;
+//원을 그리는 draw객체
+let circlePolygon;
+
+//ol-context 마커 아이콘
+const pinIcon =
+    "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/pin_drop.png";
+//ol-context 지도 중앙위치 아이콘
+const centerIcon =
+    "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/center.png";
+//ol-context 목록 아이콘
+const listIcon =
+    "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/view_list.png";
+
+//pdf 아이콘
+const pdfIcon = "./resources/img/pdf.png";
+//이미지 아이콘
+const imageIcon = "./resources/img/image.png";
+//삭제 아이콘
+const deleteIcon = "./resources/img/delete.png";
+//새로고침 아이콘
+const refreshIcon = "./resources/img/refresh.png";
+//시작 마커 아이콘
+const startMarkerIcon = "./resources/img/red_marker.png";
+//종료 마커 아이콘
+const endMarkerIcon = "./resources/img/green_marker.png";
+//북마커 마커 아이콘
+const bookMarkerIcon = "./resources/img/book_mark.png";
+
+//ol-context zoom 클래스 설정
+const namespace = "ol-ctx-menu";
+const icon_class = "-icon";
+const zoom_in_class = "-zoom-in";
+const zoom_out_class = "-zoom-out";
+
+//ol-context 기본 메뉴 아이템 구성 리스트
+const contextmenuItems = [
+    {
+        text: "출발",
+        classname: "start-item",
+        icon: startMarkerIcon,
+        callback: startMarker,
+    },
+    {
+        text: "도착",
+        classname: "end-item",
+        icon: endMarkerIcon,
+        callback: endMarker,
+    },
+    {
+        text: "지도 중앙 이동",
+        classname: "bold",
+        icon: centerIcon,
+        callback: center,
+    },
+    {
+        text: "북마크",
+        classname: "bold",
+        icon: bookMarkerIcon,
+        callback: addBookMark,
+    },
+    {
+        text: "좌표",
+        classname: "ol-coordinate",
+        callback: center,
+    },
+    {
+        text: "기타 작업",
+        icon: listIcon,
+        items: [
+            {
+                text: "지도 중앙 이동",
+                icon: centerIcon,
+                callback: center,
+            },
+            {
+                text: "마커 추가",
+                icon: pinIcon,
+                callback: marker,
+            },
+        ],
+    },
+    {
+        text: "마커 추가",
+        icon: pinIcon,
+        callback: marker,
+    },
+    {
+        text: "새로 고침",
+        icon: refreshIcon,
+        callback: refresh,
+    },
+    "-",
+    {
+        text: "줌 인",
+        classname: [namespace + zoom_in_class, namespace + icon_class].join(
+            " "
+        ),
+        callback: zoomIn,
+    },
+    {
+        text: "줌 아웃",
+        classname: [namespace + zoom_out_class, namespace + icon_class].join(
+            " "
+        ),
+        callback: zoomOut,
+    },
+];
+
+//ol-context 마커 위에서 발생하는 메뉴 아이템 구성 리스트
+const removeMarkerItem = {
+    text: "마커 삭제",
+    classname: "marker",
+    icon: deleteIcon,
+    callback: removeMarker,
+};
+
+//ol-context extentInteraction 위에서 발생하는 메뉴 아이템 구성 리스트
+const captureItem = [
+    {
+        text: "이미지 저장",
+        classname: "center",
+        icon: imageIcon,
+        callback: imageCapture,
+    },
+    {
+        text: "pdf 저장",
+        icon: pdfIcon,
+        classname: "marker",
+        callback: exportPdf,
+    },
+    {
+        text: "줌",
+        classname: [namespace + zoom_in_class, namespace + icon_class].join(
+            " "
+        ),
+        callback: zoomExntent,
+    },
+    {
+        text: "영역 삭제",
+        icon: deleteIcon,
+        callback: removeExtent,
+    },
+];
+
+//한국 전역을 포함하는 Extent 객체
+const KOREA_EXTENT = ol.proj.transformExtent(
+    [123.75, 33.55, 131.88, 39.44],
+    "EPSG:4326",
+    "EPSG:3857"
+);
+
+//기상 레이더 API응답의 가중치에 따라 webGL 객체의 색을 변환하는 함수
+const webGlStyle = {
+    symbol: {
+        symbolType: "square",
+        size: [
+            "case",
+            [">", ["zoom"], 8],
+            0,
+            ["interpolate", ["exponential", 2.5], ["zoom"], 6, 3, 9, 5],
+        ],
+        color: [
+            "case",
+            [">=", ["get", "value"], 110],
+            "#333333",
+            [">=", ["get", "value"], 90],
+            "#000390",
+            [">=", ["get", "value"], 80],
+            "#4C4EB1",
+            [">=", ["get", "value"], 70],
+            "#B3B4DE",
+            [">=", ["get", "value"], 60],
+            "#9300E4",
+            [">=", ["get", "value"], 50],
+            "#B329FF",
+            [">=", ["get", "value"], 40],
+            "#C969FF",
+            [">=", ["get", "value"], 30],
+            "#E0A9FF",
+            [">=", ["get", "value"], 25],
+            "#B40000",
+            [">=", ["get", "value"], 20],
+            "#D20000",
+            [">=", ["get", "value"], 15],
+            "#FF3200",
+            [">=", ["get", "value"], 10],
+            "#FF6600",
+            [">=", ["get", "value"], 9],
+            "#CCAA00",
+            [">=", ["get", "value"], 8],
+            "#E0B900",
+            [">=", ["get", "value"], 7],
+            "#F9CD00",
+            [">=", ["get", "value"], 6],
+            "#FFDC1F",
+            [">=", ["get", "value"], 5],
+            "#FFE100",
+            [">=", ["get", "value"], 4],
+            "#005A00",
+            [">=", ["get", "value"], 3],
+            "#008C00",
+            [">=", ["get", "value"], 2],
+            "#00BE00",
+            [">=", ["get", "value"], 1],
+            "#00FF00",
+            [">=", ["get", "value"], 0.5],
+            "#0033F5",
+            [">=", ["get", "value"], 0.1],
+            "#009BF5",
+            ["==", ["get", "value"], 0],
+            "rgba(0,0,0,0)",
+            "rgba(0,0,0,0)", // default color if no match
+        ],
+        opacity: 1,
+    },
+};
+
+//행정주제도 zTree Setting
+const administrativeZTreeSetting = {
+    check: {
+        enable: true,
+        autoCheckTrigger: true,
+    },
+    data: {
+        simpleData: {
+            enable: true,
+        },
+    },
+    view: {
+        addDiyDom: addDiyDom,
+    },
+    callback: {
+        onCheck: administrativeNodeChecked,
+        beforeClick: function (treeId, treeNode, clickFlag) {
+            return false;
+        },
+    },
+};
+
+//기본수치지도 zTree Setting
+const basicZTreeSetting = {
+    check: {
+        enable: true,
+        autoCheckTrigger: true,
+    },
+    data: {
+        simpleData: {
+            enable: true,
+        },
+    },
+    view: {
+        addDiyDom: addDiyDom,
+    },
+    callback: {
+        onCheck: basicNodeChecked,
+        beforeClick: function (treeId, treeNode, clickFlag) {
+            return false;
+        },
+    },
+};
+
+//행정주제도의 tree node 객체
+const administrativeThematicMapNodes = [
+    {
+        id: 1,
+        pId: 0,
+        name: "용도지역",
+        open: true,
+        iconClose: "./resources/img/layer_open.png",
+        iconOpen: "./resources/img/layer_open.png",
+    },
+    {
+        id: 11,
+        pId: 1,
+        name: "도시지역",
+        icon: "./resources/img/layer_item.png",
+    },
+    {
+        id: 12,
+        pId: 1,
+        name: "관리지역",
+        icon: "./resources/img/layer_item.png",
+    },
+    {
+        id: 13,
+        pId: 1,
+        name: "농림지역",
+        icon: "./resources/img/layer_item.png",
+    },
+    {
+        id: 14,
+        pId: 1,
+        name: "자연환경보전지역",
+        icon: "./resources/img/layer_item.png",
+    },
+    {
+        id: 15,
+        pId: 1,
+        name: "개발제한구역",
+        icon: "./resources/img/layer_item.png",
+    },
+    {
+        id: 16,
+        pId: 1,
+        name: "개발행위허가제한지역",
+        icon: "./resources/img/layer_item.png",
+    },
+    {
+        id: 2,
+        pId: 0,
+        name: "환경/보호관리",
+        open: true,
+        iconClose: "./resources/img/layer_open.png",
+        iconOpen: "./resources/img/layer_open.png",
+    },
+    {
+        id: 21,
+        pId: 2,
+        name: "생태자연도",
+        icon: "./resources/img/layer_item.png",
+    },
+    {
+        id: 22,
+        pId: 2,
+        name: "국토환경성평가도",
+        icon: "./resources/img/layer_item.png",
+    },
+    {
+        id: 23,
+        pId: 2,
+        name: "상수원보호도",
+        icon: "./resources/img/layer_item.png",
+    },
+    {
+        id: 24,
+        pId: 2,
+        name: "문화재보호도",
+        icon: "./resources/img/layer_item.png",
+    },
+];
+
+//기본수치지도 tree node 객체
+const basicThematicMapNodes = [
+    {
+        id: 3,
+        pId: 0,
+        name: "기본도",
+        open: true,
+        iconClose: "./resources/img/layer_open.png",
+        iconOpen: "./resources/img/layer_open.png",
+    },
+    {
+        id: 31,
+        pId: 3,
+        name: "기상 레이더영상",
+        icon: "./resources/img/layer_item.png",
+    },
+    {
+        id: 32,
+        pId: 3,
+        name: "도로 CCTV",
+        icon: "./resources/img/layer_item.png",
+    },
+    {
+        id: 33,
+        pId: 3,
+        name: "전국도로",
+        icon: "./resources/img/layer_item.png",
+    },
+    {
+        id: 34,
+        pId: 3,
+        name: "건물",
+        icon: "./resources/img/layer_item.png",
+    },
+    {
+        id: 35,
+        pId: 3,
+        name: "연속지적도",
+        icon: "./resources/img/layer_item.png",
+    },
+    {
+        id: 4,
+        pId: 3,
+        name: "행정경계",
+        open: false,
+        iconClose: "./resources/img/layer_open.png",
+        iconOpen: "./resources/img/layer_open.png",
+    },
+    {
+        id: 41,
+        pId: 4,
+        name: "시도경계",
+        icon: "./resources/img/layer_item.png",
+    },
+    {
+        id: 42,
+        pId: 4,
+        name: "시군구경계",
+        icon: "./resources/img/layer_item.png",
+    },
+    {
+        id: 43,
+        pId: 4,
+        name: "읍면동경계",
+        icon: "./resources/img/layer_item.png",
+    },
+    {
+        id: 44,
+        pId: 4,
+        name: "리경계",
+        icon: "./resources/img/layer_item.png",
+    },
+];
 
 //vworld 기본 타일
 const baseLayer = new ol.layer.Tile({
@@ -225,15 +596,6 @@ const line = document.getElementById("line");
 //지도의 줌 레벨을 입력하기 위한 div 엘리먼트
 const zoomInfo = document.getElementById("zoom-info");
 
-//지도 위에 GPX, GeoJson, IGC, KML, TopoJson 파일을 Drag & Drop으로 표시하기 위한 인터렉션을 담을 변수
-let dragAndDropInteraction;
-//한국 전역을 포함하는 Extent 객체
-const koreaExtent = ol.proj.transformExtent(
-    [123.75, 33.55, 131.88, 39.44],
-    "EPSG:4326",
-    "EPSG:3857"
-);
-
 //지도에 Drag & Drop 인터렉션을 추가하는 함수
 function addDragAndDropInteraction() {
     if (dragAndDropInteraction) {
@@ -256,7 +618,7 @@ function addDragAndDropInteraction() {
 
         let layerExtent = vectorSource.getExtent();
 
-        if (!ol.extent.intersects(layerExtent, koreaExtent)) {
+        if (!ol.extent.intersects(layerExtent, KOREA_EXTENT)) {
             alert("한국이 아닌 지형의 파일은 레이어를 추가할 수 없습니다.");
             return;
         }
@@ -609,94 +971,6 @@ function addLinkInteraction() {
 }
 addLinkInteraction();
 
-//지도에 축적 컨트롤 추가
-const scaleControl = new ol.control.ScaleLine({
-    units: "metric", //미터법
-    bar: true, //scalebars
-    steps: 4, //scalebars 개수
-    text: true, //scale 비율 텍스트 표시 플래그
-    minWidth: 200, //최소 너비
-});
-map.addControl(scaleControl);
-
-//지도에 줌 슬라이더 컨트롤 추가
-map.addControl(new ol.control.ZoomSlider());
-
-//지도에 풀 스크린 컨트롤 추가
-map.addControl(
-    new ol.control.FullScreen({
-        className: "ol-fullscreen-control",
-    })
-);
-
-//지도에 오버뷰맵 컨트롤 추가
-const overviewMapControl = new ol.control.OverviewMap({
-    className: "ol-overviewmap ol-custom-overviewmap",
-    view: new ol.View({
-        projection: "EPSG:3857",
-        center: mapView.getCenter(),
-        maxZoom: MAX_ZOOM_LEVEL,
-        zoom: mapView.getZoom(),
-        minZoom: MIN_ZOOM_LEVEL,
-        constrainResolution: true,
-    }),
-    // see in overviewmap-custom.html to see the custom CSS used
-    layers: [
-        new ol.layer.Tile({
-            source: new ol.source.XYZ({
-                url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Base/{z}/{y}/{x}.png`,
-                serverType: "geoserver",
-                crossOrigin: "anonymous",
-            }),
-            preload: Infinity,
-            type: "map",
-        }),
-    ],
-    rotateWithView: true,
-    collapsed:
-        localStorage.getItem("overviewMapCollapsed") === "true" ? true : false,
-});
-map.addControl(overviewMapControl);
-
-//지도의 센터 타겟 컨트롤 추가
-map.addControl(
-    new ol.control.Target({
-        style: [
-            new ol.style.Style({
-                image: new ol.style.RegularShape({
-                    points: 4,
-                    radius: 11,
-                    radius1: 0,
-                    radius2: 0,
-                    snapToPixel: true,
-                    stroke: new ol.style.Stroke({ color: "#fff", width: 3 }),
-                }),
-            }),
-            new ol.style.Style({
-                image: new ol.style.RegularShape({
-                    points: 4,
-                    radius: 11,
-                    radius1: 0,
-                    radius2: 0,
-                    snapToPixel: true,
-                    stroke: new ol.style.Stroke({ color: "black", width: 2 }),
-                }),
-            }),
-        ],
-        composite: "",
-    })
-);
-
-//지도에 ZoomToExtent 컨트롤러 추가
-map.addControl(
-    new ol.control.ZoomToExtent({
-        extent: [
-            14103925.705518028, 4533240.7238401985, 14229588.180018857,
-            4473925.589890901,
-        ],
-    })
-);
-
 //지도 객체의 로딩이 시작되면 실행되는 이벤트
 map.on("loadstart", function () {
     map.getTargetElement().classList.add("spinner");
@@ -1047,9 +1321,6 @@ map.on("click", function (evt) {
 // span.innerHTML = '<img src="./resources/img/rotate-removebg.png">';
 // map.addControl(new ol.control.Rotate({ autoHide: false, label: span }));
 
-//지도에 방위계 컨트롤을 추가한다.
-map.addControl(new ol.control.Rotate({ autoHide: false }));
-
 //직선 길이측정 레이어를 지도위에 표출하기 위한 레이어 소스.
 const lineSource = new ol.source.Vector();
 //직선 길이측정 레이어를 지도위에 표출하기 위한 벡터 레이어
@@ -1120,41 +1391,6 @@ function formatCoordinate(
         5
     )}`;
 }
-
-//길이측정 overlay의 html 엘리먼트
-let measureTooltipElement;
-//길이측정 overlay
-let measureTooltip;
-
-//면적측정 overlay의 html 엘리먼트
-let areaTooltipElement;
-//면적측정 overlay
-let areaTooltip;
-
-//경로탐색 overlay의 html 엘리먼트
-let routeTooltipElement;
-//경로탐색 overlay
-let routeTooltip;
-
-//반경측정 overlay의 html 엘리먼트
-let circleTooltipElement;
-//반경측정 overlay
-let circleTooltip;
-
-//Extent 인터렉션 영역의 html 엘리먼트
-let extentInteractionTooltipElement;
-//Extent 인터렉션 overlay
-let extentInteractionTooltip;
-
-// 현재 그려지고 있는 feature
-let sketch;
-
-//직선을 그리는 draw객체
-let measurePolygon;
-//면적을 그리는 draw객체
-let areaPolygon;
-//원을 그리는 draw객체
-let circlePolygon;
 
 //지도위에 길이측정 레이어, 툴팁을 표시하는 함수
 function addLineInteraction() {
@@ -2086,111 +2322,6 @@ function searchRouteSummury(startFeature, endFeature, routeFlag) {
         });
 }
 
-//ol-context 마커 아이콘
-const pinIcon =
-    "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/pin_drop.png";
-//ol-context 지도 중앙위치 아이콘
-const centerIcon =
-    "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/center.png";
-//ol-context 목록 아이콘
-const listIcon =
-    "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/view_list.png";
-
-//pdf 아이콘
-const pdfIcon = "./resources/img/pdf.png";
-//이미지 아이콘
-const imageIcon = "./resources/img/image.png";
-//삭제 아이콘
-const deleteIcon = "./resources/img/delete.png";
-//새로고침 아이콘
-const refreshIcon = "./resources/img/refresh.png";
-//시작 마커 아이콘
-const startMarkerIcon = "./resources/img/red_marker.png";
-//종료 마커 아이콘
-const endMarkerIcon = "./resources/img/green_marker.png";
-//북마커 마커 아이콘
-const bookMarkerIcon = "./resources/img/book_mark.png";
-
-//ol-context zoom 클래스 설정
-const namespace = "ol-ctx-menu";
-const icon_class = "-icon";
-const zoom_in_class = "-zoom-in";
-const zoom_out_class = "-zoom-out";
-
-//ol-context 기본 메뉴 아이템 구성 리스트
-const contextmenuItems = [
-    {
-        text: "출발",
-        classname: "start-item",
-        icon: startMarkerIcon,
-        callback: startMarker,
-    },
-    {
-        text: "도착",
-        classname: "end-item",
-        icon: endMarkerIcon,
-        callback: endMarker,
-    },
-    {
-        text: "지도 중앙 이동",
-        classname: "bold",
-        icon: centerIcon,
-        callback: center,
-    },
-    {
-        text: "북마크",
-        classname: "bold",
-        icon: bookMarkerIcon,
-        callback: addBookMark,
-    },
-    {
-        text: "좌표",
-        classname: "ol-coordinate",
-        callback: center,
-    },
-    {
-        text: "기타 작업",
-        icon: listIcon,
-        items: [
-            {
-                text: "지도 중앙 이동",
-                icon: centerIcon,
-                callback: center,
-            },
-            {
-                text: "마커 추가",
-                icon: pinIcon,
-                callback: marker,
-            },
-        ],
-    },
-    {
-        text: "마커 추가",
-        icon: pinIcon,
-        callback: marker,
-    },
-    {
-        text: "새로 고침",
-        icon: refreshIcon,
-        callback: refresh,
-    },
-    "-",
-    {
-        text: "줌 인",
-        classname: [namespace + zoom_in_class, namespace + icon_class].join(
-            " "
-        ),
-        callback: zoomIn,
-    },
-    {
-        text: "줌 아웃",
-        classname: [namespace + zoom_out_class, namespace + icon_class].join(
-            " "
-        ),
-        callback: zoomOut,
-    },
-];
-
 //ol-context callback 함수. 줌 레벨을 한단계 확대한다.
 function zoomIn(obj, map) {
     if (map.getView().getZoom() >= MAX_ZOOM_LEVEL) {
@@ -2324,42 +2455,6 @@ contextmenu.on("open", function (evt) {
         //contextmenu.extend(contextmenu.getDefaultItems());
     }
 });
-
-//ol-context 마커 위에서 발생하는 메뉴 아이템 구성 리스트
-const removeMarkerItem = {
-    text: "마커 삭제",
-    classname: "marker",
-    icon: deleteIcon,
-    callback: removeMarker,
-};
-
-//ol-context extentInteraction 위에서 발생하는 메뉴 아이템 구성 리스트
-const captureItem = [
-    {
-        text: "이미지 저장",
-        classname: "center",
-        icon: imageIcon,
-        callback: imageCapture,
-    },
-    {
-        text: "pdf 저장",
-        icon: pdfIcon,
-        classname: "marker",
-        callback: exportPdf,
-    },
-    {
-        text: "줌",
-        classname: [namespace + zoom_in_class, namespace + icon_class].join(
-            " "
-        ),
-        callback: zoomExntent,
-    },
-    {
-        text: "영역 삭제",
-        icon: deleteIcon,
-        callback: removeExtent,
-    },
-];
 
 //지도 위에서 마우스가 이동할 때 발생하는 이벤트. 길이와 면적 측정시 마우스 커서를 변경하고, 지도 위에 특정 레이어가 존재한다면 커서를 변경한다.
 map.on("pointermove", function (e) {
@@ -3303,7 +3398,7 @@ function addCctvLayer(treeNode, treeId) {
     treeObj.setChkDisabled(treeNode, true, false, false);
     //대한민국 전역을 Extent로 잡기 위해 좌표를 고정하였음
     const extent4326 = ol.proj.transformExtent(
-        koreaExtent,
+        KOREA_EXTENT,
         "EPSG:3857",
         "EPSG:4326"
     );
@@ -3546,72 +3641,6 @@ function decodeCAPPIData(cappiCompressData) {
 
     return csvData;
 }
-
-//API응답의 가중치에 따라 webGL 객체의 색을 변환하는 함수
-const webGlStyle = {
-    symbol: {
-        symbolType: "square",
-        size: [
-            "case",
-            [">", ["zoom"], 8],
-            0,
-            ["interpolate", ["exponential", 2.5], ["zoom"], 6, 3, 9, 5],
-        ],
-        color: [
-            "case",
-            [">=", ["get", "value"], 110],
-            "#333333",
-            [">=", ["get", "value"], 90],
-            "#000390",
-            [">=", ["get", "value"], 80],
-            "#4C4EB1",
-            [">=", ["get", "value"], 70],
-            "#B3B4DE",
-            [">=", ["get", "value"], 60],
-            "#9300E4",
-            [">=", ["get", "value"], 50],
-            "#B329FF",
-            [">=", ["get", "value"], 40],
-            "#C969FF",
-            [">=", ["get", "value"], 30],
-            "#E0A9FF",
-            [">=", ["get", "value"], 25],
-            "#B40000",
-            [">=", ["get", "value"], 20],
-            "#D20000",
-            [">=", ["get", "value"], 15],
-            "#FF3200",
-            [">=", ["get", "value"], 10],
-            "#FF6600",
-            [">=", ["get", "value"], 9],
-            "#CCAA00",
-            [">=", ["get", "value"], 8],
-            "#E0B900",
-            [">=", ["get", "value"], 7],
-            "#F9CD00",
-            [">=", ["get", "value"], 6],
-            "#FFDC1F",
-            [">=", ["get", "value"], 5],
-            "#FFE100",
-            [">=", ["get", "value"], 4],
-            "#005A00",
-            [">=", ["get", "value"], 3],
-            "#008C00",
-            [">=", ["get", "value"], 2],
-            "#00BE00",
-            [">=", ["get", "value"], 1],
-            "#00FF00",
-            [">=", ["get", "value"], 0.5],
-            "#0033F5",
-            [">=", ["get", "value"], 0.1],
-            "#009BF5",
-            ["==", ["get", "value"], 0],
-            "rgba(0,0,0,0)",
-            "rgba(0,0,0,0)", // default color if no match
-        ],
-        opacity: 1,
-    },
-};
 
 //레이더 좌표를 4326 좌표계로 변환하는 함수. api 응답객체의 값을 이용해 2진 좌표계에 실제 좌표계를 대입한다.
 function assignCoordinates(
@@ -4038,15 +4067,6 @@ swipe.addEventListener("input", function (e) {
     line.style.left = linePosition + thumbWidth / 2 + "px";
     map.render();
 });
-
-//ol-ext의 printDialog 컨트롤 객체 생성
-const printControl = new ol.control.PrintDialog({
-    lang: "ko",
-    scales: false,
-    className: "ol-print",
-});
-printControl.setSize("A4");
-map.addControl(printControl);
 
 //printDialog가 보여질 떄 발생하는 이벤트. 새로운 지도가 표출되기 때문에 기존에 존재하는 이벤트를 전부 제거하고, 새로운 지도에서의 행위가 기존 지도에 영향을 미쳐 기존 지도의 줌, 센터, 회전각 등을 저장함
 printControl.on("show", function () {
@@ -5020,50 +5040,6 @@ $(document).on("click", ".road-more-view", function (event) {
     tabElement.show();
 });
 
-//행정주제도 zTree Setting
-const administrativeZTreeSetting = {
-    check: {
-        enable: true,
-        autoCheckTrigger: true,
-    },
-    data: {
-        simpleData: {
-            enable: true,
-        },
-    },
-    view: {
-        addDiyDom: addDiyDom,
-    },
-    callback: {
-        onCheck: administrativeNodeChecked,
-        beforeClick: function (treeId, treeNode, clickFlag) {
-            return false;
-        },
-    },
-};
-
-//기본수치지도 zTree Setting
-const basicZTreeSetting = {
-    check: {
-        enable: true,
-        autoCheckTrigger: true,
-    },
-    data: {
-        simpleData: {
-            enable: true,
-        },
-    },
-    view: {
-        addDiyDom: addDiyDom,
-    },
-    callback: {
-        onCheck: basicNodeChecked,
-        beforeClick: function (treeId, treeNode, clickFlag) {
-            return false;
-        },
-    },
-};
-
 //zTree의 각 노드에 커스텀 엘리먼트를 추가하는 함수. range 엘리먼트를 추가하여 각 레이어의 opacity를 제어한다.
 function addDiyDom(treeId, treeNode) {
     const aObj = $("#" + treeNode.tId + "_span");
@@ -5100,160 +5076,6 @@ function changeChildrenRange(treeNode, newValue) {
         }
     }
 }
-
-//행정주제도의 tree node 객체
-const administrativeThematicMapNodes = [
-    {
-        id: 1,
-        pId: 0,
-        name: "용도지역",
-        open: true,
-        iconClose: "./resources/img/layer_open.png",
-        iconOpen: "./resources/img/layer_open.png",
-    },
-    {
-        id: 11,
-        pId: 1,
-        name: "도시지역",
-        icon: "./resources/img/layer_item.png",
-    },
-    {
-        id: 12,
-        pId: 1,
-        name: "관리지역",
-        icon: "./resources/img/layer_item.png",
-    },
-    {
-        id: 13,
-        pId: 1,
-        name: "농림지역",
-        icon: "./resources/img/layer_item.png",
-    },
-    {
-        id: 14,
-        pId: 1,
-        name: "자연환경보전지역",
-        icon: "./resources/img/layer_item.png",
-    },
-    {
-        id: 15,
-        pId: 1,
-        name: "개발제한구역",
-        icon: "./resources/img/layer_item.png",
-    },
-    {
-        id: 16,
-        pId: 1,
-        name: "개발행위허가제한지역",
-        icon: "./resources/img/layer_item.png",
-    },
-    {
-        id: 2,
-        pId: 0,
-        name: "환경/보호관리",
-        open: true,
-        iconClose: "./resources/img/layer_open.png",
-        iconOpen: "./resources/img/layer_open.png",
-    },
-    {
-        id: 21,
-        pId: 2,
-        name: "생태자연도",
-        icon: "./resources/img/layer_item.png",
-    },
-    {
-        id: 22,
-        pId: 2,
-        name: "국토환경성평가도",
-        icon: "./resources/img/layer_item.png",
-    },
-    {
-        id: 23,
-        pId: 2,
-        name: "상수원보호도",
-        icon: "./resources/img/layer_item.png",
-    },
-    {
-        id: 24,
-        pId: 2,
-        name: "문화재보호도",
-        icon: "./resources/img/layer_item.png",
-    },
-];
-
-//기본수치지도 tree node 객체
-const basicThematicMapNodes = [
-    {
-        id: 3,
-        pId: 0,
-        name: "기본도",
-        open: true,
-        iconClose: "./resources/img/layer_open.png",
-        iconOpen: "./resources/img/layer_open.png",
-    },
-    {
-        id: 31,
-        pId: 3,
-        name: "기상 레이더영상",
-        icon: "./resources/img/layer_item.png",
-    },
-    {
-        id: 32,
-        pId: 3,
-        name: "도로 CCTV",
-        icon: "./resources/img/layer_item.png",
-    },
-    {
-        id: 33,
-        pId: 3,
-        name: "전국도로",
-        icon: "./resources/img/layer_item.png",
-    },
-    {
-        id: 34,
-        pId: 3,
-        name: "건물",
-        icon: "./resources/img/layer_item.png",
-    },
-    {
-        id: 35,
-        pId: 3,
-        name: "연속지적도",
-        icon: "./resources/img/layer_item.png",
-    },
-    {
-        id: 4,
-        pId: 3,
-        name: "행정경계",
-        open: false,
-        iconClose: "./resources/img/layer_open.png",
-        iconOpen: "./resources/img/layer_open.png",
-    },
-    {
-        id: 41,
-        pId: 4,
-        name: "시도경계",
-        icon: "./resources/img/layer_item.png",
-    },
-    {
-        id: 42,
-        pId: 4,
-        name: "시군구경계",
-        icon: "./resources/img/layer_item.png",
-    },
-    {
-        id: 43,
-        pId: 4,
-        name: "읍면동경계",
-        icon: "./resources/img/layer_item.png",
-    },
-    {
-        id: 44,
-        pId: 4,
-        name: "리경계",
-        icon: "./resources/img/layer_item.png",
-    },
-];
 
 //행정주제도의 tree node의 체크 콜백 함수. 추후 함수의 내용은 추가할 예정
 function administrativeNodeChecked(event, treeId, treeNode) {
