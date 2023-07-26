@@ -38,3 +38,17 @@ if (window.location.href.includes("192")) {
 
 //kakao API키를 저장하기 위한 변수
 const KAKAO_REST_API_KEY = "a75f661f8fd50587142251f0476ef2da";
+
+//한국 전역을 포함하는 Extent 객체
+const KOREA_EXTENT = ol.proj.transformExtent([123.75, 33.55, 131.88, 39.44],"EPSG:4326","EPSG:3857");
+
+//지도의 중앙 좌표를 입력하기 위한 div 엘리먼트
+const info = document.getElementById("coordinate");
+//지도의 중앙 주소를 입력하기 위한 div 엘리먼트
+const addressInfo = document.getElementById("address");
+//지도의 스와이프 레이어를 컨트롤 하기위한 range 엘리먼트
+const swipe = document.getElementById("swipe");
+//지도의 스와이프 레이어와 연동되어 세로 선을 긋기 위한 div 엘리먼트
+const line = document.getElementById("line");
+//지도의 줌 레벨을 입력하기 위한 div 엘리먼트
+const zoomInfo = document.getElementById("zoom-info");
