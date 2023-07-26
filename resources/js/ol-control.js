@@ -99,3 +99,68 @@ const printControl = new ol.control.PrintDialog({
 });
 printControl.setSize("A4");
 map.addControl(printControl);
+
+//printDialog가 보여질 떄 발생하는 이벤트. 새로운 지도가 표출되기 때문에 기존에 존재하는 이벤트를 전부 제거하고, 새로운 지도에서의 행위가 기존 지도에 영향을 미쳐 기존 지도의 줌, 센터, 회전각 등을 저장함
+printControl.on("show", function () {
+    extentInteraction.setActive(false);
+    map.removeInteraction(dragBox);
+
+    const storageObject = {
+        zoomLevel: map.getView().getZoom(),
+        centerCoordinate: map.getView().getCenter(),
+        rotate: map.getView().getRotation(),
+    };
+    const objString = JSON.stringify(storageObject);
+
+    window.localStorage.setItem("beforeState", objString);
+});
+
+//printDialog가 사라질 떄 발생하는 이벤트. 제거했던 이벤트를 다시 생성하고, 기존 지도의 값을 불러와  줌, 센터, 회전각을 재설정함
+printControl.on("hide", function () {
+    extentInteraction.setActive(true);
+    map.addInteraction(dragBox);
+    contextmenu.enable();
+    const value = JSON.parse(window.localStorage.getItem("beforeState"));
+    map.getView().setCenter(value.centerCoordinate);
+    map.getView().setZoom(value.zoomLevel);
+    map.getView().setRotation(value.rotate);
+    window.localStorage.removeItem("beforeState");
+});
+
+//printDialog의 이미지저장, PDF저장 이벤트
+printControl.on(["print", "error"], function (e) {
+    // Print success
+    if (e.image) {
+        if (e.pdf) {
+            // Export pdf using the print info
+            const pdf = new jspdf.jsPDF({
+                orientation: e.print.orientation,
+                unit: e.print.unit,
+                format: e.print.size,
+            });
+            pdf.addImage(
+                e.image,
+                "JPEG",
+                e.print.position[0],
+                e.print.position[0],
+                e.print.imageWidth,
+                e.print.imageHeight
+            );
+            pdf.save(e.print.legend ? "legend.pdf" : "map.pdf");
+        } else {
+            // Save image as file
+            e.canvas.toBlob(
+                function (blob) {
+                    const name =
+                        (e.print.legend ? "legend." : "map.") +
+                        e.imageType.replace("image/", "");
+                    saveAs(blob, name);
+                },
+                e.imageType,
+                e.quality
+            );
+        }
+    } else {
+        console.warn("No canvas to export");
+    }
+});
