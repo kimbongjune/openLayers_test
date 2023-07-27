@@ -1,3 +1,8 @@
+/**
+ *  @author 김봉준
+ *  @date   2023-07-25
+ *  공통함수를 관리하는 파일
+ */
 
 //현재시간에서 20분 전 시간을 얻어오는 함수. 레이더 API가 바로 반영되지 않음
 function getTwentyMinutesBefore() {
@@ -390,4 +395,8 @@ function saveExtentAsImage() {
             link.click();
         };
     }
+}
+
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }

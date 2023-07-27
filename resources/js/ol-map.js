@@ -1,3 +1,9 @@
+/**
+ *  @author 김봉준
+ *  @date   2023-07-25
+ *  지도 서비스의 지도 객체를 관리하는 파일
+ */
+
 //openlayers 지도의 view 객체
 const mapView = new ol.View({
     center: [14128579.82, 4512570.74],

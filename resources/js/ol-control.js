@@ -1,3 +1,9 @@
+/**
+ *  @author 김봉준
+ *  @date   2023-07-25
+ *  지도 서비스의 컨트롤을 관리하는 파일
+ */
+
 //지도에 축적 컨트롤 추가
 const scaleControl = new ol.control.ScaleLine({
     units: "metric", //미터법
