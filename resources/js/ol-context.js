@@ -414,19 +414,13 @@ contextmenu.on("beforeopen", function (evt) {
         contextmenu.disable();
         return;
     }
-    if (
-        $(areaCheckbox).is(":checked") ||
-        $(measureCheckbox).is(":checked") ||
-        $(areaCircleCheckbox).is(":checked")
-    ) {
+    if ($(areaCheckbox).is(":checked") || $(measureCheckbox).is(":checked") || $(areaCircleCheckbox).is(":checked")) {
         contextmenu.disable();
         if (measurePolygon) {
             //console.log(draw);
             measurePolygon.finishDrawing();
             if (measureTooltipElement) {
-                measureTooltipElement.parentNode.removeChild(
-                    measureTooltipElement
-                );
+                measureTooltipElement.parentNode.removeChild(measureTooltipElement);
             }
             map.removeInteraction(measurePolygon);
             addLineInteraction();

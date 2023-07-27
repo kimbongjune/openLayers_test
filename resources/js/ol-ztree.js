@@ -1,3 +1,9 @@
+/**
+ *  @author 김봉준
+ *  @date   2023-07-25
+ *  서비스의 zTree 객체를 관리하는 파일
+ */
+
 const zTreeLayerOpenIcon = "./resources/img/layer_open.png"
 const zTreeLayerItemIcon = "./resources/img/layer_item.png"
 
