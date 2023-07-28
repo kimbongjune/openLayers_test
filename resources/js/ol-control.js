@@ -52,7 +52,14 @@ const overviewMapControl = new ol.control.OverviewMap({
     collapsed:
         localStorage.getItem("overviewMapCollapsed") === "true" ? true : false,
 });
+
+//오버뷰 맵이 클릭되었을 때 발생하는 이벤트. 로컬스토리지에 오버뷰맵의 콜랩스 상태를 저장한다.
+overviewMapControl.getOverviewMap().on("change:size", function(){
+    const isCollapsed = overviewMapControl.getCollapsed();
+    localStorage.setItem("overviewMapCollapsed", isCollapsed);
+})
 map.addControl(overviewMapControl);
+
 
 //지도의 센터 타겟 컨트롤 추가
 const centerTargetControl = new ol.control.Target({
@@ -91,6 +98,10 @@ const zoomToExtentControl = new ol.control.ZoomToExtent({
 })
 map.addControl(zoomToExtentControl);
 
+//방위계 아이콘을 변경하고 컨트롤 객체에 추가한다.
+// var span = document.createElement("span");
+// span.innerHTML = '<img src="./resources/img/rotate-removebg.png">';
+// map.addControl(new ol.control.Rotate({ autoHide: false, label: span }));
 //지도에 방위계 컨트롤 추가
 const rotateControl = new ol.control.Rotate({ 
     autoHide: false 

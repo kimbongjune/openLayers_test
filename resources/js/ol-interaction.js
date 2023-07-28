@@ -430,3 +430,262 @@ function addCctvInteraction(){
     //지도에 cctv cluster 인터렉션을 추가한다.
     map.addInteraction(cctvSelectCluster);
 }
+
+
+//지도위에 길이측정 레이어, 툴팁을 표시하는 함수
+function addLineInteraction() {
+    measurePolygon = new ol.interaction.Draw({
+        source: lineSource,
+        type: "LineString",
+        style: new ol.style.Style({
+            stroke: new ol.style.Stroke({
+                color: "rgba(255,0,94)",
+                width: 3,
+            }),
+        }),
+        stopClick: true,
+        freehandCondition: ol.events.condition.never,
+        condition: (e) =>
+            ol.events.condition.noModifierKeys(e) && ol.events.condition.primaryAction(e),
+    });
+
+    map.addInteraction(measurePolygon);
+
+    let overlayDisplayed = false;
+
+    measurePolygon.on("drawstart", function (evt) {
+        sketch = evt.feature;
+
+        sketch.getGeometry().on("change", function (evt) {
+            const geom = evt.target;
+            //var output = formatLength((geom));
+            measureTooltipElement.innerHTML = createDrawingAreaTooltipHtml(
+                "line",
+                this
+            );
+            measureTooltip.setPosition(geom.getLastCoordinate());
+            measureTooltipElement.parentElement.style.pointerEvents = "none";
+            if (geom.getCoordinates().length > 2 && !overlayDisplayed) {
+                measureTooltipElement.className = "tooltip tooltip-static";
+                overlayDisplayed = true;
+            }
+        });
+
+        //createMeasureTooltip();
+        let toolTipElement = createDrawTooltip();
+        measureTooltipElement = toolTipElement.element;
+        measureTooltip = toolTipElement.tooltip;
+    });
+
+    measurePolygon.on("drawend", function (evt) {
+        //ol.Observable.unByKey(listener);
+        if (!overlayDisplayed) {
+            map.removeOverlay(measureTooltip);
+        }
+
+        const feature = evt.feature; // 그리기가 완료된 feature를 가져옵니다.
+        feature.setStyle(
+            new ol.style.Style({
+                // feature의 스타일을 설정합니다.
+                stroke: new ol.style.Stroke({
+                    color: "rgba(255,0,94)",
+                    width: 3,
+                }),
+            })
+        );
+        const coordinateLength = sketch.getGeometry().getCoordinates().length;
+        if (coordinateLength < 2) {
+            setTimeout(function () {
+                lineSource.removeFeature(evt.feature);
+                map.removeOverlay(measureTooltip);
+            }, 0);
+        } else {
+            const overlayToRemove = measureTooltip;
+            measureTooltipElement.innerHTML = createDrawFinishedAreaTooltipHtml("line", evt.feature.getGeometry());
+            const deleteButton = measureTooltipElement.querySelector(".delete-btn");
+
+            deleteButton.addEventListener("click", function () {
+                // 해당 feature 제거
+                lineSource.removeFeature(evt.feature);
+                // 해당 tooltip 제거
+                map.removeOverlay(overlayToRemove);
+            });
+            sketch = null;
+            measureTooltipElement = null;
+            overlayDisplayed = false;
+            measureTooltip = null;
+            map.removeInteraction(measurePolygon);
+            addLineInteraction();
+        }
+    });
+}
+
+//지도위에 면적측정 레이어, 툴팁을 표시하는 함수
+function addPolygonInteraction() {
+    areaPolygon = new ol.interaction.Draw({
+        source: polygonSource,
+        type: "Polygon",
+        style: new ol.style.Style({
+            stroke: new ol.style.Stroke({
+                color: "blue",
+                width: 3,
+            }),
+            fill: new ol.style.Fill({
+                color: "rgba(0, 0, 255, 0.1)",
+            }),
+        }),
+        stopClick: true,
+        freehandCondition: ol.events.condition.never,
+        condition: (e) =>
+            ol.events.condition.noModifierKeys(e) &&
+            ol.events.condition.primaryAction(e),
+    });
+
+    map.addInteraction(areaPolygon);
+
+    let listenerKey;
+
+    areaPolygon.on("drawstart", function (evt) {
+        sketch = evt.feature;
+
+        let lastMouseCoordinate;
+
+        listenerKey = map.on("pointermove", function (evt) {
+            lastMouseCoordinate = evt.coordinate;
+        });
+
+        // 이벤트 핸들러 추가
+        sketch.getGeometry().on("change", function (evt) {
+            //var output = formatArea((geom));
+            areaTooltipElement.innerHTML = createDrawingAreaTooltipHtml("polygon", this);
+            areaTooltip.setPosition(lastMouseCoordinate);
+            areaTooltipElement.parentElement.style.pointerEvents = "none";
+        });
+
+        //createAreaTooltip();
+        let toolTipElement = createDrawTooltip();
+        areaTooltipElement = toolTipElement.element;
+        areaTooltip = toolTipElement.tooltip;
+    });
+
+    areaPolygon.on("drawend", function (evt) {
+        const coordinateLength = sketch.getGeometry().getCoordinates()[0].length;
+        if (coordinateLength < 4) {
+            setTimeout(function () {
+                console.log(areaTooltip)
+                polygonSource.removeFeature(evt.feature);
+                map.removeOverlay(areaTooltip);
+                return;
+            }, 0);
+        }else{
+            const feature = evt.feature;
+            const geometry = feature.getGeometry();
+            const coordinates = geometry.getCoordinates()[0];
+            const lastCoordinate = coordinates[coordinates.length - 2];
+    
+            const overlayToRemove = areaTooltip;
+            areaTooltipElement.innerHTML = createDrawFinishedAreaTooltipHtml("polygon", evt.feature.getGeometry());
+    
+            const deleteButton = areaTooltipElement.querySelector(".delete-btn");
+            deleteButton.addEventListener("click", function () {
+                // 해당 feature 제거
+                polygonSource.removeFeature(evt.feature);
+                // 해당 tooltip 제거
+                map.removeOverlay(overlayToRemove);
+            });
+    
+            areaTooltip.setPosition(lastCoordinate);
+    
+            map.removeInteraction(areaPolygon);
+            sketch = null;
+            areaTooltipElement = null;
+            areaTooltip = null;
+            addPolygonInteraction();
+    
+            ol.Observable.unByKey(listenerKey);
+            listenerKey = null;
+        }
+
+
+    });
+}
+
+//지도위에 반경측정 레이어, 툴팁을 표시하는 함수
+function addCircleInteraction() {
+    circlePolygon = new ol.interaction.Draw({
+        source: cricleSource,
+        type: "Circle",
+        style: new ol.style.Style({
+            stroke: new ol.style.Stroke({
+                color: "green",
+                width: 3,
+            }),
+            fill: new ol.style.Fill({
+                color: "rgba(107,208,137, 0.3)",
+            }),
+        }),
+        stopClick: true,
+        freehandCondition: ol.events.condition.never,
+        condition: (e) =>
+            ol.events.condition.noModifierKeys(e) && ol.events.condition.primaryAction(e),
+    });
+
+    map.addInteraction(circlePolygon);
+
+    let listenerKey;
+
+    circlePolygon.on("drawstart", function (evt) {
+        let lastMouseCoordinate;
+
+        listenerKey = map.on("pointermove", function (evt) {
+            lastMouseCoordinate = evt.coordinate;
+        });
+
+        sketch = evt.feature;
+        //console.log(sketch.getGeometry())
+        // 이벤트 핸들러 추가
+        sketch.getGeometry().on("change", function (evt) {
+            //var output = formatCircleArea((geom));
+            circleTooltipElement.innerHTML = createDrawingAreaTooltipHtml("circle", this);
+            circleTooltip.setPosition(lastMouseCoordinate);
+            circleTooltipElement.parentElement.style.pointerEvents = "none";
+        });
+        //createCircleAreaTooltip();
+        let toolTipElement = createDrawTooltip();
+        circleTooltipElement = toolTipElement.element;
+        circleTooltip = toolTipElement.tooltip;
+    });
+
+    circlePolygon.on("drawend", function (evt) {
+        const geom = evt.target;
+        //console.log(geom);
+        const coordinateLength = geom.sketchCoords_.length;
+        //console.log(sketch.getGeometry())
+        if (coordinateLength < 2) {
+            setTimeout(function () {
+                cricleSource.removeFeature(evt.feature);
+                map.removeOverlay(circleTooltip);
+            }, 0);
+        }
+
+        const overlayToRemove = circleTooltip;
+        circleTooltipElement.innerHTML = createDrawFinishedAreaTooltipHtml("circle", evt.feature.getGeometry());
+
+        const deleteButton = circleTooltipElement.querySelector(".delete-btn");
+        deleteButton.addEventListener("click", function () {
+            // 해당 feature 제거
+            cricleSource.removeFeature(evt.feature);
+            // 해당 tooltip 제거
+            map.removeOverlay(overlayToRemove);
+        });
+
+        map.removeInteraction(circlePolygon);
+        sketch = null;
+        circleTooltipElement = null;
+        circleTooltip = null;
+        addCircleInteraction();
+
+        ol.Observable.unByKey(listenerKey);
+        listenerKey = null;
+    });
+}

@@ -58,3 +58,78 @@ const swipe = document.getElementById("swipe");
 const line = document.getElementById("line");
 //지도의 줌 레벨을 입력하기 위한 div 엘리먼트
 const zoomInfo = document.getElementById("zoom-info");
+
+//지도의 클릭 레이어를 담을 변수
+let clickCurrentLayer;
+//지도의 팝업 오버레이를 담을 변수
+let clickCurrentOverlay;
+
+//건물 레이어를 담을 변수
+let buildingLayer;
+//시도 경계 레이어를 담을 변수
+let sidoLayer;
+//시/군/구 경계 레이어를 담을 변수
+let sigunguLayer;
+//읍/면/동 경계 레이어를 담을 변수
+let myeondongLayer;
+//리 경계 레이어를 담을 변수
+let riLayer;
+//도로 레이어를 담을 변수
+let roadLayer;
+//연속 지적도 레이어를 담을 변수
+let cadastralMapLayer;
+//산불위험 예측지도 레이어를 담을 변수
+let mountaionFireMapLayer;
+//소방서 관할구역 레이어를 담을 변수
+let firestationJurisdictionLayer;
+//재해 위험지구 레이어를 담을 변수
+let disasterDangerLayer;
+//재해 위험지구 레이어를 담을 변수
+let graticuleLayer;
+//geoJson 형태의 API를 파싱하여 담을 변수
+let geojsonFormat = new ol.format.GeoJSON();
+//레이더 레이어를 담을 변수
+let webGlVectorLayer;
+//CCTV 레이어를 담을 변수
+let clusterLayer;
+
+//SGIS의 API를 호출하기 위한 API Accesss 키를 저장하기 위한 변수
+let SgisApiAccessKey;
+
+//swipe 레이어를 저장하기 위한 변수
+let swipeLayer;
+
+//길이측정 overlay의 html 엘리먼트
+let measureTooltipElement;
+//길이측정 overlay
+let measureTooltip;
+
+//면적측정 overlay의 html 엘리먼트
+let areaTooltipElement;
+//면적측정 overlay
+let areaTooltip;
+
+//경로탐색 overlay의 html 엘리먼트
+let routeTooltipElement;
+//경로탐색 overlay
+let routeTooltip;
+
+//반경측정 overlay의 html 엘리먼트
+let circleTooltipElement;
+//반경측정 overlay
+let circleTooltip;
+
+//Extent 인터렉션 영역의 html 엘리먼트
+let extentInteractionTooltipElement;
+//Extent 인터렉션 overlay
+let extentInteractionTooltip;
+
+// 현재 그려지고 있는 feature
+let sketch;
+
+//직선을 그리는 draw객체
+let measurePolygon;
+//면적을 그리는 draw객체
+let areaPolygon;
+//원을 그리는 draw객체
+let circlePolygon;

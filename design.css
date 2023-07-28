@@ -1013,8 +1013,8 @@ ul, ol {
 .map .ol-custom-overviewmap:not(.ol-collapsed) button{
     bottom: auto;
     left: auto;
-    right: 1px;
-    top: 1px;
+    right: 0px;
+    top: 0px;
 }
 #swipe{
     display: none;

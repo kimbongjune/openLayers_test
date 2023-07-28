@@ -397,6 +397,112 @@ function saveExtentAsImage() {
     }
 }
 
-function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+//지도의 중앙 좌표를 특정 좌표계로 변환하여 표시하기 위한 함수
+function formatCoordinate(coordinate, beforCoordinateSystem, targetCoordinateSystem) {
+    const changedCoordinate = ol.proj.transform(coordinate, beforCoordinateSystem, targetCoordinateSystem);
+    return `${changedCoordinate[0].toFixed(5)}, ${changedCoordinate[1].toFixed(5)}`;
+}
+
+//다음의 주소검색 API를 호출하는 함수
+function sample4_execDaumPostcode() {
+    new daum.Postcode({
+        oncomplete: function (data) {
+            // 팝업에서 검색결과 항목을 클릭했을때 실행할 코드를 작성하는 부분.
+
+            // 도로명 주소의 노출 규칙에 따라 주소를 표시한다.
+            // 내려오는 변수가 값이 없는 경우엔 공백('')값을 가지므로, 이를 참고하여 분기 한다.
+            const roadAddr = data.roadAddress; // 도로명 주소 변수
+            let extraRoadAddr = ""; // 참고 항목 변수
+
+            // 법정동명이 있을 경우 추가한다. (법정리는 제외)
+            // 법정동의 경우 마지막 문자가 "동/로/가"로 끝난다.
+            if (data.bname !== "" && /[동|로|가]$/g.test(data.bname)) {
+                extraRoadAddr += data.bname;
+            }
+            // 건물명이 있고, 공동주택일 경우 추가한다.
+            if (data.buildingName !== "" && data.apartment === "Y") {
+                extraRoadAddr +=
+                    extraRoadAddr !== ""
+                        ? ", " + data.buildingName
+                        : data.buildingName;
+            }
+            // 표시할 참고항목이 있을 경우, 괄호까지 추가한 최종 문자열을 만든다.
+            if (extraRoadAddr !== "") {
+                extraRoadAddr = " (" + extraRoadAddr + ")";
+            }
+
+            // 우편번호와 주소 정보를 해당 필드에 넣는다.
+            document.getElementById("sample4_postcode").value = data.zonecode;
+            document.getElementById("sample4_roadAddress").value = roadAddr;
+            $("#sample4_roadAddress").trigger("change");
+            document.getElementById("sample4_jibunAddress").value =
+                data.jibunAddress;
+        },
+    }).open();
+}
+
+
+//시도, 시군구, 읍면동을 코드를 이용해 조회 및 셀렉트에 적용하는 함수
+function findCodeByNames(sidoName, gugunName, dongName) {
+    let sidoCode, gugunCode, dongCode;
+    if (sidoName == "" && gugunName == "" && dongName == "") {
+        console.log("?");
+        $("#sido").val("").trigger("change");
+        $("#sigugun").val("").trigger("change");
+        $("#dong").val("").trigger("change");
+        return;
+    }
+    console.log(sidoName, gugunName, dongName);
+    for (let i = 0; i < hangjungdong.sido.length; i++) {
+        if (hangjungdong.sido[i].codeNm === sidoName) {
+            sidoCode = hangjungdong.sido[i].sido;
+            console.log(sidoCode);
+            $("#sido").val(hangjungdong.sido[i].sido).trigger("change");
+            break;
+        }
+    }
+
+    for (let i = 0; i < hangjungdong.sigugun.length; i++) {
+        if (
+            hangjungdong.sigugun[i].codeNm === gugunName &&
+            hangjungdong.sigugun[i].sido === sidoCode
+        ) {
+            gugunCode = hangjungdong.sigugun[i].sigugun;
+            $("#sigugun")
+                .val(hangjungdong.sigugun[i].sigugun)
+                .trigger("change");
+            break;
+        }
+    }
+
+    for (let i = 0; i < hangjungdong.dong.length; i++) {
+        if (
+            hangjungdong.dong[i].codeNm === dongName &&
+            hangjungdong.dong[i].sido === sidoCode &&
+            hangjungdong.dong[i].sigugun === gugunCode
+        ) {
+            dongCode = hangjungdong.dong[i].dong;
+            $("#dong").val(hangjungdong.dong[i].dong).trigger("change");
+            break;
+        }
+    }
+    return dongCode;
+}
+
+//시도, 시군구, 읍면동 셀렉트에 옵션을 추가하기 위한 함수
+function changeAddressSelectValue(code, name) {
+    return '<option value="' + code + '">' + name + "</option>";
+}
+
+//외부 라이브러리에서 기본으로 제공되는 html의 title값을 변경하는 함수.
+function addControlTitle() {
+    $(".ol-zoom-in").attr("title", "줌인");
+    $(".ol-zoom-out").attr("title", "줌아웃");
+    $(".ol-zoom-extent button").attr("title", "범위 맞춤");
+    $(".ol-zoomslider-thumb").attr("title", "줌 슬라이더");
+    $(".ol-compass").attr("title", "회전 초기화");
+    $(".ol-fullscreen-control-false").attr("title", "전체 화면");
+    $(".ol-overviewmap button").attr("title", "개요도");
+    $(".ol-print button").attr("title", "프린트");
+    $(".ol-scale-bar .ol-scale-bar-inner").attr("title", "축적/거리");
 }
