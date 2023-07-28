@@ -1,79 +1,4 @@
-//지도의 클릭 레이어를 담을 변수
-let clickCurrentLayer;
-//지도의 팝업 오버레이를 담을 변수
-let clickCurrentOverlay;
-
-//건물 레이어를 담을 변수
-let buildingLayer;
-//시도 경계 레이어를 담을 변수
-let sidoLayer;
-//시/군/구 경계 레이어를 담을 변수
-let sigunguLayer;
-//읍/면/동 경계 레이어를 담을 변수
-let myeondongLayer;
-//리 경계 레이어를 담을 변수
-let riLayer;
-//도로 레이어를 담을 변수
-let roadLayer;
-//연속 지적도 레이어를 담을 변수
-let cadastralMapLayer;
-//산불위험 예측지도 레이어를 담을 변수
-let mountaionFireMapLayer;
-//소방서 관할구역 레이어를 담을 변수
-let firestationJurisdictionLayer;
-//재해 위험지구 레이어를 담을 변수
-let disasterDangerLayer;
-//재해 위험지구 레이어를 담을 변수
-let graticuleLayer;
-//geoJson 형태의 API를 파싱하여 담을 변수
-let geojsonFormat = new ol.format.GeoJSON();
-//레이더 레이어를 담을 변수
-let webGlVectorLayer;
-//CCTV 레이어를 담을 변수
-let clusterLayer;
-
-//SGIS의 API를 호출하기 위한 API Accesss 키를 저장하기 위한 변수
-let SgisApiAccessKey;
-
-//swipe 레이어를 저장하기 위한 변수
-let swipeLayer;
-
-//길이측정 overlay의 html 엘리먼트
-let measureTooltipElement;
-//길이측정 overlay
-let measureTooltip;
-
-//면적측정 overlay의 html 엘리먼트
-let areaTooltipElement;
-//면적측정 overlay
-let areaTooltip;
-
-//경로탐색 overlay의 html 엘리먼트
-let routeTooltipElement;
-//경로탐색 overlay
-let routeTooltip;
-
-//반경측정 overlay의 html 엘리먼트
-let circleTooltipElement;
-//반경측정 overlay
-let circleTooltip;
-
-//Extent 인터렉션 영역의 html 엘리먼트
-let extentInteractionTooltipElement;
-//Extent 인터렉션 overlay
-let extentInteractionTooltip;
-
-// 현재 그려지고 있는 feature
-let sketch;
-
-//직선을 그리는 draw객체
-let measurePolygon;
-//면적을 그리는 draw객체
-let areaPolygon;
-//원을 그리는 draw객체
-let circlePolygon;
-
-//기상 레이더 API응답의 가중치에 따라 webGL 객체의 색을 변환하는 함수
+//기상 레이더 API응답의 가중치에 따라 webGL 객체의 색을 변환하는 객체
 const webGlStyle = {
     symbol: {
         symbolType: "square",
@@ -138,101 +63,9 @@ const webGlStyle = {
     },
 };
 
-//vworld 기본 타일
-const baseLayer = new ol.layer.Tile({
-    source: new ol.source.XYZ({
-        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Base/{z}/{y}/{x}.png`,
-        serverType: "geoserver",
-        crossOrigin: "anonymous",
-    }),
-    preload: Infinity,
-    type: "map",
-});
-
-//vworld 문자열 타일
-const textLayer = new ol.layer.Tile({
-    source: new ol.source.XYZ({
-        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Hybrid/{z}/{y}/{x}.png`,
-        crossOrigin: "anonymous",
-    }),
-    preload: Infinity,
-    type: "map",
-});
-
-//vworld 위성지도 타일
-const satelliteLayer = new ol.layer.Tile({
-    source: new ol.source.XYZ({
-        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Satellite/{z}/{y}/{x}.jpeg`,
-        crossOrigin: "anonymous",
-    }),
-    preload: Infinity,
-    type: "map",
-});
-
-//vworld 회색 지도 타일
-const greyLayer = new ol.layer.Tile({
-    source: new ol.source.XYZ({
-        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/gray/{z}/{y}/{x}.png`,
-        crossOrigin: "anonymous",
-    }),
-    preload: Infinity,
-    type: "map",
-});
-
-//vworld 야간지도 타일
-const midnightLayer = new ol.layer.Tile({
-    source: new ol.source.XYZ({
-        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/midnight/{z}/{y}/{x}.png`,
-        crossOrigin: "anonymous",
-    }),
-    preload: Infinity,
-    type: "map",
-});
-
-//추가되는 벡터레이어, 마커 등을 지도 레이어가 가리지 않게 하기위해 지도 레이어의 zIndex를 낮게 설정함
-baseLayer.setZIndex(0);
-satelliteLayer.setZIndex(0);
-textLayer.setZIndex(0);
-midnightLayer.setZIndex(0);
-greyLayer.setZIndex(0);
-
 //맵에 기본 맵 레이어 추가
 map.addLayer(baseLayer);
 
-//맵의 객체를 컨트롤하기 위한 빈 벡터 레이어
-const objectControllVectorLayer = new ol.layer.Vector({
-    source: new ol.source.Vector(),
-});
-objectControllVectorLayer.setZIndex(5);
-map.addLayer(objectControllVectorLayer);
-
-//경로탐색 결과에 마우스를 호버 하였을 때 지도에 포인트를 찍기위한 벡터 레이어
-let routeSummuryPointStyle = new ol.style.Style({
-    image: new ol.style.Circle({
-        radius: 5,
-        fill: new ol.style.Fill({
-            color: "#D5DCEF",
-            width: 2,
-        }),
-        stroke: new ol.style.Stroke({
-            color: "blue",
-            width: 2,
-        }),
-    }),
-});
-
-//경로탐색 레이어를 지도위에 표출하기 위한 레이어 소스.
-let routeVectorSource = new ol.source.Vector({});
-//경로탐색 레이어를 지도위에 표출하기 위한 벡터 레이어
-let routeVectorLayer = new ol.layer.Vector({
-    source: routeVectorSource,
-    style: routeSummuryPointStyle,
-});
-//경로탐색 레이어는 다른 벡터레이어보다 높게 있어야 하기에 zIndex 값을 설정함
-routeVectorLayer.setZIndex(10);
-
-//맵에 경로탐색 레이어 추가
-map.addLayer(routeVectorLayer);
 
 //지도에 Drag & Drop 인터렉션 추가
 addDragAndDropInteraction();
@@ -413,62 +246,6 @@ function requestDataLayer(data, coordinate){
     });
 }
 
-//방위계 아이콘을 변경하고 컨트롤 객체에 추가한다.
-// var span = document.createElement("span");
-// span.innerHTML = '<img src="./resources/img/rotate-removebg.png">';
-// map.addControl(new ol.control.Rotate({ autoHide: false, label: span }));
-
-//직선 길이측정 레이어를 지도위에 표출하기 위한 레이어 소스.
-const lineSource = new ol.source.Vector();
-//직선 길이측정 레이어를 지도위에 표출하기 위한 벡터 레이어
-const lineSourceLayer = new ol.layer.Vector({
-    source: lineSource,
-    style : new ol.style.Style({
-        stroke: new ol.style.Stroke({
-            color: "rgba(255,0,94)",
-            width: 3,
-        }),
-    }),
-});
-lineSourceLayer.setZIndex(5);
-map.addLayer(lineSourceLayer);
-
-//면적 측정 레이어를 지도위에 표출하기 위한 레이어 소스.
-const polygonSource = new ol.source.Vector();
-//면적 측정 레이어를 지도위에 표출하기 위한 벡터 레이어
-const polygonSourceLayer = new ol.layer.Vector({
-    source: polygonSource,
-    style: new ol.style.Style({
-        stroke: new ol.style.Stroke({
-            color: "blue",
-            width: 3,
-        }),
-        fill: new ol.style.Fill({
-            color: "rgba(0, 0, 255, 0.1)",
-        }),
-    }),
-});
-polygonSourceLayer.setZIndex(5);
-map.addLayer(polygonSourceLayer);
-
-//원형 면적 측정 레이어를 지도위에 표출하기 위한 레이어 소스.
-const cricleSource = new ol.source.Vector();
-//원형 면적 측정 레이어를 지도위에 표출하기 위한 벡터 레이어
-const circleSourceLayer = new ol.layer.Vector({
-    source: cricleSource,
-    style: new ol.style.Style({
-        stroke: new ol.style.Stroke({
-            color: "green",
-            width: 3,
-        }),
-        fill: new ol.style.Fill({
-            color: "rgba(107,208,137, 0.3)",
-        }),
-    }),
-});
-circleSourceLayer.setZIndex(5);
-map.addLayer(circleSourceLayer);
-
 //지도의 이동이 종료되었을 때 발생하는 이벤트 지도 중앙좌표와 줌 레벨을 표시한다.
 map.on("moveend", async function () {
     const view = map.getView();
@@ -479,273 +256,8 @@ map.on("moveend", async function () {
     zoomInfo.innerHTML = `level: ${zoom}`;
 });
 
-//지도의 중앙 좌표를 특정 좌표계로 변환하여 표시하기 위한 함수
-function formatCoordinate(coordinate, beforCoordinateSystem, targetCoordinateSystem) {
-    const changedCoordinate = ol.proj.transform(coordinate, beforCoordinateSystem, targetCoordinateSystem);
-    return `${changedCoordinate[0].toFixed(5)}, ${changedCoordinate[1].toFixed(5)}`;
-}
-
-//지도위에 길이측정 레이어, 툴팁을 표시하는 함수
-function addLineInteraction() {
-    measurePolygon = new ol.interaction.Draw({
-        source: lineSource,
-        type: "LineString",
-        style: new ol.style.Style({
-            stroke: new ol.style.Stroke({
-                color: "rgba(255,0,94)",
-                width: 3,
-            }),
-        }),
-        stopClick: true,
-        freehandCondition: ol.events.condition.never,
-        condition: (e) =>
-            ol.events.condition.noModifierKeys(e) && ol.events.condition.primaryAction(e),
-    });
-
-    map.addInteraction(measurePolygon);
-
-    let overlayDisplayed = false;
-
-    measurePolygon.on("drawstart", function (evt) {
-        sketch = evt.feature;
-
-        sketch.getGeometry().on("change", function (evt) {
-            const geom = evt.target;
-            //var output = formatLength((geom));
-            measureTooltipElement.innerHTML = createDrawingAreaTooltipHtml(
-                "line",
-                this
-            );
-            measureTooltip.setPosition(geom.getLastCoordinate());
-            measureTooltipElement.parentElement.style.pointerEvents = "none";
-            if (geom.getCoordinates().length > 2 && !overlayDisplayed) {
-                measureTooltipElement.className = "tooltip tooltip-static";
-                overlayDisplayed = true;
-            }
-        });
-
-        //createMeasureTooltip();
-        let toolTipElement = createDrawTooltip();
-        measureTooltipElement = toolTipElement.element;
-        measureTooltip = toolTipElement.tooltip;
-    });
-
-    measurePolygon.on("drawend", function (evt) {
-        //ol.Observable.unByKey(listener);
-        if (!overlayDisplayed) {
-            map.removeOverlay(measureTooltip);
-        }
-
-        const feature = evt.feature; // 그리기가 완료된 feature를 가져옵니다.
-        feature.setStyle(
-            new ol.style.Style({
-                // feature의 스타일을 설정합니다.
-                stroke: new ol.style.Stroke({
-                    color: "rgba(255,0,94)",
-                    width: 3,
-                }),
-            })
-        );
-        const coordinateLength = sketch.getGeometry().getCoordinates().length;
-        if (coordinateLength < 2) {
-            setTimeout(function () {
-                lineSource.removeFeature(evt.feature);
-                map.removeOverlay(measureTooltip);
-            }, 0);
-        } else {
-            const overlayToRemove = measureTooltip;
-            measureTooltipElement.innerHTML = createDrawFinishedAreaTooltipHtml("line", evt.feature.getGeometry());
-            const deleteButton = measureTooltipElement.querySelector(".delete-btn");
-
-            deleteButton.addEventListener("click", function () {
-                // 해당 feature 제거
-                lineSource.removeFeature(evt.feature);
-                // 해당 tooltip 제거
-                map.removeOverlay(overlayToRemove);
-            });
-            sketch = null;
-            measureTooltipElement = null;
-            overlayDisplayed = false;
-            measureTooltip = null;
-            map.removeInteraction(measurePolygon);
-            addLineInteraction();
-        }
-    });
-}
-
-//지도위에 면적측정 레이어, 툴팁을 표시하는 함수
-function addPolygonInteraction() {
-    areaPolygon = new ol.interaction.Draw({
-        source: polygonSource,
-        type: "Polygon",
-        style: new ol.style.Style({
-            stroke: new ol.style.Stroke({
-                color: "blue",
-                width: 3,
-            }),
-            fill: new ol.style.Fill({
-                color: "rgba(0, 0, 255, 0.1)",
-            }),
-        }),
-        stopClick: true,
-        freehandCondition: ol.events.condition.never,
-        condition: (e) =>
-            ol.events.condition.noModifierKeys(e) &&
-            ol.events.condition.primaryAction(e),
-    });
-
-    map.addInteraction(areaPolygon);
-
-    let listenerKey;
-
-    areaPolygon.on("drawstart", function (evt) {
-        sketch = evt.feature;
-
-        let lastMouseCoordinate;
-
-        listenerKey = map.on("pointermove", function (evt) {
-            lastMouseCoordinate = evt.coordinate;
-        });
-
-        // 이벤트 핸들러 추가
-        sketch.getGeometry().on("change", function (evt) {
-            //var output = formatArea((geom));
-            areaTooltipElement.innerHTML = createDrawingAreaTooltipHtml("polygon", this);
-            areaTooltip.setPosition(lastMouseCoordinate);
-            areaTooltipElement.parentElement.style.pointerEvents = "none";
-        });
-
-        //createAreaTooltip();
-        let toolTipElement = createDrawTooltip();
-        areaTooltipElement = toolTipElement.element;
-        areaTooltip = toolTipElement.tooltip;
-    });
-
-    areaPolygon.on("drawend", function (evt) {
-        const coordinateLength = sketch.getGeometry().getCoordinates()[0].length;
-        if (coordinateLength < 4) {
-            setTimeout(function () {
-                console.log(areaTooltip)
-                polygonSource.removeFeature(evt.feature);
-                map.removeOverlay(areaTooltip);
-                return;
-            }, 0);
-        }else{
-            const feature = evt.feature;
-            const geometry = feature.getGeometry();
-            const coordinates = geometry.getCoordinates()[0];
-            const lastCoordinate = coordinates[coordinates.length - 2];
-    
-            const overlayToRemove = areaTooltip;
-            areaTooltipElement.innerHTML = createDrawFinishedAreaTooltipHtml("polygon", evt.feature.getGeometry());
-    
-            const deleteButton = areaTooltipElement.querySelector(".delete-btn");
-            deleteButton.addEventListener("click", function () {
-                // 해당 feature 제거
-                polygonSource.removeFeature(evt.feature);
-                // 해당 tooltip 제거
-                map.removeOverlay(overlayToRemove);
-            });
-    
-            areaTooltip.setPosition(lastCoordinate);
-    
-            map.removeInteraction(areaPolygon);
-            sketch = null;
-            areaTooltipElement = null;
-            areaTooltip = null;
-            addPolygonInteraction();
-    
-            ol.Observable.unByKey(listenerKey);
-            listenerKey = null;
-        }
-
-
-    });
-}
-
-//지도위에 반경측정 레이어, 툴팁을 표시하는 함수
-function addCircleInteraction() {
-    circlePolygon = new ol.interaction.Draw({
-        source: cricleSource,
-        type: "Circle",
-        style: new ol.style.Style({
-            stroke: new ol.style.Stroke({
-                color: "green",
-                width: 3,
-            }),
-            fill: new ol.style.Fill({
-                color: "rgba(107,208,137, 0.3)",
-            }),
-        }),
-        stopClick: true,
-        freehandCondition: ol.events.condition.never,
-        condition: (e) =>
-            ol.events.condition.noModifierKeys(e) && ol.events.condition.primaryAction(e),
-    });
-
-    map.addInteraction(circlePolygon);
-
-    let listenerKey;
-
-    circlePolygon.on("drawstart", function (evt) {
-        let lastMouseCoordinate;
-
-        listenerKey = map.on("pointermove", function (evt) {
-            lastMouseCoordinate = evt.coordinate;
-        });
-
-        sketch = evt.feature;
-        //console.log(sketch.getGeometry())
-        // 이벤트 핸들러 추가
-        sketch.getGeometry().on("change", function (evt) {
-            //var output = formatCircleArea((geom));
-            circleTooltipElement.innerHTML = createDrawingAreaTooltipHtml("circle", this);
-            circleTooltip.setPosition(lastMouseCoordinate);
-            circleTooltipElement.parentElement.style.pointerEvents = "none";
-        });
-        //createCircleAreaTooltip();
-        let toolTipElement = createDrawTooltip();
-        circleTooltipElement = toolTipElement.element;
-        circleTooltip = toolTipElement.tooltip;
-    });
-
-    circlePolygon.on("drawend", function (evt) {
-        const geom = evt.target;
-        //console.log(geom);
-        const coordinateLength = geom.sketchCoords_.length;
-        //console.log(sketch.getGeometry())
-        if (coordinateLength < 2) {
-            setTimeout(function () {
-                cricleSource.removeFeature(evt.feature);
-                map.removeOverlay(circleTooltip);
-            }, 0);
-        }
-
-        const overlayToRemove = circleTooltip;
-        circleTooltipElement.innerHTML = createDrawFinishedAreaTooltipHtml("circle", evt.feature.getGeometry());
-
-        const deleteButton = circleTooltipElement.querySelector(".delete-btn");
-        deleteButton.addEventListener("click", function () {
-            // 해당 feature 제거
-            cricleSource.removeFeature(evt.feature);
-            // 해당 tooltip 제거
-            map.removeOverlay(overlayToRemove);
-        });
-
-        map.removeInteraction(circlePolygon);
-        sketch = null;
-        circleTooltipElement = null;
-        circleTooltip = null;
-        addCircleInteraction();
-
-        ol.Observable.unByKey(listenerKey);
-        listenerKey = null;
-    });
-}
-
 //Extent 인터렉션 오버레이에 표시할 html을 생성하는 함수
 function createExtentInteractionTooltipHtml(width, heght, measure) {
-    let tooltipCase = "";
     let tooltipElementClass = "";
     let tooltipInfoWidth = "";
     let tooltipInfoHeight = "";
@@ -840,6 +352,7 @@ function createDrawingAreaTooltipHtml(targetInfo, geom) {
     return text;
 }
 
+//측정 오버레이의 html을 초기화 하는 함수
 function createDrawTooltip() {
     let element = document.createElement("div");
     element.className = 'tooltip tooltip-measure';
@@ -851,46 +364,6 @@ function createDrawTooltip() {
     });
     map.addOverlay(tooltip);
     return {element, tooltip};
-}
-
-
-//길이측정 오버레이의 html을 초기화 하는 함수
-function createMeasureTooltip() {
-    measureTooltipElement = document.createElement("div");
-    measureTooltipElement.className = "tooltip tooltip-measure";
-    measureTooltipElement.style.zIndex = 1;
-    measureTooltip = new ol.Overlay({
-        element: measureTooltipElement,
-        offset: [-15, 0],
-        positioning: "top-left",
-    });
-    map.addOverlay(measureTooltip);
-}
-
-//면적측정 오버레이의 html을 초기화 하는 함수
-function createAreaTooltip() {
-    areaTooltipElement = document.createElement("div");
-    areaTooltipElement.className = "tooltip tooltip-measure";
-    areaTooltipElement.style.zIndex = 1;
-    areaTooltip = new ol.Overlay({
-        element: areaTooltipElement,
-        offset: [-15, 0],
-        positioning: "top-left",
-    });
-    map.addOverlay(areaTooltip);
-}
-
-//반경측정 오버레이의 html을 초기화 하는 함수
-function createCircleAreaTooltip() {
-    circleTooltipElement = document.createElement("div");
-    circleTooltipElement.className = "tooltip tooltip-measure";
-    circleTooltipElement.style.zIndex = 1;
-    circleTooltip = new ol.Overlay({
-        element: circleTooltipElement,
-        offset: [-15, 0],
-        positioning: "top-left",
-    });
-    map.addOverlay(circleTooltip);
 }
 
 //경로탐색 오버레이의 html을 초기화 하는 함수
@@ -1474,45 +947,6 @@ $("#current-position").on("click", function () {
         /* geolocation IS NOT available */
     }
 });
-
-
-//다음의 주소검색 API를 호출하는 함수
-function sample4_execDaumPostcode() {
-    new daum.Postcode({
-        oncomplete: function (data) {
-            // 팝업에서 검색결과 항목을 클릭했을때 실행할 코드를 작성하는 부분.
-
-            // 도로명 주소의 노출 규칙에 따라 주소를 표시한다.
-            // 내려오는 변수가 값이 없는 경우엔 공백('')값을 가지므로, 이를 참고하여 분기 한다.
-            const roadAddr = data.roadAddress; // 도로명 주소 변수
-            let extraRoadAddr = ""; // 참고 항목 변수
-
-            // 법정동명이 있을 경우 추가한다. (법정리는 제외)
-            // 법정동의 경우 마지막 문자가 "동/로/가"로 끝난다.
-            if (data.bname !== "" && /[동|로|가]$/g.test(data.bname)) {
-                extraRoadAddr += data.bname;
-            }
-            // 건물명이 있고, 공동주택일 경우 추가한다.
-            if (data.buildingName !== "" && data.apartment === "Y") {
-                extraRoadAddr +=
-                    extraRoadAddr !== ""
-                        ? ", " + data.buildingName
-                        : data.buildingName;
-            }
-            // 표시할 참고항목이 있을 경우, 괄호까지 추가한 최종 문자열을 만든다.
-            if (extraRoadAddr !== "") {
-                extraRoadAddr = " (" + extraRoadAddr + ")";
-            }
-
-            // 우편번호와 주소 정보를 해당 필드에 넣는다.
-            document.getElementById("sample4_postcode").value = data.zonecode;
-            document.getElementById("sample4_roadAddress").value = roadAddr;
-            $("#sample4_roadAddress").trigger("change");
-            document.getElementById("sample4_jibunAddress").value =
-                data.jibunAddress;
-        },
-    }).open();
-}
 
 //북마크 열기 버튼을 클릭했을 때 발생하는 이벤트. 북마크 목록을 표출한다.
 $("#olcontrolBookmarkMaximizeDiv").click(function() {
@@ -2100,10 +1534,6 @@ async function radarLayerChange(treeNode, treeId) {
     }
 }
 
-
-
-
-
 //건물 레이어 토글 함수
 function buildLayerChange(e) {
     if (e) {
@@ -2316,13 +1746,13 @@ function requestWmsLayer(layerId, layerIndex = 5) {
     return layer;
 }
 
-//오버뷰 맵이 클릭되었을 때 발생하는 이벤트
-$(".ol-overviewmap button").click(function () {
-    setTimeout(function () {
-        const isCollapsed = overviewMapControl.getCollapsed();
-        localStorage.setItem("overviewMapCollapsed", isCollapsed);
-    }, 0);
-});
+// //오버뷰 맵이 클릭되었을 때 발생하는 이벤트
+// $(".ol-overviewmap button").click(function () {
+//     setTimeout(function () {
+//         const isCollapsed = overviewMapControl.getCollapsed();
+//         localStorage.setItem("overviewMapCollapsed", isCollapsed);
+//     }, 0);
+// });
 
 //스와이프레이어 선택 셀렉트 변경시 발생 이벤트. 선택된 레이어를 기본 지도 레이어의 우측에 배치하고 동기화한다.
 $("#mapLayerSelect").on("change", function(e) {
@@ -2992,70 +2422,6 @@ function searchLocalAddress(e) {
     depth2Element.show();
 }
 
-//외부 라이브러리에서 기본으로 제공되는 html의 title값을 변경하는 함수.
-function addControlTitle() {
-    $(".ol-zoom-in").attr("title", "줌인");
-    $(".ol-zoom-out").attr("title", "줌아웃");
-    $(".ol-zoom-extent button").attr("title", "범위 맞춤");
-    $(".ol-zoomslider-thumb").attr("title", "줌 슬라이더");
-    $(".ol-compass").attr("title", "회전 초기화");
-    $(".ol-fullscreen-control-false").attr("title", "전체 화면");
-    $(".ol-overviewmap button").attr("title", "개요도");
-    $(".ol-print button").attr("title", "프린트");
-    $(".ol-scale-bar .ol-scale-bar-inner").attr("title", "축적/거리");
-}
-
-//시도, 시군구, 읍면동을 코드를 이용해 조회 및 셀렉트에 적용하는 함수
-function findCodeByNames(sidoName, gugunName, dongName) {
-    let sidoCode, gugunCode, dongCode;
-    if (sidoName == "" && gugunName == "" && dongName == "") {
-        console.log("?");
-        $("#sido").val("").trigger("change");
-        $("#sigugun").val("").trigger("change");
-        $("#dong").val("").trigger("change");
-        return;
-    }
-    console.log(sidoName, gugunName, dongName);
-    for (let i = 0; i < hangjungdong.sido.length; i++) {
-        if (hangjungdong.sido[i].codeNm === sidoName) {
-            sidoCode = hangjungdong.sido[i].sido;
-            console.log(sidoCode);
-            $("#sido").val(hangjungdong.sido[i].sido).trigger("change");
-            break;
-        }
-    }
-
-    for (let i = 0; i < hangjungdong.sigugun.length; i++) {
-        if (
-            hangjungdong.sigugun[i].codeNm === gugunName &&
-            hangjungdong.sigugun[i].sido === sidoCode
-        ) {
-            gugunCode = hangjungdong.sigugun[i].sigugun;
-            $("#sigugun")
-                .val(hangjungdong.sigugun[i].sigugun)
-                .trigger("change");
-            break;
-        }
-    }
-
-    for (let i = 0; i < hangjungdong.dong.length; i++) {
-        if (
-            hangjungdong.dong[i].codeNm === dongName &&
-            hangjungdong.dong[i].sido === sidoCode &&
-            hangjungdong.dong[i].sigugun === gugunCode
-        ) {
-            dongCode = hangjungdong.dong[i].dong;
-            $("#dong").val(hangjungdong.dong[i].dong).trigger("change");
-            break;
-        }
-    }
-    return dongCode;
-}
-
-//시도, 시군구, 읍면동 셀렉트에 옵션을 추가하기 위한 함수
-function changeAddressSelectValue(code, name) {
-    return '<option value="' + code + '">' + name + "</option>";
-}
 
 //검색 API를 이용한 전체 검색 결과 페이지의 장소 탭 "더보기" 버튼을 클릭하면 발생하는 이벤트. 장소 탭을 트리거시켜 해당 탭으로 이동함
 $(document).on("click", ".place-more-view", function (event) {
