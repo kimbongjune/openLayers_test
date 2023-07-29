@@ -63,10 +63,6 @@ const webGlStyle = {
     },
 };
 
-//맵에 기본 맵 레이어 추가
-map.addLayer(baseLayer);
-
-
 //지도에 Drag & Drop 인터렉션 추가
 addDragAndDropInteraction();
 
@@ -141,110 +137,6 @@ map.on("click", function (evt) {
 
     requestDataLayer("LP_PA_CBND_BUBUN", evt.coordinate)
 });
-
-//vworld data api 호출 공통 함수
-function requestDataLayer(data, coordinate){
-    let url = "https://api.vworld.kr/req/data?";
-    url += "service=data";
-    url += "&request=GetFeature";
-    url += `&data=${data}`;
-    url += `&key=${VWORLD_API_KEY}`; // Replace with your actual API key
-    url += "&format=json";
-    url += "&crs=EPSG:3857";
-    url += `&geomFilter=POINT(${coordinate[0]} ${coordinate[1]})`;
-    url += "&domain=http://127.0.0.1:3000/openlayers_test.html";
-
-    $.ajax({
-        url: url,
-        type: "GET",
-        dataType: "jsonp",
-        async: false,
-        jsonpCallback: "callback",
-        success: function (data) {
-            console.log(data);
-            if (data.response.status != "OK") {
-                return;
-            }
-            const geoInfoObject = data.response.result.featureCollection.features[0];
-            const geojsonObject = geoInfoObject.geometry;
-
-            const vectorSource = new ol.source.Vector({
-                features: new ol.format.GeoJSON().readFeatures(geojsonObject),
-            });
-            vectorSource.set("ctp_kor_nm",data.response.result.featureCollection.features[0].properties.ctp_kor_nm);
-            vectorSource.set("ctp_eng_nm",data.response.result.featureCollection.features[0].properties.ctp_eng_nm);
-
-            const vectorStyle = new ol.style.Style({
-                fill: new ol.style.Fill({
-                    color: "rgba(135,206,250, 0.5)", // Skyblue color fill with opacity
-                }),
-                stroke: new ol.style.Stroke({
-                    color: "orange", // Orange stroke color
-                    width: 2,
-                }),
-            });
-
-            const vector_layer = new ol.layer.Vector({
-                source: vectorSource,
-                style: vectorStyle,
-            });
-            vector_layer.set("ctp_kor_nm_layer",data.response.result.featureCollection.features[0].properties.ctp_kor_nm + "_layer");
-
-            map.addLayer(vector_layer);
-            clickCurrentLayer = vector_layer;
-
-            const selectedValue = $(".coordinate-system-selector").val();
-            const coord = ol.proj.transform(coordinate,"EPSG:3857",selectedValue);
-
-            let overlayElement = document.createElement("div");
-            overlayElement.className = "ol-popup";
-            overlayElement.innerHTML += `<a href="#" id="popup-closer" class="ol-popup-closer"></a>`;
-            overlayElement.innerHTML += `<div id="popup-content">
-                                            <div class="ol-popup-title">연속 지적도 정보</div>
-                                                <code class="code">
-                                                    <div class="popup-coordinate">${coord}</div><span>주소</span><br>
-                                                    <div class="leftBottom__etcBtn">
-                                                        <ul>
-                                                            <li class="select customSelect">
-                                                                <p onclick="searchLocalAddress(this)">${
-                                                                    geoInfoObject
-                                                                        .properties
-                                                                        .addr
-                                                                }</p>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </code>
-                                                <br>
-                                                <div style="float: left;">공시지가 : ${
-                                                    geoInfoObject.properties.jiga != ""
-                                                        ? geoInfoObject.properties.jiga.replace(
-                                                              /\B(?=(\d{3})+(?!\d))/g,
-                                                              ","
-                                                          )
-                                                        : "--"
-                                                }&#8361;, 지목 : ${geoInfoObject.properties.jibun.slice(-1)}</div>
-                                            </div>`;
-            const overlay = new ol.Overlay({
-                element: overlayElement,
-                position: coordinate,
-            });
-            // Add the overlay to the map
-            map.addOverlay(overlay);
-            clickCurrentOverlay = overlay;
-
-            const deleteButton = overlayElement.querySelector(".ol-popup-closer");
-            deleteButton.addEventListener("click", function () {
-                map.removeLayer(vector_layer);
-                map.removeOverlay(clickCurrentOverlay);
-            });
-        },
-        beforesend: function () {},
-        error: function (xhr, stat, err) {
-            console.log(xhr, stat, err)
-        },
-    });
-}
 
 //지도의 이동이 종료되었을 때 발생하는 이벤트 지도 중앙좌표와 줌 레벨을 표시한다.
 map.on("moveend", async function () {
@@ -777,76 +669,6 @@ map.on("pointermove", function (e) {
     }
 });
 
-//현재 위치(geoLocation)를 얻어와 해당 좌표에 마커를 찍는 함수
-function locationMarker(coordinate) {
-    const source = objectControllVectorLayer.getSource();
-    const features = source.getFeatures();
-    for (let i = 0; i < features.length; i++) {
-        let feature = features[i];
-        if (
-            ol.coordinate.equals(
-                feature.getGeometry().getCoordinates(),
-                coordinate
-            )
-        ) {
-            // If a marker already exists at the coordinate, remove it
-            if (feature.get("attribute") == "position") {
-                source.removeFeature(feature);
-            }
-        }
-    }
-    const template = "현재 위치";
-    const iconStyle = new ol.style.Style({
-        image: new ol.style.Icon({
-            scale: 0.6,
-            src: pinIcon,
-            opacity: 1,
-        }),
-        text: new ol.style.Text({
-            offsetY: 25,
-            text: template,
-            font: "15px Open Sans,sans-serif",
-            fill: new ol.style.Fill({ color: "#111" }),
-            stroke: new ol.style.Stroke({ color: "#eee", width: 2 }),
-        }),
-    });
-    const feature = new ol.Feature({
-        type: "removable",
-        geometry: new ol.geom.Point(coordinate),
-        attribute: "position",
-    });
-
-    feature.setStyle(iconStyle);
-    objectControllVectorLayer.getSource().addFeature(feature);
-}
-
-//지도 위에 마커를 찍는 함수. 커스텀 속성을 이용해 마커 객체를 컨트롤 한다.
-function addMarker(coordinate, template = "", attribute = "", searchType = "") {
-    const templates = template != "" ? template : "현재 위치";
-    const iconStyle = new ol.style.Style({
-        image: new ol.style.Icon({
-            scale: 0.6,
-            src: pinIcon,
-            opacity: 1,
-        }),
-        text: new ol.style.Text({
-            offsetY: 25,
-            text: templates,
-            font: "15px Open Sans,sans-serif",
-            fill: new ol.style.Fill({ color: "#111" }),
-            stroke: new ol.style.Stroke({ color: "#eee", width: 2 }),
-        }),
-    });
-    const feature = new ol.Feature({
-        type: searchType != "" ? searchType : "removable",
-        geometry: new ol.geom.Point(coordinate),
-        attribute: attribute != "" ? attribute : "position",
-    });
-
-    feature.setStyle(iconStyle);
-    objectControllVectorLayer.getSource().addFeature(feature);
-}
-
 //툴팁 overlay 클릭 이벤트. 클릭시 해당 툴팁이 툴팁 오버레이중 최 상단으로 올라온다.
 $(document).on("click", ".tooltip-content", function (event) {
     event.stopPropagation(); // 자식 엘리먼트의 클릭 이벤트 전파(stopPropagation)
@@ -872,19 +694,6 @@ $(document).on("click", ".tooltip-content", function (event) {
     $(selectedOverlayElement.parentElement).css("z-index", highestZIndex + 1);
     selectedOverlayElement.style.zIndex = highestZIndex + 1;
 });
-
-//마우스 커서를 변경하는 함수
-function changeMouseCursor() {
-    if ($(areaCheckbox).is(":checked")) {
-        return "url(./resources/img/control-toolbox-distance_icon-cursor-area.png), auto";
-    }
-    if ($(measureCheckbox).is(":checked")) {
-        return "url(./resources/img/control-toolbox-distance_icon-cursor-distance.png), auto";
-    }
-    if ($(areaCircleCheckbox).is(":checked")) {
-        return "url(./resources/img/control-toolbox-distance_icon-cursor-radius.png), auto";
-    }
-}
 
 //측정레이어 삭제 버튼을 클릭했을 때 발생하는 이벤트. 지도 위의 면적 및 길이측적 벡터 레이어와 툴팁 오버레이를 전부 삭제한다.
 $("#remove-measure").on("click", function () {
@@ -1007,21 +816,12 @@ $(document).on("hidden.bs.modal", ".bookmark-modal", function () {
 });
 
 //html 엘리먼트가 로드가 완료되면 실행되는 이벤트. 북마크 로컬스토리지를 조회하여 북마크 엘리먼트에 세팅한다. SGIS의 인증키를 받아온다.
-$(document).ready(function () {
-    //SGIS의 API Accesss키를 받아오기 위한 API 호출 코드. ref : https://sgis.kostat.go.kr/developer/html/newOpenApi/api/dataApi/basics.html
-    axios.get("https://sgisapi.kostat.go.kr/OpenAPI3/auth/authentication.json", {
-            params: {
-                consumer_key: "5ffa82fde9fa45338732",
-                consumer_secret: "42f45550972442dea2c9",
-            },
-        })
-        .then((response) => {
-            console.log(response.data);
-            SgisApiAccessKey = response.data.result.accessToken;
-        })
-        .catch((error) => {
-            console.error("Error:", error);
-        });
+$(document).ready(async function () {
+    
+    //맵에 기본 맵 레이어 추가
+    map.addLayer(baseLayer);
+
+    SgisApiAccessKey = await requestSgisApiAccessKey();
 
     const container = $("#bookmark-container");
     for (let i = 0; i < window.localStorage.length; i++) {
@@ -1039,7 +839,7 @@ $(document).ready(function () {
         container.append(text);
     }
 
-    addControlTitle();
+    replaceControlTitle();
 
     //좌측 Collapse 메뉴가 보여질 때 실행되는 이벤트 Collapse 메뉴 토글 버튼의 아이콘을 변경한다.
     $("#sidebar").on("show.bs.collapse", function () {
@@ -1297,105 +1097,6 @@ $("#route-kind-select").on("change", function(e) {
     }
 });
 
-//CCTV 레이어 토글 함수.
-function cctvLayerChange(treeNode, treeId) {
-    if (treeNode.checked) {
-        addCctvLayer(treeNode, treeId);
-    } else {
-        removeCctvLayer();
-    }
-}
-
-//CCTV 레이어 표출 함수.
-async function addCctvLayer(treeNode, treeId) {
-    const treeObj = $.fn.zTree.getZTreeObj(treeId);
-    treeObj.setChkDisabled(treeNode, true, false, false);
-    //대한민국 전역을 Extent로 잡기 위해 좌표를 고정하였음
-    const extent4326 = ol.proj.transformExtent(
-        KOREA_EXTENT,
-        "EPSG:3857",
-        "EPSG:4326"
-    );
-
-    let url = `https://openapi.its.go.kr:9443/cctvInfo?`;
-    url += `type=all`;
-    url += `&cctvType=1`;
-    url += `&minX=${extent4326[0]}`;
-    url += `&maxX=${extent4326[2]}`;
-    url += `&minY=${extent4326[1]}`;
-    url += `&maxY=${extent4326[3]}`;
-    url += `&getType=json`;
-    url += `&apiKey=12a08608b49a43f0a4f4a6fb1d838d8b`;
-    // Add geomFilter if you want to limit CCTV data to a certain area
-
-    try {
-        const res = await axios.get(url);
-
-        //console.log(data.response.datacount)
-        if (res.data.response.datacount <= 0) {
-            return;
-        }
-        const cctvSource = new ol.source.Vector({});
-
-        for (let i = 0; i < res.data.response.data.length; i++) {
-            let feature = res.data.response.data[i];
-
-            let cctvFeature = new ol.Feature({
-                geometry: new ol.geom.Point(
-                    ol.proj.transform(
-                        [feature.coordx, feature.coordy],
-                        "EPSG:4326",
-                        "EPSG:3857"
-                    )
-                ),
-                cctvname: feature.cctvname,
-                cctvformat: feature.cctvformat,
-                cctvurl: feature.cctvurl,
-                cctvFeature: true,
-            });
-
-            cctvSource.addFeature(cctvFeature);
-        }
-
-        const clusterSource = new ol.source.Cluster({
-            distance: 30,
-            source: cctvSource,
-        });
-
-        clusterLayer = new ol.layer.AnimatedCluster({
-            name: "Cluster",
-            source: clusterSource,
-            animationDuration: 400,
-            style: getCctvClusterLayerStyle,
-        });
-
-        clusterLayer.setZIndex(5);
-        map.addLayer(clusterLayer);
-        treeObj.setChkDisabled(treeNode, false, false, false);
-    } catch (err) {
-        treeObj.setChkDisabled(treeNode, false, false, false);
-        treeObj.checkNode(treeNode, false, false);
-        const parentNode = treeNode.getParentNode();
-        let allChildrenUnchecked = parentNode.children.every((child) => {
-            return !child.checked;
-        });
-    
-        if (allChildrenUnchecked) {
-            // 모든 자식 노드가 체크 해제된 상태라면 부모 노드도 체크 해제
-            treeObj.checkNode(parentNode, false, true);
-        }
-        alert("CCTV api 호출에 실패하였습니다.");
-    }
-}
-
-//CCTV 레이어 제거 함수.
-function removeCctvLayer() {
-    if (clusterLayer) {
-        map.removeLayer(clusterLayer);
-        clusterLayer = null;
-    }
-}
-
 //CCTV API에서 제공하는 도로 CCTV 영상 재생 함수
 function stremVideo(videoSrc, videoName) {
     const modal = $("#videoModal");
@@ -1426,224 +1127,6 @@ function stremVideo(videoSrc, videoName) {
     modal.on("hidden.bs.modal", function () {
         player.pause();
     });
-}
-
-//기상 레이더 레이어 토글 함수
-async function radarLayerChange(treeNode, treeId) {
-    const treeObj = $.fn.zTree.getZTreeObj(treeId);
-    if (treeNode.checked) {
-        try {
-            treeObj.setChkDisabled(treeNode, true, false, false);
-
-            const url = "http://apis.data.go.kr/1360000/RadarObsInfoService/getNationalRadarRn";
-            const serviceKey ="myYHhhNxJO5zGLT39cjBldHCap4TWme/JU4ubw5WcPfX0CX5CIFLuEA6N0zH115SujHcKBLUbGsxo/Nn8jIVDw==";
-            const pageNo = 1;
-            const numOfRows = 10;
-            const dataType = "json";
-            const qcType = "NQC"; // 실제 값을 지정하세요
-            const compType = "M"; // 실제 값을 지정하세요
-            const dateTime = getTwentyMinutesBefore(); // 실제 값을 지정하세요
-
-            if (webGlVectorLayer) {
-                map.removeLayer(webGlVectorLayer);
-            }
-
-            const response = await axios.get(url, {
-                params: {
-                    ServiceKey: serviceKey,
-                    pageNo: pageNo,
-                    numOfRows: numOfRows,
-                    dataType: dataType,
-                    qcType: qcType,
-                    compType: compType,
-                    dateTime: dateTime,
-                },
-            });
-
-            const data = response.data;
-            if (!data.response.header || data.response.header.resultCode != "00") {
-                treeObj.setChkDisabled(treeNode, false, false, false);
-                return alert("api 호출 에러");
-            }
-
-            const csvData = decodeCAPPIData(
-                data.response.body.items.item[0].cappiCompressData
-            );
-
-            const startLon = data.response.body.items.item[0].lon;
-            const startLat = data.response.body.items.item[0].lat;
-            const gridKm = data.response.body.items.item[0].gridKm;
-
-            const xdim = data.response.body.items.item[0].xdim;
-            const ydim = data.response.body.items.item[0].ydim;
-
-            const altitude = data.response.body.items.item[0].altitudeKm;
-
-            const dataWithCoords = assignCoordinates(
-                startLon,
-                startLat,
-                gridKm,
-                csvData,
-                xdim,
-                ydim,
-                altitude
-            );
-
-            const geojsonData = toGeoJSON(dataWithCoords);
-
-            const geoJsonFeatures = geojsonFormat.readFeatures(
-                geojsonData,
-                {
-                    dataProjection: "EPSG:4326",
-                    featureProjection: "EPSG:3857",
-                }
-            );
-
-            const getJsonSource = new ol.source.Vector({
-                features: geoJsonFeatures,
-            });
-
-            webGlVectorLayer = new ol.layer.WebGLPoints({
-                preload: Infinity,
-                source: getJsonSource,
-                style: webGlStyle,
-                blur: 2,
-            });
-            webGlVectorLayer.setZIndex(5);
-            map.addLayer(webGlVectorLayer);
-            treeObj.setChkDisabled(treeNode, false, false, false);
-        } catch (error) {
-            console.log(error)
-            treeObj.setChkDisabled(treeNode, false, false, false);
-            treeObj.checkNode(treeNode, false, false);
-            const parentNode = treeNode.getParentNode();
-            let allChildrenUnchecked = parentNode.children.every((child) => {
-                return !child.checked;
-            });
-        
-            if (allChildrenUnchecked) {
-                // 모든 자식 노드가 체크 해제된 상태라면 부모 노드도 체크 해제
-                treeObj.checkNode(parentNode, false, true);
-            }
-            alert("레이더 api 호출에 실패하였습니다.");
-        }
-    } else {
-        if (webGlVectorLayer) {
-            map.removeLayer(webGlVectorLayer);
-        }
-    }
-}
-
-//건물 레이어 토글 함수
-function buildLayerChange(e) {
-    if (e) {
-        if (buildingLayer) {
-            map.removeLayer(buildingLayer);
-            buildingLayer = null;
-        }
-        buildingLayer = requestWmsLayer(BUILDING_LAYER_ID);
-    } else {
-        if (buildingLayer) {
-            map.removeLayer(buildingLayer);
-            buildingLayer = null;
-        }
-    }
-}
-
-//시도 경계 레이어 토글 함수
-function sidoLayerChange(e) {
-    if (e) {
-        if (sidoLayer) {
-            map.removeLayer(sidoLayer);
-            sidoLayer = null;
-        }
-        sidoLayer = requestWmsLayer(SIDO_LAYER_ID);
-    } else {
-        if (sidoLayer) {
-            map.removeLayer(sidoLayer);
-            sidoLayer = null;
-        }
-    }
-}
-
-//시 군 구 경계 레이어 토글 함수
-function sigunLayerChange(e) {
-    if (e) {
-        if (sigunguLayer) {
-            map.removeLayer(sigunguLayer);
-            sigunguLayer = null;
-        }
-        sigunguLayer = requestWmsLayer(SIGUNGU_LAYER_ID);
-    } else {
-        if (sigunguLayer) {
-            map.removeLayer(sigunguLayer);
-            sigunguLayer = null;
-        }
-    }
-}
-
-//읍 면 동 경계 레이어 토글 함수
-function dongLayerChange(e) {
-    if (e) {
-        if (myeondongLayer) {
-            map.removeLayer(myeondongLayer);
-            myeondongLayer = null;
-        }
-        myeondongLayer = requestWmsLayer(MYEONDONG_LAYER_ID);
-    } else {
-        if (myeondongLayer) {
-            map.removeLayer(myeondongLayer);
-            myeondongLayer = null;
-        }
-    }
-}
-
-//리 경계 레이어 토글 함수
-function riLayerChange(e) {
-    if (e) {
-        if (riLayer) {
-            map.removeLayer(riLayer);
-            riLayer = null;
-        }
-        riLayer = requestWmsLayer(RI_LAYER_ID);
-    } else {
-        if (riLayer) {
-            map.removeLayer(riLayer);
-            riLayer = null;
-        }
-    }
-}
-
-//전국 도로 레이어 토글 함수
-function roadLayerChange(e) {
-    if (e) {
-        if (roadLayer) {
-            map.removeLayer(roadLayer);
-            roadLayer = null;
-        }
-        roadLayer = requestWmsLayer(ROAD_LAYER_ID);
-    } else {
-        if (roadLayer) {
-            map.removeLayer(roadLayer);
-            roadLayer = null;
-        }
-    }
-}
-
-//연속지적도 레이어 토글 함수
-function cadastralLayerChange(e) {
-    if (e) {
-        if (cadastralMapLayer) {
-            map.removeLayer(cadastralMapLayer);
-            cadastralMapLayer = null;
-        }
-        cadastralMapLayer = requestWmsLayer(CADASTRAL_MAP_LAYER_ID);
-    } else {
-        if (cadastralMapLayer) {
-            map.removeLayer(cadastralMapLayer);
-            cadastralMapLayer = null;
-        }
-    }
 }
 
 // document.getElementById('mountaion-fire-map-checkbox').addEventListener('change', function() {
@@ -1716,35 +1199,6 @@ $("#map-graticule-checkbox").on("change", function(e) {
         }
     }
 });
-
-//vworld wms api 호출 공통 함수
-function requestWmsLayer(layerId, layerIndex = 5) {
-    //console.log(document.getElementById('map').offsetWidth, document.getElementById('map').offsetHeight)
-    let layer = new ol.layer.Image({
-        name: layerId, //vmap 올린 레이어를 삭제하거나 수정,변경할때 접근할 name 속성
-        projection: "EPSG:3857",
-        extent: map.getView().getProjection().getExtent(), //[-20037508.34, -20037508.34, 20037508.34, 20037508.34]
-        source: new ol.source.ImageWMS({
-            ratio: 1,
-            url: "http://api.vworld.kr/req/wms?",
-            params: {
-                LAYERS: layerId,
-                STYLES: layerId,
-                REQUEST: "getMap",
-                EXCEPTIONS: "text/xml",
-                TRANSPARENT: true,
-                CRS: "EPSG:3857",
-                apikey: VWORLD_API_KEY,
-                DOMAIN: "http://127.0.0.1:3000/openlayers_test.html",
-                FORMAT: "image/png",
-            },
-        }),
-    });
-    layer.setZIndex(layerIndex);
-    map.addLayer(layer);
-
-    return layer;
-}
 
 // //오버뷰 맵이 클릭되었을 때 발생하는 이벤트
 // $(".ol-overviewmap button").click(function () {
@@ -1910,93 +1364,6 @@ $(".coordinate-system-selector").change(function () {
     $(this).data("prevValue", selectedValue);
 })
 .data("prevValue", $(".coordinate-system-selector").val());
-
-
-//vworld API를 이용해 장소를 검색하는 함수
-function searchPlace(query, page = 1) {
-    return $.ajax({
-        url: "http://api.vworld.kr/req/search",
-        dataType: "jsonp",
-        data: {
-            service: "search",
-            request: "search",
-            version: 2.0,
-            crs: "EPSG:3857",
-            size: 10,
-            page: page,
-            query: query,
-            type: "place",
-            format: "json",
-            errorformat: "json",
-            key: `${VWORLD_API_KEY}`,
-        },
-    });
-}
-
-//vworld API를 이용해 주소를 검색하는 함수
-function searchAddress(query, page = 1) {
-    return $.ajax({
-        url: "http://api.vworld.kr/req/search",
-        dataType: "jsonp",
-        data: {
-            service: "search",
-            request: "search",
-            version: 2.0,
-            crs: "EPSG:3857",
-            size: 10,
-            page: page,
-            query: query,
-            type: "address",
-            category: "road",
-            format: "json",
-            errorformat: "json",
-            key: `${VWORLD_API_KEY}`,
-        },
-    });
-}
-
-//vworld API를 이용해 행정구역을 검색하는 함수
-function searchDistrict(query, page = 1) {
-    return $.ajax({
-        url: "http://api.vworld.kr/req/search",
-        dataType: "jsonp",
-        data: {
-            service: "search",
-            request: "search",
-            version: 2.0,
-            crs: "EPSG:3857",
-            size: 10,
-            page: page,
-            query: query,
-            type: "district",
-            category: "L4",
-            format: "json",
-            errorformat: "json",
-            key: `${VWORLD_API_KEY}`,
-        },
-    });
-}
-
-//vworld API를 이용해 도로명을 검색하는 함수
-function searchRoad(query, page = 1) {
-    return $.ajax({
-        url: "http://api.vworld.kr/req/search",
-        dataType: "jsonp",
-        data: {
-            service: "search",
-            request: "search",
-            version: 2.0,
-            crs: "EPSG:3857",
-            size: 10,
-            page: page,
-            query: query,
-            type: "road",
-            format: "json",
-            errorformat: "json",
-            key: `${VWORLD_API_KEY}`,
-        },
-    });
-}
 
 //특정 피쳐를 삭제하는 함수
 function removeSearchFeatures(source, attribute) {

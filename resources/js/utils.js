@@ -495,7 +495,7 @@ function changeAddressSelectValue(code, name) {
 }
 
 //외부 라이브러리에서 기본으로 제공되는 html의 title값을 변경하는 함수.
-function addControlTitle() {
+function replaceControlTitle() {
     $(".ol-zoom-in").attr("title", "줌인");
     $(".ol-zoom-out").attr("title", "줌아웃");
     $(".ol-zoom-extent button").attr("title", "범위 맞춤");
@@ -505,4 +505,17 @@ function addControlTitle() {
     $(".ol-overviewmap button").attr("title", "개요도");
     $(".ol-print button").attr("title", "프린트");
     $(".ol-scale-bar .ol-scale-bar-inner").attr("title", "축적/거리");
+}
+
+//마우스 커서를 변경하는 함수
+function changeMouseCursor() {
+    if ($(areaCheckbox).is(":checked")) {
+        return "url(./resources/img/control-toolbox-distance_icon-cursor-area.png), auto";
+    }
+    if ($(measureCheckbox).is(":checked")) {
+        return "url(./resources/img/control-toolbox-distance_icon-cursor-distance.png), auto";
+    }
+    if ($(areaCircleCheckbox).is(":checked")) {
+        return "url(./resources/img/control-toolbox-distance_icon-cursor-radius.png), auto";
+    }
 }
