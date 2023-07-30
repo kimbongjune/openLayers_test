@@ -441,23 +441,22 @@ function sample4_execDaumPostcode() {
     }).open();
 }
 
-
 //시도, 시군구, 읍면동을 코드를 이용해 조회 및 셀렉트에 적용하는 함수
 function findCodeByNames(sidoName, gugunName, dongName) {
     let sidoCode, gugunCode, dongCode;
     if (sidoName == "" && gugunName == "" && dongName == "") {
-        console.log("?");
         $("#sido").val("").trigger("change");
         $("#sigugun").val("").trigger("change");
         $("#dong").val("").trigger("change");
         return;
     }
-    console.log(sidoName, gugunName, dongName);
+    
     for (let i = 0; i < hangjungdong.sido.length; i++) {
         if (hangjungdong.sido[i].codeNm === sidoName) {
             sidoCode = hangjungdong.sido[i].sido;
             console.log(sidoCode);
             $("#sido").val(hangjungdong.sido[i].sido).trigger("change");
+            console.log(hangjungdong.sido[i].sido)
             break;
         }
     }
@@ -517,5 +516,33 @@ function changeMouseCursor() {
     }
     if ($(areaCircleCheckbox).is(":checked")) {
         return "url(./resources/img/control-toolbox-distance_icon-cursor-radius.png), auto";
+    }
+}
+
+//최초 페이지 로딩시 북마크html을 생성하는 함수
+function initBookmarkHtml(){
+    const container = $("#bookmark-container");
+    for (let i = 0; i < window.localStorage.length; i++) {
+        const key = window.localStorage.key(i);
+        if (!key.includes("bookmark")) {
+            continue;
+        }
+        const value = JSON.parse(window.localStorage.getItem(key));
+
+        let text = `<span class="olControlBookmarkRemove" title="삭제"></span>
+                    <span class="olControlBookmarkLink" title="${value.name}">${value.name}</span><br>`;
+
+        container.append(text);
+    }
+}
+
+//플래그 값을 이용해 range와 div의 표시 상태를 변경하는 함수 ture=show, false=hide
+function toogleSwipeElement(flag){
+    if(flag){
+        $(swipe).css("display", "block");
+        $(line).css("display", "block");
+    }else{
+        $(swipe).css("display", "none");
+        $(line).css("display", "none");
     }
 }
