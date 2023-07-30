@@ -1,68 +1,3 @@
-//기상 레이더 API응답의 가중치에 따라 webGL 객체의 색을 변환하는 객체
-const webGlStyle = {
-    symbol: {
-        symbolType: "square",
-        size: [
-            "case",
-            [">", ["zoom"], 8], 0,
-            ["interpolate", ["exponential", 2.5], ["zoom"], 6, 3, 9, 5],
-        ],
-        color: [
-            "case",
-            [">=", ["get", "value"], 110],
-            "#333333",
-            [">=", ["get", "value"], 90],
-            "#000390",
-            [">=", ["get", "value"], 80],
-            "#4C4EB1",
-            [">=", ["get", "value"], 70],
-            "#B3B4DE",
-            [">=", ["get", "value"], 60],
-            "#9300E4",
-            [">=", ["get", "value"], 50],
-            "#B329FF",
-            [">=", ["get", "value"], 40],
-            "#C969FF",
-            [">=", ["get", "value"], 30],
-            "#E0A9FF",
-            [">=", ["get", "value"], 25],
-            "#B40000",
-            [">=", ["get", "value"], 20],
-            "#D20000",
-            [">=", ["get", "value"], 15],
-            "#FF3200",
-            [">=", ["get", "value"], 10],
-            "#FF6600",
-            [">=", ["get", "value"], 9],
-            "#CCAA00",
-            [">=", ["get", "value"], 8],
-            "#E0B900",
-            [">=", ["get", "value"], 7],
-            "#F9CD00",
-            [">=", ["get", "value"], 6],
-            "#FFDC1F",
-            [">=", ["get", "value"], 5],
-            "#FFE100",
-            [">=", ["get", "value"], 4],
-            "#005A00",
-            [">=", ["get", "value"], 3],
-            "#008C00",
-            [">=", ["get", "value"], 2],
-            "#00BE00",
-            [">=", ["get", "value"], 1],
-            "#00FF00",
-            [">=", ["get", "value"], 0.5],
-            "#0033F5",
-            [">=", ["get", "value"], 0.1],
-            "#009BF5",
-            ["==", ["get", "value"], 0],
-            "rgba(0,0,0,0)",
-            "rgba(0,0,0,0)", // default color if no match
-        ],
-        opacity: 1,
-    },
-};
-
 //지도에 Drag & Drop 인터렉션 추가
 addDragAndDropInteraction();
 
@@ -150,17 +85,12 @@ map.on("moveend", async function () {
 
 //Extent 인터렉션 오버레이에 표시할 html을 생성하는 함수
 function createExtentInteractionTooltipHtml(width, heght, measure) {
-    let tooltipElementClass = "";
-    let tooltipInfoWidth = "";
-    let tooltipInfoHeight = "";
-    let tooltipInfoMeasure = "";
 
-    tooltipCase = "총 길이 : ";
-    tooltipElementClass = "tooltip-info-text-line";
-    tooltipInfoWidth = convertingLength(width);
+    const tooltipElementClass = "tooltip-info-text-line";
+    const tooltipInfoWidth = convertingLength(width);
     //console.log(tooltipInfoWidth)
-    tooltipInfoHeight = convertingLength(heght);
-    tooltipInfoMeasure = convertingMeasure(measure);
+    const tooltipInfoHeight = convertingLength(heght);
+    const tooltipInfoMeasure = convertingMeasure(measure);
 
     let tooltipInfoWidthText = tooltipInfoWidth[0];
     let tooltipInfoWidthUnit = tooltipInfoWidth[1];
@@ -445,30 +375,24 @@ $(window).keydown(function (event) {
 //OSRM을 이용한 경로탐색 요청 및 지도위에 표출하는 함수
 function searchRouteSummury(startFeature, endFeature, routeFlag) {
     //let osrmUrl = `https://router.project-osrm.org/route/v1/driving/`;
-    let osrmCarUrl = `http://192.168.10.99:6001/route/v1/driving/`;
-    let osrmFootUrl = `http://192.168.10.99:6002/route/v1/driving/`;
-    let osrBikemUrl = `http://192.168.10.99:6003/route/v1/driving/`;
+    const osrmCarUrl = `http://192.168.10.99:6001/route/v1/driving/`;
+    const osrmFootUrl = `http://192.168.10.99:6002/route/v1/driving/`;
+    const osrBikemUrl = `http://192.168.10.99:6003/route/v1/driving/`;
     const startCoordinate = ol.proj.transform(startFeature.getGeometry().getCoordinates(), "EPSG:3857", "EPSG:4326");
     const endCoordinate = ol.proj.transform(endFeature.getGeometry().getCoordinates(), "EPSG:3857", "EPSG:4326");
 
-    osrmCarUrl += `${startCoordinate};${endCoordinate}`;
-    osrmFootUrl += `${startCoordinate};${endCoordinate}`;
-    osrBikemUrl += `${startCoordinate};${endCoordinate}`;
-
-    osrmCarUrl += `?overview=full&geometries=geojson&steps=true`;
-    osrmFootUrl += `?overview=full&geometries=geojson&steps=true`;
-    osrBikemUrl += `?overview=full&geometries=geojson&steps=true`;
+    const urlSuffix = `${startCoordinate};${endCoordinate}?overview=full&geometries=geojson&steps=true`;
 
     let requestUrl = "";
     let routeKind = "";
     if (routeFlag == 1) {
-        requestUrl = osrmCarUrl;
+        requestUrl = osrmCarUrl.concat(urlSuffix);
         routeKind = "차량";
     } else if (routeFlag == 2) {
-        requestUrl = osrmFootUrl;
+        requestUrl = osrmFootUrl.concat(urlSuffix);
         routeKind = "도보";
     } else {
-        requestUrl = osrBikemUrl;
+        requestUrl = osrBikemUrl.concat(urlSuffix);
         routeKind = "자전거";
     }
 
@@ -816,29 +740,17 @@ $(document).on("hidden.bs.modal", ".bookmark-modal", function () {
 });
 
 //html 엘리먼트가 로드가 완료되면 실행되는 이벤트. 북마크 로컬스토리지를 조회하여 북마크 엘리먼트에 세팅한다. SGIS의 인증키를 받아온다.
-$(document).ready(async function () {
+$(document).ready(function () {
     
     //맵에 기본 맵 레이어 추가
     map.addLayer(baseLayer);
 
-    SgisApiAccessKey = await requestSgisApiAccessKey();
-
-    const container = $("#bookmark-container");
-    for (let i = 0; i < window.localStorage.length; i++) {
-        const key = window.localStorage.key(i);
-        if (!key.includes("bookmark")) {
-            continue;
-        }
-        const value = JSON.parse(window.localStorage.getItem(key));
-
-        let text = `<span class="olControlBookmarkRemove" title="삭제"></span>
-        <span class="olControlBookmarkLink" title="${value.name}">${value.name}</span><br>`;
-
-        //console.log(value)
-        //console.log(key + " : " + value + "<br />");
-        container.append(text);
-    }
-
+    (async () => {
+        SgisApiAccessKey = await requestSgisApiAccessKey();
+    })();
+    
+    initBookmarkHtml()
+    
     replaceControlTitle();
 
     //좌측 Collapse 메뉴가 보여질 때 실행되는 이벤트 Collapse 메뉴 토글 버튼의 아이콘을 변경한다.
@@ -871,20 +783,14 @@ $(document).ready(async function () {
     $("#offcanvasScrolling").on("hide.bs.offcanvas", function () {
         //경로탐색 셀렉트의 밸류 1:차량, 2:도보, 3:자전거
         const selectedValue = $("#route-kind-select").val();
-        //토글 버튼의 아이콘 클래스 이름을 담을 변수. fontawsome 아이콘을 이용함.
-        const className =
-            selectedValue == 1
-                ? "fa fa-car"
-                : selectedValue == 2
-                ? "fa fa-male"
-                : "fa fa-bicycle";
-        //토글 버튼의 title 이름을 담을 변수.
-        const title =
-            selectedValue == 1
-                ? "자동차 경로"
-                : selectedValue == 2
-                ? "도보 경로"
-                : "자전거 경로";
+        //토글 버튼의 아이콘 클래스 이름과 버튼의 title을 담은 객체 셀렉트의 밸류에 따라 객체로 반환된다..
+        const routes = {
+            1: { className: "fa fa-car", title: "자동차 경로" },
+            2: { className: "fa fa-male", title: "도보 경로" },
+            3: { className: "fa fa-bicycle", title: "자전거 경로" },
+        };
+        //토글 버튼의 아이콘 클래스 이름과 버튼의 title을 담을 변수.
+        const { className, title } = routes[selectedValue] || {};
         $("#route-result-toggle-button i")
             .removeClass("bi-x-lg")
             .addClass(className);
@@ -896,7 +802,12 @@ $(document).ready(async function () {
         e.stopPropagation();
     });
 
-    //SGIS API를 이용해 저장한 행정동 정보 파일을 이용해 행정동 셀렉트 박스의 값을 변경하기 위한 코드(시도)
+    initializeAddressSelection()
+});
+
+//SGIS API를 이용해 저장한 행정동 정보 파일을 이용해 행정동 셀렉트 박스의 값을 변경하기 위한 함수
+function initializeAddressSelection() {
+    //행정동 정보 파일을 이용해 행정동 시도 셀렉트의 값을 변경
     $.each(hangjungdong.sido, function (idx, code) {
         //append를 이용하여 option 하위에 붙여넣음
         $("#sido").append(changeAddressSelectValue(code.sido, code.codeNm));
@@ -904,6 +815,7 @@ $(document).ready(async function () {
 
     //시도 셀렉트가 변경될 때 발생하는 이벤트. 시군구, 읍면동 셀렉트를 초기화하고 시도 코드가 일치하는 코드를 가져와 옵션의 밸류에 세팅한다.
     $("#sido").change(function () {
+        console.log("zzz1?")
         $("#sigugun").empty();
         $("#sigugun").append(changeAddressSelectValue("", "선택")); //
         $("#dong").empty();
@@ -944,30 +856,25 @@ $(document).ready(async function () {
         const dongName = sido.text() + " " + sigugun.text() + " " + dong.text(); // 시도/시군구/읍면동 이름
         console.log(dongName);
     });
-});
+}
 
 //북마크의 아이템을 클릭했을 때 발생하는 이벤트. 로컬스토리지에서 해당하는 데이터를 가져와 저장했던 줌 레벨, 좌표를 이용해 해당 위치로 이동한다.
 $("#bookmark-container").on("click", ".olControlBookmarkLink", function () {
     const index = $(".olControlBookmarkLink").index(this);
     const storageKey = $(".olControlBookmarkLink").eq(index).text();
-    // console.log('Clicked link at index: ', index);
-    // console.log(storageKey);
 
     const value = JSON.parse(
         window.localStorage.getItem(`bookmark-${storageKey}`)
     );
 
-    //console.log(value)
-
     map.getView().setCenter([value.x, value.y]);
-
     map.getView().setZoom(value.zoom);
 });
 
 //북마크의 삭제버튼을 클릭했을 때 발생하는 이벤트. 로컬스토리지에서 해당하는 데이터를 삭제한다.
 $("#bookmark-container").on("click", ".olControlBookmarkRemove", function () {
     if (!confirm("북마크를 삭제하시겠습니까?")) {
-        // 취소(아니오) 버튼 클릭 시 이벤트
+        return
     } else {
         const index = $(".olControlBookmarkRemove").index(this);
         const storageKey = $(".olControlBookmarkLink").eq(index).text();
@@ -1174,32 +1081,6 @@ function stremVideo(videoSrc, videoName) {
 //     }
 // })
 
-//격자보기 체크박스 체크 이벤트. 지도 위에 위,경도의 격자를 표시한다.
-$("#map-graticule-checkbox").on("change", function(e) {
-    if (this.checked) {
-        if (graticuleLayer) {
-            map.removeLayer(graticuleLayer);
-            graticuleLayer = null;
-        }
-        graticuleLayer = new ol.layer.Graticule({
-            strokeStyle: new ol.style.Stroke({
-                color: "rgba(255,120,0,0.9)",
-                width: 2,
-                lineDash: [0.5, 4],
-            }),
-            showLabels: true,
-            wrapX: false,
-        });
-        graticuleLayer.setZIndex(5);
-        map.addLayer(graticuleLayer);
-    } else {
-        if (graticuleLayer) {
-            map.removeLayer(graticuleLayer);
-            graticuleLayer = null;
-        }
-    }
-});
-
 // //오버뷰 맵이 클릭되었을 때 발생하는 이벤트
 // $(".ol-overviewmap button").click(function () {
 //     setTimeout(function () {
@@ -1208,123 +1089,17 @@ $("#map-graticule-checkbox").on("change", function(e) {
 //     }, 0);
 // });
 
-//스와이프레이어 선택 셀렉트 변경시 발생 이벤트. 선택된 레이어를 기본 지도 레이어의 우측에 배치하고 동기화한다.
-$("#mapLayerSelect").on("change", function(e) {
-    const selectedLayer = this.value;
-    if (swipeLayer) {
-        map.removeLayer(swipeLayer);
-    }
-    switch (selectedLayer) {
-        case "default":
-            swipeLayer = new ol.layer.Tile({
-                source: new ol.source.XYZ({
-                    url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Base/{z}/{y}/{x}.png`,
-                    serverType: "geoserver",
-                    crossOrigin: "anonymous",
-                }),
-                preload: Infinity,
-                type: "submap",
-                zIndex: 0,
-            });
-            $(swipe).css("display", "block");
-            $(line).css("display", "block");
-            break;
-        case "aerial":
-            // 항공 사진 레이어 표시 로직
-            swipeLayer = new ol.layer.Tile({
-                source: new ol.source.XYZ({
-                    url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Satellite/{z}/{y}/{x}.jpeg`,
-                    crossOrigin: "anonymous",
-                }),
-                preload: Infinity,
-                type: "submap",
-                zIndex: 0,
-            });
-            $(swipe).css("display", "block");
-            $(line).css("display", "block");
-            break;
-        case "gray":
-            // 회색 지도 레이어 표시 로직
-            swipeLayer = new ol.layer.Tile({
-                source: new ol.source.XYZ({
-                    url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/gray/{z}/{y}/{x}.png`,
-                    crossOrigin: "anonymous",
-                }),
-                preload: Infinity,
-                type: "submap",
-                zIndex: 0,
-            });
-            $(swipe).css("display", "block");
-            $(line).css("display", "block");
-            break;
-        case "night":
-            // 야간 지도 레이어 표시 로직
-            swipeLayer = new ol.layer.Tile({
-                source: new ol.source.XYZ({
-                    url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/midnight/{z}/{y}/{x}.png`,
-                    crossOrigin: "anonymous",
-                }),
-                preload: Infinity,
-                type: "submap",
-                zIndex: 0,
-            });
-            $(swipe).css("display", "block");
-            $(line).css("display", "block");
-            break;
-        default:
-            // 데이터 없음 선택 시 로직
-            if (swipeLayer) {
-                map.removeLayer(swipeLayer);
-            }
-            $(swipe).css("display", "none");
-            $(line).css("display", "none");
-            return;
-    }
-    map.addLayer(swipeLayer);
-    swipeLayer.on("prerender", function (event) {
-        const thumbWidth = 20;
-        const ctx = event.context;
-        const mapSize = map.getSize();
-        const width =
-            (mapSize[0] - thumbWidth) * (swipe.value / 100) +
-            thumbWidth / 2;
-        const tl = ol.render.getRenderPixel(event, [width, 0]);
-        const tr = ol.render.getRenderPixel(event, [mapSize[0], 0]);
-        const bl = ol.render.getRenderPixel(event, [width, mapSize[1]]);
-        const br = ol.render.getRenderPixel(event, mapSize);
+//스와이프레이어 선택 셀렉트 변경시 발생 이벤트. 
+$("#mapLayerSelect").on("change", swipeLayerChnageListener)
 
-        ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(tl[0], tl[1]);
-        ctx.lineTo(bl[0], bl[1]);
-        ctx.lineTo(br[0], br[1]);
-        ctx.lineTo(tr[0], tr[1]);
-        ctx.closePath();
-        ctx.clip();
-    });
-    swipeLayer.on("postrender", function (event) {
-        const ctx = event.context;
-        ctx.restore();
-    });
-});
+//스와이프레이어 range 변경시 발생 이벤트.
+swipe.addEventListener("input", swipeRangeInputListener)
 
-//스와이프레이어 range 변경 이벤트. range의 값에 따라 스와이프 레이어의 width를 변경하고 기본 지도와 동기화한다.
-swipe.addEventListener("input", function (e) {
-    const rangeValue = e.target.value;
-    const swipeWidth = e.target.offsetWidth;
-    const thumbWidth =
-        parseInt(
-            getComputedStyle(e.target).getPropertyValue("--thumb-width"),
-            10
-        ) || 20; // thumb의 너비 가져오기
-    const max = parseInt(e.target.getAttribute("max"), 10); // range 요소의 최댓값 가져오기
-    const linePosition = (rangeValue / max) * (swipeWidth - thumbWidth); // range 값에 따라 div 위치 계산
-    line.style.left = linePosition + thumbWidth / 2 + "px";
-    map.render();
-});
+//좌표계 셀렉트 변경 이벤트.
+$(".coordinate-system-selector").change(coordinateSystemSelectChangeListener).data("prevValue", $(".coordinate-system-selector").val());
 
-//좌표계 셀렉트 변경 이벤트. 클릭 팝업, context-menu, 중앙 좌표 등 좌표값을 좌표계 값에 따라 변경함.
-$(".coordinate-system-selector").change(function () {
+//좌표계 셀렉트 변경시 동작하는 리스너. 클릭 팝업, context-menu, 중앙 좌표 등 좌표값을 좌표계 값에 따라 변경함.
+function coordinateSystemSelectChangeListener(){
     const prevValue = $(this).data("prevValue");
     const selectedValue = $(this).val();
 
@@ -1362,8 +1137,7 @@ $(".coordinate-system-selector").change(function () {
     );
 
     $(this).data("prevValue", selectedValue);
-})
-.data("prevValue", $(".coordinate-system-selector").val());
+}
 
 //특정 피쳐를 삭제하는 함수
 function removeSearchFeatures(source, attribute) {
@@ -1847,22 +1621,24 @@ $("#search-input").on("keypress", function (e) {
 });
 
 // 페이지네이션 초기화 함수
-function initPagination(containerSelector, response, searchFunction, addFunction, elementId, searchQuery, itemsPerPage) {
-    $(containerSelector).twbsPagination("destroy")
-    $(containerSelector).twbsPagination({
-        totalPages: response[0].response.page.total,
-        visiblePages: 5,
-        hideOnlyOnePage: true,
-        first: '<i class="bi bi-chevron-double-left"></i>',
-        prev: '<i class="bi bi-chevron-left"></i>',
-        next: '<i class="bi bi-chevron-right"></i>',
-        last: '<i class="bi bi-chevron-double-right"></i>',
-        initiateStartPageClick: true,
-        onPageClick: function (event, page) {
-            $.when(searchFunction(searchQuery, page)).done(function (response) {
-                addFunction(elementId, response, searchQuery, itemsPerPage);
-            });
-        },
+function initPagination(response, searchFunction, addFunction, elementId, searchQuery, itemsPerPage, ...containerSelectors) {
+    containerSelectors.forEach((containerSelector) => {
+        $(containerSelector).twbsPagination("destroy");
+        $(containerSelector).twbsPagination({
+            totalPages: response[0].response.page.total,
+            visiblePages: 5,
+            hideOnlyOnePage: true,
+            first: '<i class="bi bi-chevron-double-left"></i>',
+            prev: '<i class="bi bi-chevron-left"></i>',
+            next: '<i class="bi bi-chevron-right"></i>',
+            last: '<i class="bi bi-chevron-double-right"></i>',
+            initiateStartPageClick: true,
+            onPageClick: function (event, page) {
+                $.when(searchFunction(searchQuery, page)).done(function (response) {
+                    addFunction(elementId, response, searchQuery, itemsPerPage);
+                });
+            },
+        });
     });
 }
 
@@ -1905,10 +1681,12 @@ $("#serach-button").on("click", function () {
             ["#all-place-result", "#place-result", "#all-address-result", "#address-result", "#all-district-result", "#district-result", "#all-road-result", "#road-result"].map(selector => $(selector)[0].id);
 
         // 페이지네이션 초기화
-        initPagination(".place-pagination-container", placeResponse, searchPlace, addPlace, placeElementId, searchQuery, 10);
-        initPagination(".address-pagination-container", addressResponse, searchAddress, addAddress, addressElementId, searchQuery, 10);
-        initPagination(".district-pagination-container", districtResponse, searchDistrict, addDistrict, districtElementId, searchQuery, 10);
-        initPagination(".road-pagination-container", roadResponse, searchRoad, addRoad, roadElementId, searchQuery, 10);
+        initPagination(placeResponse, searchPlace, addPlace, placeElementId, searchQuery, 10,
+            ".place-pagination-container",
+            ".address-pagination-container",
+            ".district-pagination-container",
+            ".road-pagination-container"
+          );
 
         // 전체검색 엘리먼트에 최초 검색 결과를 표출.
         addPlace(allPlaceElementId, placeResponse[0], searchQuery);
@@ -1926,41 +1704,28 @@ $("#serach-button").on("click", function () {
 
 //주소 이동 버튼 클릭이벤트. 주소 셀렉트의 값을 이용해 SGIS API를 호출하여 Feature 객체를 반환받아 지도에 오버레이와 같이 표시한다.
 $("#btn-move-address").on("click", async function () {
-    let addressCode = $("#dong").val();
-    let param = "LT_C_ADEMD_INFO";
-    let sidoName = $("#dong option:selected").text();
-    let attrFilter = "emd_kor_nm";
-    if (addressCode == "") {
-        addressCode = $("#sigugun").val();
-        param = "LT_C_ADSIGG_INFO";
-        sidoName = $("#sigugun option:selected").text();
-        attrFilter = "sig_kor_nm";
+    let addressCode, param, sidoName, attrFilter;
+
+    for (const key in addressMapping) {
+        addressCode = $(`#${key}`).val();
+        if (addressCode !== "") {
+            param = addressMapping[key].param;
+            sidoName = $(`#${key} option:selected`).text();
+            attrFilter = addressMapping[key].attrFilter;
+            break;
+        }
     }
-    if (addressCode == "") {
-        addressCode = $("#sido").val();
-        param = "LT_C_ADSIDO_INFO";
-        sidoName = $("#sido option:selected").text();
-        attrFilter = "ctp_kor_nm";
-    }
-    if (addressCode == "") {
+
+    if (!addressCode) {
         return alert("시도 / 시군구 / 읍면동 중 하나 이상을 선택해주세요");
     }
 
-    const fullAddress = `${$("#sido option:selected").text()} ${$(
-        "#sigugun option:selected"
-    ).text()} ${$("#dong option:selected").text()}`
-        .replaceAll("선택", "")
-        .trimEnd();
+    const fullAddress = [$("#sido"), $("#sigugun"), $("#dong")].map(ele => ele.find("option:selected").text().replaceAll("선택", "")).join(" ").trimEnd();
 
     const url = `https://sgisapi.kostat.go.kr/OpenAPI3/boundary/hadmarea.geojson?year=2022&adm_cd=${addressCode}&accessToken=${SgisApiAccessKey}&low_search=0`;
 
-    if (clickCurrentLayer) {
-        map.removeLayer(clickCurrentLayer);
-    }
-
-    if (clickCurrentOverlay) {
-        map.removeOverlay(clickCurrentOverlay);
-    }
+    if (clickCurrentLayer) map.removeLayer(clickCurrentLayer);
+    if (clickCurrentOverlay) map.removeOverlay(clickCurrentOverlay);
 
     try {
         const response = await axios.get(url);
@@ -2023,26 +1788,17 @@ $("#btn-move-address").on("click", async function () {
         });
 
         map.getView().fit(vectorSource.getExtent());
-        map.getView().setCenter(
-            ol.extent.getCenter(vectorSource.getExtent())
-        );
-        let zoomLevel;
-        if (param == "LT_C_ADSIDO_INFO") {
-            zoomLevel = 8;
-        } else if (param == "LT_C_ADSIGG_INFO") {
-            zoomLevel = 10;
-        } else {
-            zoomLevel = 12;
-        }
-        if (map.getView().getZoom() < zoomLevel) {
-            map.getView().setZoom(zoomLevel);
+        map.getView().setCenter(ol.extent.getCenter(vectorSource.getExtent()));
+        
+        let zoomLevel = param === "LT_C_ADSIDO_INFO" ? 8 : param === "LT_C_ADSIGG_INFO" ? 10 : 12;
+        if (map.getView().getZoom() < zoomLevel){
+            map.getView().setZoom(zoomLevel)
         }
 
         map.addOverlay(overlay);
         clickCurrentOverlay = overlay;
 
-        const deleteButton =
-            overlayElement.querySelector(".ol-popup-closer");
+        const deleteButton = overlayElement.querySelector(".ol-popup-closer");
         deleteButton.addEventListener("click", function () {
             map.removeLayer(vector_layer);
             map.removeOverlay(clickCurrentOverlay);
@@ -2053,12 +1809,14 @@ $("#btn-move-address").on("click", async function () {
     }
 });
 
+//상위 주소검색 탭이 숨겨질 때 실행되는 이벤트. 장소, 주소검색 결과의 마커를 삭제한다.
 $("#profile-tab").on("hidden.bs.tab", function (e) {
     const source = objectControllVectorLayer.getSource();
     removeSearchFeatures(source, "place")
     removeSearchFeatures(source, "address")
 });
 
+//상위 주소검색 탭이 보여질 때 실행되는 이벤트. 열려있는 하위 탭을 찾아 해당하는 검색 결과의 마커를 지도에 표시한다.
 $("#profile-tab").on("shown.bs.tab", function (e) {
     let activeSubTab = $(".tab-pane:visible")
     activeSubTab.each(function () {
