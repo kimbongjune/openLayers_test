@@ -85,6 +85,71 @@ let routeSummuryPointStyle = new ol.style.Style({
     }),
 });
 
+//기상 레이더 API응답의 가중치에 따라 webGL 객체의 색을 변환하는 객체
+const radarWebglStyle = {
+    symbol: {
+        symbolType: "square",
+        size: [
+            "case",
+            [">", ["zoom"], 8], 0,
+            ["interpolate", ["exponential", 2.5], ["zoom"], 6, 3, 9, 5],
+        ],
+        color: [
+            "case",
+            [">=", ["get", "value"], 110],
+            "#333333",
+            [">=", ["get", "value"], 90],
+            "#000390",
+            [">=", ["get", "value"], 80],
+            "#4C4EB1",
+            [">=", ["get", "value"], 70],
+            "#B3B4DE",
+            [">=", ["get", "value"], 60],
+            "#9300E4",
+            [">=", ["get", "value"], 50],
+            "#B329FF",
+            [">=", ["get", "value"], 40],
+            "#C969FF",
+            [">=", ["get", "value"], 30],
+            "#E0A9FF",
+            [">=", ["get", "value"], 25],
+            "#B40000",
+            [">=", ["get", "value"], 20],
+            "#D20000",
+            [">=", ["get", "value"], 15],
+            "#FF3200",
+            [">=", ["get", "value"], 10],
+            "#FF6600",
+            [">=", ["get", "value"], 9],
+            "#CCAA00",
+            [">=", ["get", "value"], 8],
+            "#E0B900",
+            [">=", ["get", "value"], 7],
+            "#F9CD00",
+            [">=", ["get", "value"], 6],
+            "#FFDC1F",
+            [">=", ["get", "value"], 5],
+            "#FFE100",
+            [">=", ["get", "value"], 4],
+            "#005A00",
+            [">=", ["get", "value"], 3],
+            "#008C00",
+            [">=", ["get", "value"], 2],
+            "#00BE00",
+            [">=", ["get", "value"], 1],
+            "#00FF00",
+            [">=", ["get", "value"], 0.5],
+            "#0033F5",
+            [">=", ["get", "value"], 0.1],
+            "#009BF5",
+            ["==", ["get", "value"], 0],
+            "rgba(0,0,0,0)",
+            "rgba(0,0,0,0)", // default color if no match
+        ],
+        opacity: 1,
+    },
+};
+
 //경로탐색 레이어를 지도위에 표출하기 위한 레이어 소스.
 let routeVectorSource = new ol.source.Vector({});
 //경로탐색 레이어를 지도위에 표출하기 위한 벡터 레이어
@@ -328,7 +393,7 @@ async function radarLayerChange(treeNode, treeId) {
             webGlVectorLayer = new ol.layer.WebGLPoints({
                 preload: Infinity,
                 source: getJsonSource,
-                style: webGlStyle,
+                style: radarWebglStyle,
                 blur: 2,
             });
             webGlVectorLayer.setZIndex(5);
@@ -495,4 +560,140 @@ function requestWmsLayer(layerId, layerIndex = 5) {
     map.addLayer(layer);
 
     return layer;
+}
+
+//격자보기 체크박스 체크 이벤트. 지도 위에 위,경도의 격자를 표시한다.
+$("#map-graticule-checkbox").on("change", function(e) {
+    if (this.checked) {
+        if (graticuleLayer) {
+            map.removeLayer(graticuleLayer);
+            graticuleLayer = null;
+        }
+        graticuleLayer = new ol.layer.Graticule({
+            strokeStyle: new ol.style.Stroke({
+                color: "rgba(255,120,0,0.9)",
+                width: 2,
+                lineDash: [0.5, 4],
+            }),
+            showLabels: true,
+            wrapX: false,
+        });
+        graticuleLayer.setZIndex(5);
+        map.addLayer(graticuleLayer);
+    } else {
+        if (graticuleLayer) {
+            map.removeLayer(graticuleLayer);
+            graticuleLayer = null;
+        }
+    }
+});
+
+//스와이프레이어 선택 셀렉트 변경시 동작하는 리스너. 선택된 레이어를 기본 지도 레이어의 우측에 배치하고 동기화한다.
+function swipeLayerChnageListener(){
+    const selectedLayer = this.value;
+    if (swipeLayer) {
+        map.removeLayer(swipeLayer);
+    }
+    switch (selectedLayer) {
+        case "default":
+            swipeLayer = new ol.layer.Tile({
+                source: new ol.source.XYZ({
+                    url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Base/{z}/{y}/{x}.png`,
+                    serverType: "geoserver",
+                    crossOrigin: "anonymous",
+                }),
+                preload: Infinity,
+                type: "submap",
+                zIndex: 0,
+            });
+            toogleSwipeElement(true)
+            break;
+        case "aerial":
+            // 항공 사진 레이어 표시 로직
+            swipeLayer = new ol.layer.Tile({
+                source: new ol.source.XYZ({
+                    url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Satellite/{z}/{y}/{x}.jpeg`,
+                    crossOrigin: "anonymous",
+                }),
+                preload: Infinity,
+                type: "submap",
+                zIndex: 0,
+            });
+            toogleSwipeElement(true)
+            break;
+        case "gray":
+            // 회색 지도 레이어 표시 로직
+            swipeLayer = new ol.layer.Tile({
+                source: new ol.source.XYZ({
+                    url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/gray/{z}/{y}/{x}.png`,
+                    crossOrigin: "anonymous",
+                }),
+                preload: Infinity,
+                type: "submap",
+                zIndex: 0,
+            });
+            toogleSwipeElement(true)
+            break;
+        case "night":
+            // 야간 지도 레이어 표시 로직
+            swipeLayer = new ol.layer.Tile({
+                source: new ol.source.XYZ({
+                    url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/midnight/{z}/{y}/{x}.png`,
+                    crossOrigin: "anonymous",
+                }),
+                preload: Infinity,
+                type: "submap",
+                zIndex: 0,
+            });
+            toogleSwipeElement(true)
+            break;
+        default:
+            // 데이터 없음 선택 시 로직
+            if (swipeLayer) {
+                map.removeLayer(swipeLayer);
+            }
+            toogleSwipeElement(false)
+            return;
+    }
+    map.addLayer(swipeLayer);
+    swipeLayer.on("prerender", function (event) {
+        const thumbWidth = 20;
+        const ctx = event.context;
+        const mapSize = map.getSize();
+        const width =
+            (mapSize[0] - thumbWidth) * (swipe.value / 100) +
+            thumbWidth / 2;
+        const tl = ol.render.getRenderPixel(event, [width, 0]);
+        const tr = ol.render.getRenderPixel(event, [mapSize[0], 0]);
+        const bl = ol.render.getRenderPixel(event, [width, mapSize[1]]);
+        const br = ol.render.getRenderPixel(event, mapSize);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(tl[0], tl[1]);
+        ctx.lineTo(bl[0], bl[1]);
+        ctx.lineTo(br[0], br[1]);
+        ctx.lineTo(tr[0], tr[1]);
+        ctx.closePath();
+        ctx.clip();
+    });
+    swipeLayer.on("postrender", function (event) {
+        const ctx = event.context;
+        ctx.restore();
+    });
+}
+
+//스와이프레이어 range 변경시 동작하는 리스너. range의 값에 따라 스와이프 레이어의 width를 변경하고 기본 지도와 동기화한다.
+function swipeRangeInputListener(e){
+    const rangeValue = e.target.value;
+    const swipeWidth = e.target.offsetWidth;
+    const thumbWidth =
+        parseInt(
+            getComputedStyle(e.target).getPropertyValue("--thumb-width"),
+            10
+        ) || 20; // thumb의 너비 가져오기
+    const max = parseInt(e.target.getAttribute("max"), 10); // range 요소의 최댓값 가져오기
+    const linePosition = (rangeValue / max) * (swipeWidth - thumbWidth); // range 값에 따라 div 위치 계산
+    line.style.left = linePosition + thumbWidth / 2 + "px";
+    map.render();
 }
