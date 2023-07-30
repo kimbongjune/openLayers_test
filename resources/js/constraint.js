@@ -133,3 +133,19 @@ let measurePolygon;
 let areaPolygon;
 //원을 그리는 draw객체
 let circlePolygon;
+
+//주소를 키밸류로 찾기 위한 전역변수
+const addressMapping = {
+    "dong": {
+        param: "LT_C_ADEMD_INFO",
+        attrFilter: "emd_kor_nm"
+    },
+    "sigugun": {
+        param: "LT_C_ADSIGG_INFO",
+        attrFilter: "sig_kor_nm"
+    },
+    "sido": {
+        param: "LT_C_ADSIDO_INFO",
+        attrFilter: "ctp_kor_nm"
+    }
+}
