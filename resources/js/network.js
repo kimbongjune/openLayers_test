@@ -9,8 +9,8 @@ async function requestSgisApiAccessKey(){
     try {
         const response = await axios.get("https://sgisapi.kostat.go.kr/OpenAPI3/auth/authentication.json", {
             params: {
-                consumer_key: "5ffa82fde9fa45338732",
-                consumer_secret: "42f45550972442dea2c9",
+                consumer_key: "8eafb7c1729e4ef3a607",
+                consumer_secret: "e3e846d81e634f189586",
             },
         });
         console.log(response.data);
