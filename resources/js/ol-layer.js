@@ -687,11 +687,7 @@ function swipeLayerChnageListener(){
 function swipeRangeInputListener(e){
     const rangeValue = e.target.value;
     const swipeWidth = e.target.offsetWidth;
-    const thumbWidth =
-        parseInt(
-            getComputedStyle(e.target).getPropertyValue("--thumb-width"),
-            10
-        ) || 20; // thumb의 너비 가져오기
+    const thumbWidth = parseInt(getComputedStyle(e.target).getPropertyValue("--thumb-width"), 10) || 20; // thumb의 너비 가져오기
     const max = parseInt(e.target.getAttribute("max"), 10); // range 요소의 최댓값 가져오기
     const linePosition = (rangeValue / max) * (swipeWidth - thumbWidth); // range 값에 따라 div 위치 계산
     line.style.left = linePosition + thumbWidth / 2 + "px";
