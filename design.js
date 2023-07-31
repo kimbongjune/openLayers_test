@@ -14,19 +14,10 @@ addLinkInteraction();
 addCctvInteraction()
 
 //지도 객체의 로딩이 시작되면 실행되는 이벤트
-map.on("loadstart", function () {
-    map.getTargetElement().classList.add("spinner");
-});
+map.on("loadstart", mapLoadStartEventListener);
 
-//지도 객체의 로드가 완료되었을때 동작하는 이벤트
-map.on("loadend", function () {
-    const center = mapView.getCenter();
-    const selectedValue = $(".coordinate-system-selector").val();
-    info.innerHTML = formatCoordinate(center, "EPSG:3857", selectedValue);
-    const zoomLevel = map.getView().getZoom();
-    zoomInfo.innerHTML = `level: ${zoomLevel}`;
-    map.getTargetElement().classList.remove("spinner");
-});
+//지도 객체의 로드가 완료되면 동작하는 이벤트
+map.on("loadend", mapLoadEndEventListener);
 
 //지도 클릭 이벤트
 map.on("click", function (evt) {
@@ -73,15 +64,8 @@ map.on("click", function (evt) {
     requestDataLayer("LP_PA_CBND_BUBUN", evt.coordinate)
 });
 
-//지도의 이동이 종료되었을 때 발생하는 이벤트 지도 중앙좌표와 줌 레벨을 표시한다.
-map.on("moveend", async function () {
-    const view = map.getView();
-    const center = view.getCenter();
-    const coordinate = ol.proj.transform(center, "EPSG:3857", "EPSG:4326");
-    await reverseGeoCodingToRegion(coordinate[0], coordinate[1]);
-    const zoom = map.getView().getZoom();
-    zoomInfo.innerHTML = `level: ${zoom}`;
-});
+//지도의 이동이 종료되었을 때 발생하는 이벤트.
+map.on("moveend", mapMoveEndEventListener);
 
 //Extent 인터렉션 오버레이에 표시할 html을 생성하는 함수
 function createExtentInteractionTooltipHtml(width, heght, measure) {
@@ -239,138 +223,11 @@ function uncheckedCheckBox(selectCheckBox) {
     });
 }
 
-//길이측정 체크박스의 체크가 변경될 때 발생하는 이벤트
-$('#measureCheckbox').change(function () {
-    if (this.checked) {
-        uncheckedCheckBox(this);
-        addLineInteraction();
-        $("#remove-measure").attr("disabled", true);
-        if (areaTooltip) {
-            map.removeOverlay(areaTooltip);
-        }
-        if (circleTooltip) {
-            map.removeOverlay(circleTooltip);
-        }
-    } else {
-        if (measurePolygon) {
-            map.removeInteraction(measurePolygon);
-            if (measureTooltipElement) {
-                measureTooltipElement = null;
-            }
-        }
-        measurePolygon = null;
-        sketch = null;
-        $("#remove-measure").attr("disabled", false);
-    }
-});
+//그리기 체크박스가 체크될 때 발생하는 이벤트
+$('.draw-checkbox').change(handleDrawCheckboxChangeListener);
 
-//면적측정 체크박스의 체크가 변경될 때 발생하는 이벤트
-$('#areaCheckbox').change(function () {
-    if (this.checked) {
-        uncheckedCheckBox(this);
-        addPolygonInteraction();
-        $("#remove-measure").attr("disabled", true);
-        if (measureTooltip) {
-            map.removeOverlay(measureTooltip);
-        }
-        if (circleTooltip) {
-            map.removeOverlay(circleTooltip);
-        }
-    } else {
-        if (areaPolygon) {
-            map.removeInteraction(areaPolygon);
-            if (areaTooltipElement) {
-                areaTooltipElement = null;
-            }
-        }
-        areaPolygon = null;
-        sketch = null;
-        $("#remove-measure").attr("disabled", false);
-    }
-});
-
-//반경측정 체크박스의 체크가 변경될 때 발생하는 이벤트
-$('#areaCircleCheckbox').change(function () {
-    if (this.checked) {
-        uncheckedCheckBox(this);
-        addCircleInteraction();
-        $("#remove-measure").attr("disabled", true);
-        if (measureTooltip) {
-            map.removeOverlay(measureTooltip);
-        }
-        if (areaTooltip) {
-            map.removeOverlay(areaTooltip);
-        }
-    } else {
-        if (circlePolygon) {
-            map.removeInteraction(circlePolygon);
-            if (circleTooltipElement) {
-                circleTooltipElement = null;
-            }
-        }
-        circlePolygon = null;
-        sketch = null;
-        $("#remove-measure").attr("disabled", false);
-    }
-});
-
-//ESC키가 입력될 때 발생하는 이벤트
-$(window).keydown(function (event) {
-    if (event.key === "Escape") {
-        if(printControl.isOpen()){
-            console.log(printControl)
-        }
-        if (measurePolygon) {
-            //console.log(draw);
-            measurePolygon.finishDrawing();
-            if (measureTooltipElement) {
-                measureTooltipElement.parentNode.removeChild(
-                    measureTooltipElement
-                );
-            }
-            map.removeInteraction(measurePolygon);
-            addLineInteraction();
-            return;
-        }
-        if (areaPolygon) {
-            areaPolygon.finishDrawing();
-            if (areaTooltipElement) {
-                areaTooltipElement.parentNode.removeChild(areaTooltipElement);
-            }
-            map.removeInteraction(areaPolygon);
-            addPolygonInteraction();
-            return;
-        }
-
-        if (circlePolygon) {
-            circlePolygon.abortDrawing();
-            if (circleTooltipElement) {
-                circleTooltipElement.parentNode.removeChild(
-                    circleTooltipElement
-                );
-            }
-            map.removeInteraction(circlePolygon);
-            addCircleInteraction();
-            return;
-        }
-
-        if ($("#popup-content").length) {
-            map.removeLayer(clickCurrentLayer);
-            map.removeOverlay(clickCurrentOverlay);
-            return
-        }
-
-        if (cctvSelectCluster) {
-            cctvSelectCluster.clear();
-            return
-        }
-
-        if (contextmenu.isOpen()) {
-            contextmenu.closeMenu();
-            return
-        }
-    }
-});
+//키보드 입력이 발생될 때 발생하는 이벤트.
+$(window).keydown(keyDownEventListener);
 
 //OSRM을 이용한 경로탐색 요청 및 지도위에 표출하는 함수
 function searchRouteSummury(startFeature, endFeature, routeFlag) {
@@ -572,26 +429,8 @@ function searchRouteSummury(startFeature, endFeature, routeFlag) {
         });
 }
 
-//지도 위에서 마우스가 이동할 때 발생하는 이벤트. 길이와 면적 측정시 마우스 커서를 변경하고, 지도 위에 특정 레이어가 존재한다면 커서를 변경한다.
-map.on("pointermove", function (e) {
-    const center = mapView.getCenter();
-    const selectedValue = $(".coordinate-system-selector").val();
-    info.innerHTML = formatCoordinate(center, "EPSG:3857", selectedValue);
-    if (e.dragging) return;
-
-    const pixel = map.getEventPixel(e.originalEvent);
-    const hit = map.hasFeatureAtPixel(pixel);
-
-    if (
-        $(areaCheckbox).is(":checked") ||
-        $(measureCheckbox).is(":checked") ||
-        $(areaCircleCheckbox).is(":checked")
-    ) {
-        map.getTargetElement().style.cursor = changeMouseCursor();
-    } else {
-        map.getTargetElement().style.cursor = hit ? "pointer" : "";
-    }
-});
+//지도 위치가 이동할 때 발생하는 이벤트.
+map.on("pointermove", mapPointMoveEventListener);
 
 //툴팁 overlay 클릭 이벤트. 클릭시 해당 툴팁이 툴팁 오버레이중 최 상단으로 올라온다.
 $(document).on("click", ".tooltip-content", function (event) {
@@ -619,67 +458,12 @@ $(document).on("click", ".tooltip-content", function (event) {
     selectedOverlayElement.style.zIndex = highestZIndex + 1;
 });
 
-//측정레이어 삭제 버튼을 클릭했을 때 발생하는 이벤트. 지도 위의 면적 및 길이측적 벡터 레이어와 툴팁 오버레이를 전부 삭제한다.
-$("#remove-measure").on("click", function () {
-    map.getOverlays()
-        .getArray()
-        .slice(0)
-        .forEach(function (overlay) {
-            map.removeOverlay(overlay);
-        });
-    map.getLayers()
-        .getArray()
-        .slice()
-        .forEach(function (layer) {
-            if (layer.get("type") === "routeLayer") {
-                map.removeLayer(layer);
-            }
-        });
-    objectControllVectorLayer
-        .getSource()
-        .getFeatures()
-        .forEach(function (feature) {
-            if (
-                feature.get("attribute") == "start" ||
-                feature.get("attribute") == "end"
-            ) {
-                objectControllVectorLayer
-                    .getSource()
-                    .removeFeature(feature);
-            }
-        });
-    const instructionsElement = document.getElementById("sidenav");
-    instructionsElement.innerHTML = "";
-    if (extentInteraction) {
-        extentInteraction.setExtent(undefined);
-    }
-    lineSource.clear();
-    polygonSource.clear();
-    cricleSource.clear();
-});
+//측정레이어 삭제 버튼을 클릭했을 때 발생하는 이벤트.
+$("#remove-measure").on("click", removeMeasureEventListener);
 
-//내위치 버튼을 클릭했을 때 발생하는 이벤트. 현재 내 위치에 마커를 찍고 지도 센터를 옮긴다.
-$("#current-position").on("click", function () {
-    if ("geolocation" in navigator) {
-        /* geolocation is available */
-        navigator.geolocation.getCurrentPosition((position) => {
-            const { latitude, longitude } = position.coords;
-            const coordinate = ol.proj.transform(
-                [longitude, latitude],
-                "EPSG:4326",
-                "EPSG:3857"
-            );
-            //console.log(coordinate)
-            map.getView().setCenter(coordinate);
-            if (map.getView().getZoom() < 14) {
-                map.getView().setZoom(14);
-            }
-            locationMarker(coordinate);
-        });
-    } else {
-        /* geolocation IS NOT available */
-    }
-});
+
+//내위치 버튼을 클릭했을 때 발생하는 이벤트.
+$("#current-position").on("click", currentPositionEventListener);
 
 //북마크 열기 버튼을 클릭했을 때 발생하는 이벤트. 북마크 목록을 표출한다.
 $("#olcontrolBookmarkMaximizeDiv").click(function() {
@@ -887,49 +671,8 @@ $("#bookmark-container").on("click", ".olControlBookmarkRemove", function () {
     }
 });
 
-//배경지도 변경 드롭다운 메뉴의 아이템을 클릭했을 때 발생하는 이벤트. 기존 이벤트(아이템 클릭시 드롭다운 닫힘)를 취소시키고 해당하는 아이템으로 메인 지도의 레이어를 세팅한다.
-$("ul.dropdown-menu a.dropdown-item").click(function (e) {
-    e.preventDefault(); // This will prevent the default action of the a tag
-    const clickedId = this.id;
-    // Add active class to clicked a tag and remove from others
-    $("ul.dropdown-menu a.dropdown-item").removeClass("active");
-    $(this).addClass("active");
-
-    map.getLayers()
-        .getArray()
-        .slice()
-        .forEach(function (layer) {
-            if (layer.get("type") === "map") {
-                map.removeLayer(layer);
-            } else if (layer.get("type") === "submap") {
-                layer.setZIndex(1);
-            } else {
-                layer.setZIndex(2);
-            }
-        });
-
-    switch (clickedId) {
-        case "baseMap":
-            map.addLayer(baseLayer);
-            break;
-        case "compositeMap":
-            map.addLayer(satelliteLayer);
-            map.addLayer(textLayer);
-            break;
-        case "aerialMap":
-            map.addLayer(satelliteLayer);
-            break;
-        case "bwMap":
-            map.addLayer(greyLayer);
-            break;
-        case "nightMap":
-            map.addLayer(midnightLayer);
-            break;
-        default:
-        //console.log("Invalid map type");
-    }
-    map.renderSync();
-});
+//배경지도 변경 드롭다운 메뉴의 아이템을 클릭했을 때 발생하는 이벤트.
+$("ul.dropdown-menu a.dropdown-item").click(selectBasemapDropdownSelectEventListener);
 
 //경로탐색 결과 컨테이너에 마우스가 호버될 때 발생하는 이벤트. a태그위에 마우스가 호버될 때 data로 저장된 좌표를 가져와 지도 위에 포인트를 찍는다.
 $("#sidenav").on("mouseover", function(event) {
@@ -1704,14 +1447,12 @@ $("#serach-button").on("click", function () {
 
 //주소 이동 버튼 클릭이벤트. 주소 셀렉트의 값을 이용해 SGIS API를 호출하여 Feature 객체를 반환받아 지도에 오버레이와 같이 표시한다.
 $("#btn-move-address").on("click", async function () {
-    let addressCode, param, sidoName, attrFilter;
+    let addressCode, param
 
     for (const key in addressMapping) {
         addressCode = $(`#${key}`).val();
         if (addressCode !== "") {
             param = addressMapping[key].param;
-            sidoName = $(`#${key} option:selected`).text();
-            attrFilter = addressMapping[key].attrFilter;
             break;
         }
     }
