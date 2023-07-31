@@ -27,6 +27,30 @@ const map = new ol.Map({
     }),
 });
 
+//지도 객체의 로딩이 시작되면 동작하는 이벤트 리스너
+function mapLoadStartEventListener(){
+    map.getTargetElement().classList.add("spinner");
+}
+
+//지도 객체의 로딩이 완료되면 동작하는 이벤트 리스너
+function mapLoadEndEventListener(){
+    const center = mapView.getCenter();
+    const selectedValue = $(".coordinate-system-selector").val();
+    info.innerHTML = formatCoordinate(center, "EPSG:3857", selectedValue);
+    const zoomLevel = map.getView().getZoom();
+    zoomInfo.innerHTML = `level: ${zoomLevel}`;
+    map.getTargetElement().classList.remove("spinner");
+}
+
+//지도의 이동이 종료되었을 때 동작하는 이벤트 리스너. 지도 중앙좌표와 줌 레벨을 표시한다.
+async function mapMoveEndEventListener(){
+    const view = map.getView();
+    const center = view.getCenter();
+    const coordinate = ol.proj.transform(center, "EPSG:3857", "EPSG:4326");
+    await reverseGeoCodingToRegion(coordinate[0], coordinate[1]);
+    const zoom = map.getView().getZoom();
+    zoomInfo.innerHTML = `level: ${zoom}`;
+}
 
 //현재 위치(geoLocation)를 얻어와 해당 좌표에 마커를 찍는 함수
 function locationMarker(coordinate) {
@@ -96,4 +120,123 @@ function addMarker(coordinate, template = "", attribute = "", searchType = "") {
 
     feature.setStyle(iconStyle);
     objectControllVectorLayer.getSource().addFeature(feature);
+}
+
+//지도 위치가 이동할 때 동작하는 이벤트 리스너. 길이와 면적 측정시 마우스 커서를 변경하고, 지도 위에 특정 레이어가 존재한다면 커서를 변경한다.
+function mapPointMoveEventListener(e){
+    const center = mapView.getCenter();
+    const selectedValue = $(".coordinate-system-selector").val();
+    info.innerHTML = formatCoordinate(center, "EPSG:3857", selectedValue);
+    if (e.dragging) return;
+
+    const pixel = map.getEventPixel(e.originalEvent);
+    const hit = map.hasFeatureAtPixel(pixel);
+
+    if (
+        $(areaCheckbox).is(":checked") ||
+        $(measureCheckbox).is(":checked") ||
+        $(areaCircleCheckbox).is(":checked")
+    ) {
+        map.getTargetElement().style.cursor = changeMouseCursor();
+    } else {
+        map.getTargetElement().style.cursor = hit ? "pointer" : "";
+    }
+}
+
+//측정레이어 삭제 버튼을 클릭했을 때 동작하는 이벤트 리스너. 지도 위의 면적 및 길이측적 벡터 레이어와 툴팁 오버레이를 전부 삭제한다.
+function removeMeasureEventListener(){
+    //지도 위의 모든 오버레이 제거
+    map.getOverlays().getArray().slice(0).forEach(function (overlay) {
+        map.removeOverlay(overlay);
+    });
+    //레이어 중 경로탐색 레이어 삭제
+    map.getLayers().getArray().slice().forEach(function (layer) {
+        if (layer.get("type") === "routeLayer") {
+            map.removeLayer(layer);
+        }
+    });
+    //마커중 중 경로탐색 마커 삭제
+    objectControllVectorLayer.getSource().getFeatures().forEach(function (feature) {
+        if (feature.get("attribute") == "start" || feature.get("attribute") == "end") {
+            objectControllVectorLayer.getSource().removeFeature(feature);
+        }
+    });
+    //경로탐색 결과 초기화
+    const instructionsElement = document.getElementById("sidenav");
+    instructionsElement.innerHTML = "";
+    //extentInteraction 객체 삭제
+    if (extentInteraction) {
+        extentInteraction.setExtent(undefined);
+    }
+    //그리기 객체 전부 삭제
+    lineSource.clear();
+    polygonSource.clear();
+    cricleSource.clear();
+}
+
+//내위치 버튼을 클릭했을 때 동작하는 이벤트 리스너. 현재 내 위치에 마커를 찍고 지도 센터를 옮긴다.
+function currentPositionEventListener(){
+    if ("geolocation" in navigator) {
+        /* geolocation is available */
+        navigator.geolocation.getCurrentPosition((position) => {
+            const { latitude, longitude } = position.coords;
+            const coordinate = ol.proj.transform(
+                [longitude, latitude],
+                "EPSG:4326",
+                "EPSG:3857"
+            );
+            //console.log(coordinate)
+            map.getView().setCenter(coordinate);
+            if (map.getView().getZoom() < 14) {
+                map.getView().setZoom(14);
+            }
+            locationMarker(coordinate);
+        });
+    } else {
+        /* geolocation IS NOT available */
+    }
+}
+
+//배경지도 변경 드롭다운 메뉴의 아이템을 클릭했을 때 동작하는 이벤트 리스너. 기존 이벤트(아이템 클릭시 드롭다운 닫힘)를 취소시키고 해당하는 아이템으로 메인 지도의 레이어를 세팅한다.
+function selectBasemapDropdownSelectEventListener(e){
+    e.preventDefault(); // This will prevent the default action of the a tag
+    const clickedId = this.id;
+    // Add active class to clicked a tag and remove from others
+    $("ul.dropdown-menu a.dropdown-item").removeClass("active");
+    $(this).addClass("active");
+
+    map.getLayers()
+        .getArray()
+        .slice()
+        .forEach(function (layer) {
+            if (layer.get("type") === "map") {
+                map.removeLayer(layer);
+            } else if (layer.get("type") === "submap") {
+                layer.setZIndex(1);
+            } else {
+                layer.setZIndex(2);
+            }
+        });
+
+    switch (clickedId) {
+        case "baseMap":
+            map.addLayer(baseLayer);
+            break;
+        case "compositeMap":
+            map.addLayer(satelliteLayer);
+            map.addLayer(textLayer);
+            break;
+        case "aerialMap":
+            map.addLayer(satelliteLayer);
+            break;
+        case "bwMap":
+            map.addLayer(greyLayer);
+            break;
+        case "nightMap":
+            map.addLayer(midnightLayer);
+            break;
+        default:
+        //console.log("Invalid map type");
+    }
+    map.renderSync();
 }
