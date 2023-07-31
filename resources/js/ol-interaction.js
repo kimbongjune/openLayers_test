@@ -689,3 +689,97 @@ function addCircleInteraction() {
         listenerKey = null;
     });
 }
+
+
+//그리기 체크박스가 체크될 때 동작하는 이벤트 리스너
+function handleDrawCheckboxChangeListener(){
+    const checked = this.checked
+    const id = this.id
+    if(checked)uncheckedCheckBox(this);
+    switch(id) {
+        case 'measureCheckbox':
+            measureCheckboxChangeListener(checked)
+            console.log("길이", checked)
+            break;
+        case 'areaCheckbox':
+            areaCheckboxChangeListener(checked)
+            console.log("면적", checked)
+            break;
+        case 'areaCircleCheckbox':
+            areaCircleCheckboxChangeListener(checked)
+            console.log("반경", checked)
+            break;
+    }
+}
+
+//거리측정 체크박스가 체크될 때 실행하는 함수
+function measureCheckboxChangeListener(checked){
+    if (checked) {
+        addLineInteraction();
+        $("#remove-measure").attr("disabled", true);
+        if (areaTooltip) {
+            map.removeOverlay(areaTooltip);
+        }
+        if (circleTooltip) {
+            map.removeOverlay(circleTooltip);
+        }
+    } else {
+        if (measurePolygon) {
+            map.removeInteraction(measurePolygon);
+            if (measureTooltipElement) {
+                measureTooltipElement = null;
+            }
+        }
+        measurePolygon = null;
+        sketch = null;
+        $("#remove-measure").attr("disabled", false);
+    }
+}
+
+//면적측정 체크박스가 체크될 때 실행하는 함수
+function areaCheckboxChangeListener(checked){
+    if (checked) {
+        addPolygonInteraction();
+        $("#remove-measure").attr("disabled", true);
+        if (measureTooltip) {
+            map.removeOverlay(measureTooltip);
+        }
+        if (circleTooltip) {
+            map.removeOverlay(circleTooltip);
+        }
+    } else {
+        if (areaPolygon) {
+            map.removeInteraction(areaPolygon);
+            if (areaTooltipElement) {
+                areaTooltipElement = null;
+            }
+        }
+        areaPolygon = null;
+        sketch = null;
+        $("#remove-measure").attr("disabled", false);
+    }
+}
+
+//반경측정 체크박스가 체크될 때 실행하는 함수
+function areaCircleCheckboxChangeListener(checked){
+    if (checked) {
+        addCircleInteraction();
+        $("#remove-measure").attr("disabled", true);
+        if (measureTooltip) {
+            map.removeOverlay(measureTooltip);
+        }
+        if (areaTooltip) {
+            map.removeOverlay(areaTooltip);
+        }
+    } else {
+        if (circlePolygon) {
+            map.removeInteraction(circlePolygon);
+            if (circleTooltipElement) {
+                circleTooltipElement = null;
+            }
+        }
+        circlePolygon = null;
+        sketch = null;
+        $("#remove-measure").attr("disabled", false);
+    }
+}
