@@ -20,49 +20,7 @@ map.on("loadstart", mapLoadStartEventListener);
 map.on("loadend", mapLoadEndEventListener);
 
 //지도 클릭 이벤트
-map.on("click", function (evt) {
-    let cctvFound = false;
-    if (measurePolygon || areaPolygon || circlePolygon) {
-        return;
-    }
-    if (printControl.isOpen()) {
-        return;
-    }
-    if (clickCurrentLayer) {
-        map.removeLayer(clickCurrentLayer);
-    }
-
-    if (clickCurrentOverlay) {
-        map.removeOverlay(clickCurrentOverlay);
-    }
-
-    if (!ol.events.condition.shiftKeyOnly(evt)) {
-        extentInteraction.setExtent(undefined);
-        map.removeOverlay(extentInteractionTooltip);
-    }
-
-    map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
-        if (feature.get("features")) {
-            // It's a cluster, so check the original features within.
-            const originalFeatures = feature.get("features");
-            for (let i = 0; i < originalFeatures.length; i++) {
-                if (originalFeatures[i].get("cctvFeature")) {
-                    cctvFound == false
-                        ? (cctvFound = true)
-                        : (cctvFound = true);
-                    //console.log(originalFeatures[i]);
-                }
-            }
-        }
-    });
-
-    if (cctvFound) {
-        evt.stopPropagation();
-        return;
-    }
-
-    requestDataLayer("LP_PA_CBND_BUBUN", evt.coordinate)
-});
+map.on("click", mapClickEventListener);
 
 //지도의 이동이 종료되었을 때 발생하는 이벤트.
 map.on("moveend", mapMoveEndEventListener);
@@ -92,40 +50,73 @@ function createExtentInteractionTooltipHtml(width, heght, measure) {
 }
 
 //길이측정, 면적측정, 반경측정이 다 그려졌을 때 오버레이에 표시할 html을 생성하는 함수
-function createDrawFinishedAreaTooltipHtml(targetInfo, geom) {
-    let tooltipCase = "";
-    let tooltipElementClass = "";
-    let tooltipInfo = "";
-    switch (targetInfo) {
-        case "line":
-            tooltipCase = "총 길이 : ";
-            tooltipElementClass = "tooltip-info-text-line";
-            tooltipInfo = formatLength(geom);
-            break;
-        case "circle":
-            tooltipCase = "총 면적 : ";
-            tooltipElementClass = "tooltip-info-text-circle";
-            tooltipInfo = formatCircleArea(geom);
-            break;
-        case "polygon":
-            tooltipCase = "총 면적 : ";
-            tooltipElementClass = "tooltip-info-text-polygon";
-            tooltipInfo = formatArea(geom);
-            break;
-    }
-    let tooltipInfoText = tooltipInfo[0];
-    let tooltipInfoUnit = tooltipInfo[1];
-    let text = `<div class="tooltip-content">`;
-    text += `<div class="tootip-case">${tooltipCase}<span class="${tooltipElementClass}">${tooltipInfoText}</span>${tooltipInfoUnit}</div>`;
-    if (tooltipInfo[2] != null) {
-        text += `<div class="tootip-case">반경 : <span class="${tooltipElementClass}">${tooltipInfo[2]}</span>${tooltipInfo[3]}</div>`;
-    }
-    text += `<button class="delete-btn">지우기</button></div>`;
-    return text;
-}
+// function createDrawFinishedAreaTooltipHtml(targetInfo, geom) {
+//     let tooltipCase = "";
+//     let tooltipElementClass = "";
+//     let tooltipInfo = "";
+//     switch (targetInfo) {
+//         case "line":
+//             tooltipCase = "총 길이 : ";
+//             tooltipElementClass = "tooltip-info-text-line";
+//             tooltipInfo = formatLength(geom);
+//             break;
+//         case "circle":
+//             tooltipCase = "총 면적 : ";
+//             tooltipElementClass = "tooltip-info-text-circle";
+//             tooltipInfo = formatCircleArea(geom);
+//             break;
+//         case "polygon":
+//             tooltipCase = "총 면적 : ";
+//             tooltipElementClass = "tooltip-info-text-polygon";
+//             tooltipInfo = formatArea(geom);
+//             break;
+//     }
+//     let tooltipInfoText = tooltipInfo[0];
+//     let tooltipInfoUnit = tooltipInfo[1];
+//     let text = `<div class="tooltip-content">`;
+//     text += `<div class="tootip-case">${tooltipCase}<span class="${tooltipElementClass}">${tooltipInfoText}</span>${tooltipInfoUnit}</div>`;
+//     if (tooltipInfo[2] != null) {
+//         text += `<div class="tootip-case">반경 : <span class="${tooltipElementClass}">${tooltipInfo[2]}</span>${tooltipInfo[3]}</div>`;
+//     }
+//     text += `<button class="delete-btn">지우기</button></div>`;
+//     return text;
+// }
 
 //길이측정, 면적측정, 반경측정이 그려지는 중일 때 오버레이에 표시할 html을 생성하는 함수
-function createDrawingAreaTooltipHtml(targetInfo, geom) {
+// function createDrawingAreaTooltipHtml(targetInfo, geom) {
+//     let tooltipCase = "";
+//     let tooltipElementClass = "";
+//     let tooltipInfo = "";
+//     switch (targetInfo) {
+//         case "line":
+//             tooltipCase = "총 길이 : ";
+//             tooltipElementClass = "tooltip-info-text-line";
+//             tooltipInfo = formatLength(geom);
+//             break;
+//         case "circle":
+//             tooltipCase = "총 면적 : ";
+//             tooltipElementClass = "tooltip-info-text-circle";
+//             tooltipInfo = formatCircleArea(geom);
+//             break;
+//         case "polygon":
+//             tooltipCase = "총 면적 : ";
+//             tooltipElementClass = "tooltip-info-text-polygon";
+//             tooltipInfo = formatArea(geom);
+//             break;
+//     }
+//     let tooltipInfoText = tooltipInfo[0];
+//     let tooltipInfoUnit = tooltipInfo[1];
+//     let text = `<div class="tooltip-content">`;
+//     text += `<div class="tootip-case">${tooltipCase}<span class="${tooltipElementClass}">${tooltipInfoText}</span>${tooltipInfoUnit}</div>`;
+//     if (tooltipInfo[2] != null) {
+//         text += `<div class="tootip-case">반경 : <span class="${tooltipElementClass}">${tooltipInfo[2]}</span>${tooltipInfo[3]}</div>`;
+//     }
+//     text += '<div class="tooltip_box"><span class="tooltip_text">마우스 오른쪽 버튼 또는 \'esc\'키를 눌러 마침</span></div>';
+//     return text;
+// }
+
+//길이측정, 면적측정, 반경측정이 그려질 때 오버레이에 표시할 html을 생성하는 함수
+function createDrawingAreaTooltipHtml(targetInfo, geom, isDrawing) {
     let tooltipCase = "";
     let tooltipElementClass = "";
     let tooltipInfo = "";
@@ -153,8 +144,12 @@ function createDrawingAreaTooltipHtml(targetInfo, geom) {
     if (tooltipInfo[2] != null) {
         text += `<div class="tootip-case">반경 : <span class="${tooltipElementClass}">${tooltipInfo[2]}</span>${tooltipInfo[3]}</div>`;
     }
-    text +=
-        '<div class="tooltip_box"><span class="tooltip_text">마우스 오른쪽 버튼 또는 \'esc\'키를 눌러 마침</span></div>';
+    if (isDrawing) {
+        text +=
+            '<div class="tooltip_box"><span class="tooltip_text">마우스 오른쪽 버튼 또는 \'esc\'키를 눌러 마침</span></div>';
+    } else {
+        text += `<button class="delete-btn">지우기</button></div>`;
+    }
     return text;
 }
 
@@ -257,7 +252,7 @@ function searchRouteSummury(startFeature, endFeature, routeFlag) {
         .then(function (response) {
             const data = response.data
             //console.log(data)
-            let instructions = data.routes[0].legs[0].steps.map((step) =>
+            const instructions = data.routes[0].legs[0].steps.map((step) =>
                         `<a data-coordinate="${ol.proj.transform(
                             step.maneuver.location,
                             "EPSG:4326",
@@ -273,30 +268,28 @@ function searchRouteSummury(startFeature, endFeature, routeFlag) {
                         }m</a>`
                 ) // instruction 추출
                 .join("<br>");
-            let instructionsElement = document.getElementById("sidenav");
+            const instructionsElement = document.getElementById("sidenav");
             instructionsElement.innerHTML = "";
             instructionsElement.innerHTML = `<h4>${startFeature.get("address")} -> <br> ${endFeature.get("address")}</h4>`;
             instructionsElement.innerHTML += `<h5>${convertMetersToKilometersAndMeters(data.routes[0].distance)}, ${convertSecondsToHoursAndMinutes( data.routes[0].duration)}</h5>`;
             instructionsElement.innerHTML += instructions;
-            let coordinates = data.routes[0].geometry.coordinates.map((c) =>ol.proj.transform(c, "EPSG:4326", "EPSG:3857"));
+            const coordinates = data.routes[0].geometry.coordinates.map((c) =>ol.proj.transform(c, "EPSG:4326", "EPSG:3857"));
 
             createRouteTooltip();
 
-            let text = `<div class="tooltip-content">
-                            <div class="tooltip-case">${routeKind} : 
-                                <span class="tooltip-info-text-line">${convertMetersToKilometersAndMeters(data.routes[0].distance)}</span>
-                            </div>
-                            <div class="tooltip-case">예상 소요시간 : 
-                                <span class="tooltip-info-text-line">${convertSecondsToHoursAndMinutes( data.routes[0].duration)}</span>
-                            </div>
-                            <button id="show-route-btn" class="delete-btn">지우기</button>
-                        </div>
-                    </div>`;
-            routeTooltipElement.innerHTML = text;
+            routeTooltipElement.innerHTML = `<div class="tooltip-content">
+                                                <div class="tooltip-case">${routeKind} : 
+                                                    <span class="tooltip-info-text-line">${convertMetersToKilometersAndMeters(data.routes[0].distance)}</span>
+                                                </div>
+                                                <div class="tooltip-case">예상 소요시간 : 
+                                                    <span class="tooltip-info-text-line">${convertSecondsToHoursAndMinutes( data.routes[0].duration)}</span>
+                                                </div>
+                                                <button id="show-route-btn" class="delete-btn">지우기</button>
+                                            </div>
+                                        </div>`;
             routeTooltip.setPosition(endFeature.getGeometry().getCoordinates());
             routeTooltipElement.parentElement.style.pointerEvents = "none";
-            const deleteButton =
-                routeTooltipElement.querySelector(".delete-btn");
+            const deleteButton = routeTooltipElement.querySelector(".delete-btn");
 
             const lineStyle = [
                 new ol.style.Style({
@@ -353,21 +346,21 @@ function searchRouteSummury(startFeature, endFeature, routeFlag) {
             });
             endLineFeature.setStyle(lineStyle);
 
-            let route = new ol.geom.LineString(coordinates);
+            const route = new ol.geom.LineString(coordinates);
 
-            let routeFeature = new ol.Feature({
+            const routeFeature = new ol.Feature({
                 geometry: route,
                 name: "Route",
             });
 
-            let routeSource = new ol.source.Vector({
+            const routeSource = new ol.source.Vector({
                 features: [routeFeature],
             });
 
             routeSource.addFeature(startLineFeature);
             routeSource.addFeature(endLineFeature);
 
-            let routeLayer = new ol.layer.Vector({
+            const routeLayer = new ol.layer.Vector({
                 source: routeSource,
                 style: [
                     new ol.style.Style({
@@ -387,7 +380,9 @@ function searchRouteSummury(startFeature, endFeature, routeFlag) {
             });
 
             map.addLayer(routeLayer);
+
             const overlayToRemove = routeTooltip;
+
             deleteButton.addEventListener("click", function () {
                 map.removeLayer(routeLayer);
                 map.removeOverlay(overlayToRemove);
@@ -407,10 +402,11 @@ function searchRouteSummury(startFeature, endFeature, routeFlag) {
                 if (element.classList.contains("show")) {
                     document.getElementById("route-result-toggle-button").click();
                 } else {
+
                 }
             });
 
-            let routeExtent = route.getExtent();
+            const routeExtent = route.getExtent();
 
             map.getView().fit(routeExtent, {
                 size: map.getSize(),
@@ -421,6 +417,7 @@ function searchRouteSummury(startFeature, endFeature, routeFlag) {
             if (!element.classList.contains("show")) {
                 document.getElementById("route-result-toggle-button").click();
             } else {
+
             }
         }).catch(function (error) {
             console.log(error);
@@ -432,35 +429,11 @@ function searchRouteSummury(startFeature, endFeature, routeFlag) {
 //지도 위치가 이동할 때 발생하는 이벤트.
 map.on("pointermove", mapPointMoveEventListener);
 
-//툴팁 overlay 클릭 이벤트. 클릭시 해당 툴팁이 툴팁 오버레이중 최 상단으로 올라온다.
-$(document).on("click", ".tooltip-content", function (event) {
-    event.stopPropagation(); // 자식 엘리먼트의 클릭 이벤트 전파(stopPropagation)
-
-    const overlays = map.getOverlays().getArray();
-    let highestZIndex = 0;
-
-    overlays.forEach((overlay) => {
-        let overlayElement = overlay.getElement();
-
-        if (overlayElement) {
-            let overlayZIndex = Number(
-                window.getComputedStyle(overlayElement).zIndex
-            );
-            if (!isNaN(overlayZIndex) && overlayZIndex > highestZIndex) {
-                highestZIndex = overlayZIndex;
-            }
-        }
-    });
-
-    // 선택된 오버레이의 ZIndex를 가장 높게 설정합니다.
-    const selectedOverlayElement = $(this).parent()[0];
-    $(selectedOverlayElement.parentElement).css("z-index", highestZIndex + 1);
-    selectedOverlayElement.style.zIndex = highestZIndex + 1;
-});
+//툴팁 overlay 클릭 이벤트.
+$(document).on("click", ".tooltip-content", tooltipOverlayClickEventListener);
 
 //측정레이어 삭제 버튼을 클릭했을 때 발생하는 이벤트.
 $("#remove-measure").on("click", removeMeasureEventListener);
-
 
 //내위치 버튼을 클릭했을 때 발생하는 이벤트.
 $("#current-position").on("click", currentPositionEventListener);
@@ -479,36 +452,11 @@ $("#olcontrolBookmarkMinimizeDiv").click(function() {
     $("#olcontrolBookmarkMaximizeDiv").css("display", "block");
 });
 
-//북마크 추가 버튼을 클릭했을 때 발생하는 이벤트. 로컬스토리지에 주소, 좌표, 줌레벨을 등록한다.
-$("#btn-add-bookmark").click(function() {
-    const myModalEl = document.getElementById("bookmark-modal");
-    const modal = bootstrap.Modal.getInstance(myModalEl);
-    let storagedName = document.getElementById("recipient-name").value;
-    if (storagedName.length < 1) {
-        storagedName = document.getElementById(
-            "form-control-address"
-        ).innerHTML;
-    }
-    const existsValueFlat = window.localStorage.getItem(storagedName);
-    if (existsValueFlat) {
-        return alert("북마크 이름은 중복될 수 없습니다.");
-    }
-    const storageObject = {
-        name: storagedName,
-        address: modal._config.address,
-        x: modal._config.x,
-        y: modal._config.y,
-        zoom: map.getView().getZoom(),
-    };
-    const objString = JSON.stringify(storageObject);
+//북마크 추가 버튼을 클릭했을 때 발생하는 이벤트.
+$("#btn-add-bookmark").click(addBookmark);
 
-    window.localStorage.setItem(`bookmark-${storagedName}`, objString);
-    const container = $("#bookmark-container");
-    let text = `<span class="olControlBookmarkRemove" title="삭제"></span>
-    <span class="olControlBookmarkLink" title="${storagedName}">${storagedName}</span><br>`;
-    container.append(text);
-    modal.hide();
-});
+//북마크의 삭제버튼을 클릭했을 때 발생하는 이벤트.
+$("#bookmark-container").on("click", ".olControlBookmarkRemove", removeBookmark);
 
 //북마크 모달창이 열릴 때 발생하는 이벤트. 마우스 오른쪽클릭을 방지한다.
 $(document).on("show.bs.modal", ".bookmark-modal", function () {
@@ -589,59 +537,6 @@ $(document).ready(function () {
     initializeAddressSelection()
 });
 
-//SGIS API를 이용해 저장한 행정동 정보 파일을 이용해 행정동 셀렉트 박스의 값을 변경하기 위한 함수
-function initializeAddressSelection() {
-    //행정동 정보 파일을 이용해 행정동 시도 셀렉트의 값을 변경
-    $.each(hangjungdong.sido, function (idx, code) {
-        //append를 이용하여 option 하위에 붙여넣음
-        $("#sido").append(changeAddressSelectValue(code.sido, code.codeNm));
-    });
-
-    //시도 셀렉트가 변경될 때 발생하는 이벤트. 시군구, 읍면동 셀렉트를 초기화하고 시도 코드가 일치하는 코드를 가져와 옵션의 밸류에 세팅한다.
-    $("#sido").change(function () {
-        console.log("zzz1?")
-        $("#sigugun").empty();
-        $("#sigugun").append(changeAddressSelectValue("", "선택")); //
-        $("#dong").empty();
-        $("#dong").append(changeAddressSelectValue("", "선택")); //
-        $.each(hangjungdong.sigugun, function (idx, code) {
-            if ($("#sido > option:selected").val() == code.sido)
-                $("#sigugun").append(
-                    changeAddressSelectValue(code.sigugun, code.codeNm)
-                );
-        });
-    });
-
-    //시군구 셀렉트가 변경될 때 발생하는 이벤트. 읍면동 셀렉트를 초기화하고 시도, 시군구 코드가 일치하는 코드를 가져와 옵션의 밸류에 세팅한다.
-    $("#sigugun").change(function () {
-        //option 제거
-        $("#dong").empty();
-        $.each(hangjungdong.dong, function (idx, code) {
-            if (
-                $("#sido > option:selected").val() == code.sido &&
-                $("#sigugun > option:selected").val() == code.sigugun
-            )
-                $("#dong").append(
-                    changeAddressSelectValue(code.dong, code.codeNm)
-                );
-        });
-        //option의 맨앞에 추가
-        $("#dong").prepend(changeAddressSelectValue("", "선택"));
-        //option중 선택을 기본으로 선택
-        $('#dong option:eq("")').attr("selected", "selected");
-    });
-
-    //읍면동 셀렉트가 변경될 때 발생하는 이벤트.
-    $("#dong").change(function () {
-        const sido = $("#sido option:selected");
-        const sigugun = $("#sigugun option:selected");
-        const dong = $("#dong option:selected");
-
-        const dongName = sido.text() + " " + sigugun.text() + " " + dong.text(); // 시도/시군구/읍면동 이름
-        console.log(dongName);
-    });
-}
-
 //북마크의 아이템을 클릭했을 때 발생하는 이벤트. 로컬스토리지에서 해당하는 데이터를 가져와 저장했던 줌 레벨, 좌표를 이용해 해당 위치로 이동한다.
 $("#bookmark-container").on("click", ".olControlBookmarkLink", function () {
     const index = $(".olControlBookmarkLink").index(this);
@@ -655,24 +550,8 @@ $("#bookmark-container").on("click", ".olControlBookmarkLink", function () {
     map.getView().setZoom(value.zoom);
 });
 
-//북마크의 삭제버튼을 클릭했을 때 발생하는 이벤트. 로컬스토리지에서 해당하는 데이터를 삭제한다.
-$("#bookmark-container").on("click", ".olControlBookmarkRemove", function () {
-    if (!confirm("북마크를 삭제하시겠습니까?")) {
-        return
-    } else {
-        const index = $(".olControlBookmarkRemove").index(this);
-        const storageKey = $(".olControlBookmarkLink").eq(index).text();
-
-        $(".olControlBookmarkLink").eq(index).remove();
-        $(".olControlBookmarkRemove").eq(index).remove();
-        $("#bookmark-container br").eq(index).remove();
-
-        window.localStorage.removeItem(`bookmark-${storageKey}`);
-    }
-});
-
 //배경지도 변경 드롭다운 메뉴의 아이템을 클릭했을 때 발생하는 이벤트.
-$("ul.dropdown-menu a.dropdown-item").click(selectBasemapDropdownSelectEventListener);
+$("ul.dropdown-menu a.dropdown-item").click(basemapDropdownSelectEventListener);
 
 //경로탐색 결과 컨테이너에 마우스가 호버될 때 발생하는 이벤트. a태그위에 마우스가 호버될 때 data로 저장된 좌표를 가져와 지도 위에 포인트를 찍는다.
 $("#sidenav").on("mouseover", function(event) {
@@ -1305,7 +1184,6 @@ function searchLocalAddress(e) {
     depth1Element.show();
     depth2Element.show();
 }
-
 
 //검색 API를 이용한 전체 검색 결과 페이지의 장소 탭 "더보기" 버튼을 클릭하면 발생하는 이벤트. 장소 탭을 트리거시켜 해당 탭으로 이동함
 $(document).on("click", ".place-more-view", function (event) {
