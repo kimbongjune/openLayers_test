@@ -488,11 +488,6 @@ function findCodeByNames(sidoName, gugunName, dongName) {
     return dongCode;
 }
 
-//시도, 시군구, 읍면동 셀렉트에 옵션을 추가하기 위한 함수
-function changeAddressSelectValue(code, name) {
-    return '<option value="' + code + '">' + name + "</option>";
-}
-
 //외부 라이브러리에서 기본으로 제공되는 html의 title값을 변경하는 함수.
 function replaceControlTitle() {
     $(".ol-zoom-in").attr("title", "줌인");
@@ -545,4 +540,107 @@ function toogleSwipeElement(flag){
         $(swipe).css("display", "none");
         $(line).css("display", "none");
     }
+}
+
+//북마크 추가 버튼을 클릭했을 때 동작하는 이벤트 리스너. 로컬스토리지에 주소, 좌표, 줌레벨을 등록한다.
+function addBookmark(){
+    const myModalEl = document.getElementById("bookmark-modal");
+    const modal = bootstrap.Modal.getInstance(myModalEl);
+    let storagedName = document.getElementById("recipient-name").value;
+    if (storagedName.length < 1) {
+        storagedName = document.getElementById("form-control-address").innerHTML;
+    }
+    const existsValueFlat = window.localStorage.getItem(storagedName);
+    if (existsValueFlat) {
+        return alert("북마크 이름은 중복될 수 없습니다.");
+    }
+    const storageObject = {
+        name: storagedName,
+        address: modal._config.address,
+        x: modal._config.x,
+        y: modal._config.y,
+        zoom: map.getView().getZoom(),
+    };
+    const objString = JSON.stringify(storageObject);
+
+    window.localStorage.setItem(`bookmark-${storagedName}`, objString);
+    const container = $("#bookmark-container");
+    const text = `<span class="olControlBookmarkRemove" title="삭제"></span>
+    <span class="olControlBookmarkLink" title="${storagedName}">${storagedName}</span><br>`;
+    container.append(text);
+    modal.hide();
+}
+
+//북마크의 삭제버튼을 클릭했을 때 동작하는 이벤트 리스너. 로컬스토리지에서 해당하는 데이터를 삭제한다.
+function removeBookmark(){
+    if (!confirm("북마크를 삭제하시겠습니까?")) {
+        return
+    } else {
+        const index = $(".olControlBookmarkRemove").index(this);
+        const storageKey = $(".olControlBookmarkLink").eq(index).text();
+
+        $(".olControlBookmarkLink").eq(index).remove();
+        $(".olControlBookmarkRemove").eq(index).remove();
+        $("#bookmark-container br").eq(index).remove();
+
+        window.localStorage.removeItem(`bookmark-${storageKey}`);
+    }
+}
+
+//시도, 시군구, 읍면동 셀렉트에 옵션을 추가하기 위한 함수
+function changeAddressSelectValue(code, name) {
+    return '<option value="' + code + '">' + name + "</option>";
+}
+
+//SGIS API를 이용해 저장한 행정동 정보 파일을 이용해 행정동 셀렉트 박스의 값을 변경하기 위한 함수
+function initializeAddressSelection() {
+    //행정동 정보 파일을 이용해 행정동 시도 셀렉트의 값을 변경
+    $.each(hangjungdong.sido, function (idx, code) {
+        //append를 이용하여 option 하위에 붙여넣음
+        $("#sido").append(changeAddressSelectValue(code.sido, code.codeNm));
+    });
+
+    //시도 셀렉트가 변경될 때 발생하는 이벤트. 시군구, 읍면동 셀렉트를 초기화하고 시도 코드가 일치하는 코드를 가져와 옵션의 밸류에 세팅한다.
+    $("#sido").change(function () {
+        console.log("zzz1?")
+        $("#sigugun").empty();
+        $("#sigugun").append(changeAddressSelectValue("", "선택")); //
+        $("#dong").empty();
+        $("#dong").append(changeAddressSelectValue("", "선택")); //
+        $.each(hangjungdong.sigugun, function (idx, code) {
+            if ($("#sido > option:selected").val() == code.sido)
+                $("#sigugun").append(
+                    changeAddressSelectValue(code.sigugun, code.codeNm)
+                );
+        });
+    });
+
+    //시군구 셀렉트가 변경될 때 발생하는 이벤트. 읍면동 셀렉트를 초기화하고 시도, 시군구 코드가 일치하는 코드를 가져와 옵션의 밸류에 세팅한다.
+    $("#sigugun").change(function () {
+        //option 제거
+        $("#dong").empty();
+        $.each(hangjungdong.dong, function (idx, code) {
+            if (
+                $("#sido > option:selected").val() == code.sido &&
+                $("#sigugun > option:selected").val() == code.sigugun
+            )
+                $("#dong").append(
+                    changeAddressSelectValue(code.dong, code.codeNm)
+                );
+        });
+        //option의 맨앞에 추가
+        $("#dong").prepend(changeAddressSelectValue("", "선택"));
+        //option중 선택을 기본으로 선택
+        $('#dong option:eq("")').attr("selected", "selected");
+    });
+
+    //읍면동 셀렉트가 변경될 때 발생하는 이벤트.
+    $("#dong").change(function () {
+        const sido = $("#sido option:selected");
+        const sigugun = $("#sigugun option:selected");
+        const dong = $("#dong option:selected");
+
+        const dongName = sido.text() + " " + sigugun.text() + " " + dong.text(); // 시도/시군구/읍면동 이름
+        console.log(dongName);
+    });
 }
