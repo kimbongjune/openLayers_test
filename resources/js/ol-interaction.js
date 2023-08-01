@@ -461,7 +461,8 @@ function addLineInteraction() {
             //var output = formatLength((geom));
             measureTooltipElement.innerHTML = createDrawingAreaTooltipHtml(
                 "line",
-                this
+                this,
+                true
             );
             measureTooltip.setPosition(geom.getLastCoordinate());
             measureTooltipElement.parentElement.style.pointerEvents = "none";
@@ -501,7 +502,7 @@ function addLineInteraction() {
             }, 0);
         } else {
             const overlayToRemove = measureTooltip;
-            measureTooltipElement.innerHTML = createDrawFinishedAreaTooltipHtml("line", evt.feature.getGeometry());
+            measureTooltipElement.innerHTML = createDrawingAreaTooltipHtml("line", evt.feature.getGeometry(), false);
             const deleteButton = measureTooltipElement.querySelector(".delete-btn");
 
             deleteButton.addEventListener("click", function () {
@@ -557,7 +558,7 @@ function addPolygonInteraction() {
         // 이벤트 핸들러 추가
         sketch.getGeometry().on("change", function (evt) {
             //var output = formatArea((geom));
-            areaTooltipElement.innerHTML = createDrawingAreaTooltipHtml("polygon", this);
+            areaTooltipElement.innerHTML = createDrawingAreaTooltipHtml("polygon", this, true);
             areaTooltip.setPosition(lastMouseCoordinate);
             areaTooltipElement.parentElement.style.pointerEvents = "none";
         });
@@ -584,7 +585,7 @@ function addPolygonInteraction() {
             const lastCoordinate = coordinates[coordinates.length - 2];
     
             const overlayToRemove = areaTooltip;
-            areaTooltipElement.innerHTML = createDrawFinishedAreaTooltipHtml("polygon", evt.feature.getGeometry());
+            areaTooltipElement.innerHTML = createDrawingAreaTooltipHtml("polygon", evt.feature.getGeometry(), false);
     
             const deleteButton = areaTooltipElement.querySelector(".delete-btn");
             deleteButton.addEventListener("click", function () {
@@ -646,7 +647,7 @@ function addCircleInteraction() {
         // 이벤트 핸들러 추가
         sketch.getGeometry().on("change", function (evt) {
             //var output = formatCircleArea((geom));
-            circleTooltipElement.innerHTML = createDrawingAreaTooltipHtml("circle", this);
+            circleTooltipElement.innerHTML = createDrawingAreaTooltipHtml("circle", this, true);
             circleTooltip.setPosition(lastMouseCoordinate);
             circleTooltipElement.parentElement.style.pointerEvents = "none";
         });
@@ -669,7 +670,7 @@ function addCircleInteraction() {
         }
 
         const overlayToRemove = circleTooltip;
-        circleTooltipElement.innerHTML = createDrawFinishedAreaTooltipHtml("circle", evt.feature.getGeometry());
+        circleTooltipElement.innerHTML = createDrawingAreaTooltipHtml("circle", evt.feature.getGeometry(), false);
 
         const deleteButton = circleTooltipElement.querySelector(".delete-btn");
         deleteButton.addEventListener("click", function () {
