@@ -1,12 +1,15 @@
+/**
+ *  @author 김봉준
+ *  @date   2023-07-26
+ *  ol-contextMenu 라이브러리를 관리하는 폴더
+ */
+
 //ol-context 마커 아이콘
-const pinIcon =
-    "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/pin_drop.png";
+const pinIcon = "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/pin_drop.png";
 //ol-context 지도 중앙위치 아이콘
-const centerIcon =
-    "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/center.png";
+const centerIcon = "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/center.png";
 //ol-context 목록 아이콘
-const listIcon =
-    "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/view_list.png";
+const listIcon = "https://cdn.jsdelivr.net/gh/jonataswalker/ol-contextmenu@604befc46d737d814505b5d90fc171932f747043/examples/img/view_list.png";
 
 //pdf 아이콘
 const pdfIcon = "./resources/img/pdf.png";
@@ -53,7 +56,7 @@ const contextmenuItems = [
         text: "북마크",
         classname: "bold",
         icon: bookMarkerIcon,
-        callback: addBookMark,
+        callback: bookMark,
     },
     {
         text: "좌표",
@@ -177,7 +180,7 @@ function center(obj) {
 }
 
 //ol-context callback 함수. 북마크에 주소, 좌표, 줌레벨을 등록한다.
-function addBookMark(obj) {
+function bookMark(obj) {
     const modal = new bootstrap.Modal(
         document.getElementById("bookmark-modal"),
         {

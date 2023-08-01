@@ -95,6 +95,51 @@ function locationMarker(coordinate) {
     objectControllVectorLayer.getSource().addFeature(feature);
 }
 
+//지도 클릭시 동작하는 이벤트 리스너. 클릭 좌표에 해당하는 feature를 vworld API를 이용해 받아온다.
+function mapClickEventListener(evt){
+    let cctvFound = false;
+    if (measurePolygon || areaPolygon || circlePolygon) {
+        return;
+    }
+    if (printControl.isOpen()) {
+        return;
+    }
+    if (clickCurrentLayer) {
+        map.removeLayer(clickCurrentLayer);
+    }
+
+    if (clickCurrentOverlay) {
+        map.removeOverlay(clickCurrentOverlay);
+    }
+
+    if (!ol.events.condition.shiftKeyOnly(evt)) {
+        extentInteraction.setExtent(undefined);
+        map.removeOverlay(extentInteractionTooltip);
+    }
+
+    map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
+        if (feature.get("features")) {
+            // It's a cluster, so check the original features within.
+            const originalFeatures = feature.get("features");
+            for (let i = 0; i < originalFeatures.length; i++) {
+                if (originalFeatures[i].get("cctvFeature")) {
+                    cctvFound == false
+                        ? (cctvFound = true)
+                        : (cctvFound = true);
+                    //console.log(originalFeatures[i]);
+                }
+            }
+        }
+    });
+
+    if (cctvFound) {
+        evt.stopPropagation();
+        return;
+    }
+
+    requestDataLayer("LP_PA_CBND_BUBUN", evt.coordinate)
+}
+
 //지도 위에 마커를 찍는 함수. 커스텀 속성을 이용해 마커 객체를 컨트롤 한다.
 function addMarker(coordinate, template = "", attribute = "", searchType = "") {
     const templates = template != "" ? template : "현재 위치";
@@ -198,7 +243,7 @@ function currentPositionEventListener(){
 }
 
 //배경지도 변경 드롭다운 메뉴의 아이템을 클릭했을 때 동작하는 이벤트 리스너. 기존 이벤트(아이템 클릭시 드롭다운 닫힘)를 취소시키고 해당하는 아이템으로 메인 지도의 레이어를 세팅한다.
-function selectBasemapDropdownSelectEventListener(e){
+function basemapDropdownSelectEventListener(e){
     e.preventDefault(); // This will prevent the default action of the a tag
     const clickedId = this.id;
     // Add active class to clicked a tag and remove from others
@@ -239,4 +284,28 @@ function selectBasemapDropdownSelectEventListener(e){
         //console.log("Invalid map type");
     }
     map.renderSync();
+}
+
+//툴팁 overlay 클릭시 동작하는 이벤트 리스너. 클릭시 해당 툴팁이 툴팁 오버레이중 최 상단으로 올라온다.
+function tooltipOverlayClickEventListener(event){
+    event.stopPropagation(); // 자식 엘리먼트의 클릭 이벤트 전파(stopPropagation)
+
+    const overlays = map.getOverlays().getArray();
+    let highestZIndex = 0;
+
+    overlays.forEach((overlay) => {
+        let overlayElement = overlay.getElement();
+
+        if (overlayElement) {
+            let overlayZIndex = Number(window.getComputedStyle(overlayElement).zIndex);
+            if (!isNaN(overlayZIndex) && overlayZIndex > highestZIndex) {
+                highestZIndex = overlayZIndex;
+            }
+        }
+    });
+
+    // 선택된 오버레이의 ZIndex를 가장 높게 설정합니다.
+    const selectedOverlayElement = $(this).parent()[0];
+    $(selectedOverlayElement.parentElement).css("z-index", highestZIndex + 1);
+    selectedOverlayElement.style.zIndex = highestZIndex + 1;
 }
