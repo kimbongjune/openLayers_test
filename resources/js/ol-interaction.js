@@ -99,23 +99,39 @@ function addExtentInteraction() {
             window.selectedExtent = extent;
             //console.log("Width: " + width + ", Height: " + height + ", Area: " + area);
 
-            createExtentInteractionTooltip();
-            extentInteractionTooltipElement.innerHTML =
-                createExtentInteractionTooltipHtml(
-                    widthDistance,
-                    heigthDistance,
-                    area
-                );
-
-            extentInteractionTooltip.setPosition(bottomRight);
-            extentInteractionTooltipElement.parentElement.style.pointerEvents =
-                "none";
+            removeExtentInteractionTooltip();
+            if(widthDistance != 0 || widthDistance != 0){
+                let toolTipElement = createDrawTooltip(-15, 0, "top-left");
+                extentInteractionTooltipElement = toolTipElement.element;
+                extentInteractionTooltip = toolTipElement.tooltip;
+                //createExtentInteractionTooltip();
+                extentInteractionTooltipElement.innerHTML =
+                    createExtentInteractionTooltipHtml(
+                        widthDistance,
+                        heigthDistance,
+                        area
+                    );
+    
+                extentInteractionTooltip.setPosition(bottomRight);
+                extentInteractionTooltipElement.parentElement.style.pointerEvents =
+                    "none";
+            }
+            
             // var transformedExtent  = ol.proj.transformExtent(extent, 'EPSG:3857', 'EPSG:4326');
             // console.log(transformedExtent)
         }
     });
 
     map.addInteraction(extentInteraction);
+}
+
+//extent 인터렉션의 오버레이를 지우고, html 엘리먼트와 overlay 객체를 초기화 하는 함수
+function removeExtentInteractionTooltip() {
+    if (extentInteractionTooltip) {
+        map.removeOverlay(extentInteractionTooltip);
+        extentInteractionTooltipElement = null;
+        extentInteractionTooltip = null;
+    }
 }
 
 //지도에 컨트롤 마우스 드래그를 이용한 DragBox 인터렉션을 인터렉션을 담을 변수
