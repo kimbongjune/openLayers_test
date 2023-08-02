@@ -98,7 +98,12 @@ function locationMarker(coordinate) {
 //지도 클릭시 동작하는 이벤트 리스너. 클릭 좌표에 해당하는 feature를 vworld API를 이용해 받아온다.
 function mapClickEventListener(evt){
     let cctvFound = false;
+    const originalEvent = evt.originalEvent;
     if (measurePolygon || areaPolygon || circlePolygon) {
+        return;
+    }
+    if (originalEvent.shiftKey || originalEvent.ctrlKey || originalEvent.altKey) {
+        evt.preventDefault();
         return;
     }
     if (printControl.isOpen()) {
