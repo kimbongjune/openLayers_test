@@ -149,3 +149,10 @@ const addressMapping = {
         attrFilter: "ctp_kor_nm"
     }
 }
+
+//경로탐색 토글 버튼의 아이콘 클래스 이름과 버튼의 title을 담은 객체. 경로탐색 셀렉트의 밸류에 따라 객체로 반환된다.
+const routesKindObject = {
+    1: { className: "fa fa-car", title: "자동차 경로" },
+    2: { className: "fa fa-male", title: "도보 경로" },
+    3: { className: "fa fa-bicycle", title: "자전거 경로" },
+};

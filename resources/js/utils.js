@@ -644,3 +644,41 @@ function initializeAddressSelection() {
         console.log(dongName);
     });
 }
+
+//CCTV API에서 제공하는 도로 CCTV 영상 재생 함수
+function stremVideo(videoSrc, videoName) {
+    const modal = $("#videoModal");
+
+    const modalTitle = $("#videoModalLabel");
+    modalTitle.text(`${videoName} CCTV 영상`);
+
+    // 비디오 플레이어 요소 선택
+    const videoPlayer = $("#video");
+
+    // 비디오 소스 업데이트
+    videoPlayer.attr('src', videoSrc);
+
+    // 모달 열기
+    modal.modal("show");
+
+    const player = videojs("video");
+
+    // Update the source
+    player.src({
+        src: videoSrc,
+        type: "application/x-mpegURL",
+    });
+
+    // Play the video
+    player.play();
+
+    modal.on("hidden.bs.modal", function () {
+        player.pause();
+    });
+}
+
+
+//텍스트에 하이라이트를 넣는 함수.
+function addHighlight(html, query) {
+    return html.replaceAll(query, `<mark style="padding:0px;">${query}</mark>`);
+}
