@@ -49,72 +49,6 @@ function createExtentInteractionTooltipHtml(width, heght, measure) {
     return text;
 }
 
-//길이측정, 면적측정, 반경측정이 다 그려졌을 때 오버레이에 표시할 html을 생성하는 함수
-// function createDrawFinishedAreaTooltipHtml(targetInfo, geom) {
-//     let tooltipCase = "";
-//     let tooltipElementClass = "";
-//     let tooltipInfo = "";
-//     switch (targetInfo) {
-//         case "line":
-//             tooltipCase = "총 길이 : ";
-//             tooltipElementClass = "tooltip-info-text-line";
-//             tooltipInfo = formatLength(geom);
-//             break;
-//         case "circle":
-//             tooltipCase = "총 면적 : ";
-//             tooltipElementClass = "tooltip-info-text-circle";
-//             tooltipInfo = formatCircleArea(geom);
-//             break;
-//         case "polygon":
-//             tooltipCase = "총 면적 : ";
-//             tooltipElementClass = "tooltip-info-text-polygon";
-//             tooltipInfo = formatArea(geom);
-//             break;
-//     }
-//     let tooltipInfoText = tooltipInfo[0];
-//     let tooltipInfoUnit = tooltipInfo[1];
-//     let text = `<div class="tooltip-content">`;
-//     text += `<div class="tootip-case">${tooltipCase}<span class="${tooltipElementClass}">${tooltipInfoText}</span>${tooltipInfoUnit}</div>`;
-//     if (tooltipInfo[2] != null) {
-//         text += `<div class="tootip-case">반경 : <span class="${tooltipElementClass}">${tooltipInfo[2]}</span>${tooltipInfo[3]}</div>`;
-//     }
-//     text += `<button class="delete-btn">지우기</button></div>`;
-//     return text;
-// }
-
-//길이측정, 면적측정, 반경측정이 그려지는 중일 때 오버레이에 표시할 html을 생성하는 함수
-// function createDrawingAreaTooltipHtml(targetInfo, geom) {
-//     let tooltipCase = "";
-//     let tooltipElementClass = "";
-//     let tooltipInfo = "";
-//     switch (targetInfo) {
-//         case "line":
-//             tooltipCase = "총 길이 : ";
-//             tooltipElementClass = "tooltip-info-text-line";
-//             tooltipInfo = formatLength(geom);
-//             break;
-//         case "circle":
-//             tooltipCase = "총 면적 : ";
-//             tooltipElementClass = "tooltip-info-text-circle";
-//             tooltipInfo = formatCircleArea(geom);
-//             break;
-//         case "polygon":
-//             tooltipCase = "총 면적 : ";
-//             tooltipElementClass = "tooltip-info-text-polygon";
-//             tooltipInfo = formatArea(geom);
-//             break;
-//     }
-//     let tooltipInfoText = tooltipInfo[0];
-//     let tooltipInfoUnit = tooltipInfo[1];
-//     let text = `<div class="tooltip-content">`;
-//     text += `<div class="tootip-case">${tooltipCase}<span class="${tooltipElementClass}">${tooltipInfoText}</span>${tooltipInfoUnit}</div>`;
-//     if (tooltipInfo[2] != null) {
-//         text += `<div class="tootip-case">반경 : <span class="${tooltipElementClass}">${tooltipInfo[2]}</span>${tooltipInfo[3]}</div>`;
-//     }
-//     text += '<div class="tooltip_box"><span class="tooltip_text">마우스 오른쪽 버튼 또는 \'esc\'키를 눌러 마침</span></div>';
-//     return text;
-// }
-
 //길이측정, 면적측정, 반경측정이 그려질 때 오버레이에 표시할 html을 생성하는 함수
 function createDrawingAreaTooltipHtml(targetInfo, geom, isDrawing) {
     let tooltipCase = "";
@@ -154,54 +88,17 @@ function createDrawingAreaTooltipHtml(targetInfo, geom, isDrawing) {
 }
 
 //측정 오버레이의 html을 초기화 하는 함수
-function createDrawTooltip() {
+function createDrawTooltip(offsetX = 0, offsetY = 0, position = "bottom-center") {
     let element = document.createElement("div");
     element.className = 'tooltip tooltip-measure';
     element.style.zIndex = 1;
     let tooltip = new ol.Overlay({
         element: element,
-        offset: [0, 0],
-        positioning: 'bottom-center'
+        offset: [offsetX, offsetY],
+        positioning: position
     });
     map.addOverlay(tooltip);
     return {element, tooltip};
-}
-
-//경로탐색 오버레이의 html을 초기화 하는 함수
-function createRouteTooltip() {
-    routeTooltipElement = document.createElement("div");
-    routeTooltipElement.className = "tooltip tooltip-static";
-    routeTooltipElement.style.zIndex = 1;
-    routeTooltip = new ol.Overlay({
-        element: routeTooltipElement,
-        offset: [-15, 0],
-        positioning: "top-left",
-    });
-    routeTooltip.set("type", "route");
-    map.addOverlay(routeTooltip);
-}
-
-//extent 인터렉션 오버레이의 html을 초기화 하는 함수
-function createExtentInteractionTooltip() {
-    removeExtentInteractionTooltip();
-    extentInteractionTooltipElement = document.createElement("div");
-    extentInteractionTooltipElement.className = "tooltip tooltip-measure";
-    extentInteractionTooltipElement.style.zIndex = 1;
-    extentInteractionTooltip = new ol.Overlay({
-        element: extentInteractionTooltipElement,
-        offset: [-15, 0],
-        positioning: "top-left",
-    });
-    map.addOverlay(extentInteractionTooltip);
-}
-
-//extent 인터렉션의 오버레이를 지우고, html 엘리먼트와 overlay 객체를 초기화 하는 함수
-function removeExtentInteractionTooltip() {
-    if (extentInteractionTooltip) {
-        map.removeOverlay(extentInteractionTooltip);
-        extentInteractionTooltipElement = null;
-        extentInteractionTooltip = null;
-    }
 }
 
 //체크박스의 중복 체크를 해제하기 위한 함수. 그리기도구의 체크박스가 체크될 때 동작하며, 자신을 제외한 체크박스의 체크를 해제한다.
@@ -224,207 +121,7 @@ $('.draw-checkbox').change(handleDrawCheckboxChangeListener);
 //키보드 입력이 발생될 때 발생하는 이벤트.
 $(window).keydown(keyDownEventListener);
 
-//OSRM을 이용한 경로탐색 요청 및 지도위에 표출하는 함수
-function searchRouteSummury(startFeature, endFeature, routeFlag) {
-    //let osrmUrl = `https://router.project-osrm.org/route/v1/driving/`;
-    const osrmCarUrl = `http://192.168.10.99:6001/route/v1/driving/`;
-    const osrmFootUrl = `http://192.168.10.99:6002/route/v1/driving/`;
-    const osrBikemUrl = `http://192.168.10.99:6003/route/v1/driving/`;
-    const startCoordinate = ol.proj.transform(startFeature.getGeometry().getCoordinates(), "EPSG:3857", "EPSG:4326");
-    const endCoordinate = ol.proj.transform(endFeature.getGeometry().getCoordinates(), "EPSG:3857", "EPSG:4326");
 
-    const urlSuffix = `${startCoordinate};${endCoordinate}?overview=full&geometries=geojson&steps=true`;
-
-    let requestUrl = "";
-    let routeKind = "";
-    if (routeFlag == 1) {
-        requestUrl = osrmCarUrl.concat(urlSuffix);
-        routeKind = "차량";
-    } else if (routeFlag == 2) {
-        requestUrl = osrmFootUrl.concat(urlSuffix);
-        routeKind = "도보";
-    } else {
-        requestUrl = osrBikemUrl.concat(urlSuffix);
-        routeKind = "자전거";
-    }
-
-    axios.get(requestUrl)
-        .then(function (response) {
-            const data = response.data
-            //console.log(data)
-            const instructions = data.routes[0].legs[0].steps.map((step) =>
-                        `<a data-coordinate="${ol.proj.transform(
-                            step.maneuver.location,
-                            "EPSG:4326",
-                            "EPSG:3857"
-                        )}" href="#">${
-                            step.maneuver.type == "depart"
-                                ? "시작점"
-                                : step.maneuver.type == "arrive"
-                                ? "도착점"
-                                : ""
-                        }${step.maneuver.modifier} ${step.name} ${
-                            step.distance
-                        }m</a>`
-                ) // instruction 추출
-                .join("<br>");
-            const instructionsElement = document.getElementById("sidenav");
-            instructionsElement.innerHTML = "";
-            instructionsElement.innerHTML = `<h4>${startFeature.get("address")} -> <br> ${endFeature.get("address")}</h4>`;
-            instructionsElement.innerHTML += `<h5>${convertMetersToKilometersAndMeters(data.routes[0].distance)}, ${convertSecondsToHoursAndMinutes( data.routes[0].duration)}</h5>`;
-            instructionsElement.innerHTML += instructions;
-            const coordinates = data.routes[0].geometry.coordinates.map((c) =>ol.proj.transform(c, "EPSG:4326", "EPSG:3857"));
-
-            createRouteTooltip();
-
-            routeTooltipElement.innerHTML = `<div class="tooltip-content">
-                                                <div class="tooltip-case">${routeKind} : 
-                                                    <span class="tooltip-info-text-line">${convertMetersToKilometersAndMeters(data.routes[0].distance)}</span>
-                                                </div>
-                                                <div class="tooltip-case">예상 소요시간 : 
-                                                    <span class="tooltip-info-text-line">${convertSecondsToHoursAndMinutes( data.routes[0].duration)}</span>
-                                                </div>
-                                                <button id="show-route-btn" class="delete-btn">지우기</button>
-                                            </div>
-                                        </div>`;
-            routeTooltip.setPosition(endFeature.getGeometry().getCoordinates());
-            routeTooltipElement.parentElement.style.pointerEvents = "none";
-            const deleteButton = routeTooltipElement.querySelector(".delete-btn");
-
-            const lineStyle = [
-                new ol.style.Style({
-                    stroke: new ol.style.Stroke({
-                        color: "#E9E9E8", // 외곽선 색상 (회색)
-                        width: 6, // 외곽선 두께
-                    }),
-                }),
-                new ol.style.Style({
-                    stroke: new ol.style.Stroke({
-                        color: "#969A96", // 내부선 색상 (검은색)
-                        width: 4, // 내부선 두께
-                        lineDash: [6, 10], // 검은색 점선
-                    }),
-                }),
-            ];
-
-            // OSRM에서 반환한 실제 시작지점
-            const osrmStart = ol.proj.transform(
-                data.routes[0].legs[0].steps[0].geometry.coordinates[0],
-                "EPSG:4326",
-                "EPSG:3857"
-            );
-            // OSRM에서 반환한 실제 종료지점
-            const osrmEnd = ol.proj.transform(
-                data.routes[0].legs[0].steps[
-                    data.routes[0].legs[0].steps.length - 1
-                ].geometry.coordinates[0],
-                "EPSG:4326",
-                "EPSG:3857"
-            );
-
-            // 사용자가 선택한 시작지점과 OSRM이 계산한 시작지점 사이에 선을 그림
-            const startLineString = new ol.geom.LineString([
-                osrmStart,
-                startFeature.getGeometry().getCoordinates(),
-            ]);
-            const startLineFeature = new ol.Feature({
-                geometry: startLineString,
-                name: "Start Line",
-            });
-            startLineFeature.setStyle(lineStyle);
-
-            //console.log(osrmStart, startFeature.getGeometry().getCoordinates())
-
-            // 사용자가 선택한 종료지점과 OSRM이 계산한 종료지점 사이에 선을 그림
-            const endLineString = new ol.geom.LineString([
-                osrmEnd,
-                endFeature.getGeometry().getCoordinates(),
-            ]);
-            const endLineFeature = new ol.Feature({
-                geometry: endLineString,
-                name: "End Line",
-            });
-            endLineFeature.setStyle(lineStyle);
-
-            const route = new ol.geom.LineString(coordinates);
-
-            const routeFeature = new ol.Feature({
-                geometry: route,
-                name: "Route",
-            });
-
-            const routeSource = new ol.source.Vector({
-                features: [routeFeature],
-            });
-
-            routeSource.addFeature(startLineFeature);
-            routeSource.addFeature(endLineFeature);
-
-            const routeLayer = new ol.layer.Vector({
-                source: routeSource,
-                style: [
-                    new ol.style.Style({
-                        stroke: new ol.style.Stroke({
-                            color: "#0000ff", // 바깥선 색상 (파랑)
-                            width: 6, // 바깥선 두께
-                        }),
-                    }),
-                    new ol.style.Style({
-                        stroke: new ol.style.Stroke({
-                            color: "#6F79BC", // 안쪽 색상 (연한 파랑)
-                            width: 4, // 안쪽 선 두께
-                        }),
-                    }),
-                ],
-                type: "routeLayer",
-            });
-
-            map.addLayer(routeLayer);
-
-            const overlayToRemove = routeTooltip;
-
-            deleteButton.addEventListener("click", function () {
-                map.removeLayer(routeLayer);
-                map.removeOverlay(overlayToRemove);
-                const source = objectControllVectorLayer.getSource();
-                const features = source.getFeatures();
-                for (let i = 0; i < features.length; i++) {
-                    const feature = features[i];
-                    if (feature && feature.get("attribute") == "start") {
-                        source.removeFeature(feature);
-                    }
-                    if (feature && feature.get("attribute") == "end") {
-                        source.removeFeature(feature);
-                    }
-                }
-                instructionsElement.innerHTML = "";
-                const element = document.getElementById("offcanvasScrolling");
-                if (element.classList.contains("show")) {
-                    document.getElementById("route-result-toggle-button").click();
-                } else {
-
-                }
-            });
-
-            const routeExtent = route.getExtent();
-
-            map.getView().fit(routeExtent, {
-                size: map.getSize(),
-                padding: [200, 200, 200, 200], // 상, 우, 하, 좌 방향으로의 패딩
-            });
-
-            const element = document.getElementById("offcanvasScrolling");
-            if (!element.classList.contains("show")) {
-                document.getElementById("route-result-toggle-button").click();
-            } else {
-
-            }
-        }).catch(function (error) {
-            console.log(error);
-        }).finally(function () {
-            routeTooltipElement = null;
-        });
-}
 
 //지도 위치가 이동할 때 발생하는 이벤트.
 map.on("pointermove", mapPointMoveEventListener);
@@ -511,18 +208,13 @@ $(document).ready(function () {
         $("#route-result-toggle-button").attr("title", "닫기");
     });
 
-    //우측 경로탐색 offcanvas 메뉴가 보여질 때 실행되는 이벤트. 토글 버튼의 아이콘, title을 경로탐색 셀렉트의 값에 따라 변경한다.
+    //우측 경로탐색 offcanvas 메뉴가 가려질 때 실행되는 이벤트. 토글 버튼의 아이콘, title을 경로탐색 셀렉트의 값에 따라 변경한다.
     $("#offcanvasScrolling").on("hide.bs.offcanvas", function () {
         //경로탐색 셀렉트의 밸류 1:차량, 2:도보, 3:자전거
         const selectedValue = $("#route-kind-select").val();
-        //토글 버튼의 아이콘 클래스 이름과 버튼의 title을 담은 객체 셀렉트의 밸류에 따라 객체로 반환된다..
-        const routes = {
-            1: { className: "fa fa-car", title: "자동차 경로" },
-            2: { className: "fa fa-male", title: "도보 경로" },
-            3: { className: "fa fa-bicycle", title: "자전거 경로" },
-        };
+        
         //토글 버튼의 아이콘 클래스 이름과 버튼의 title을 담을 변수.
-        const { className, title } = routes[selectedValue] || {};
+        const { className, title } = routesKindObject[selectedValue] || {};
         $("#route-result-toggle-button i")
             .removeClass("bi-x-lg")
             .addClass(className);
@@ -553,110 +245,17 @@ $("#bookmark-container").on("click", ".olControlBookmarkLink", function () {
 //배경지도 변경 드롭다운 메뉴의 아이템을 클릭했을 때 발생하는 이벤트.
 $("ul.dropdown-menu a.dropdown-item").click(basemapDropdownSelectEventListener);
 
-//경로탐색 결과 컨테이너에 마우스가 호버될 때 발생하는 이벤트. a태그위에 마우스가 호버될 때 data로 저장된 좌표를 가져와 지도 위에 포인트를 찍는다.
-$("#sidenav").on("mouseover", function(event) {
-    if (event.target.tagName === "A") {
-        const customValue = event.target.getAttribute("data-coordinate");
+//경로탐색 결과 컨테이너에 마우스가 호버될 때 발생하는 이벤트.
+$("#sidenav").on("mouseover", routeResultContainerMouseOverListener);
 
-        const coordinates = customValue.split(",").map(Number);
-        const x = parseFloat(coordinates[0]);
-        const y = parseFloat(coordinates[1]);
+//경로탐색 결과 컨테이너에 마우스가 호버 해제될 때 발생하는 이벤트.
+$("#sidenav").on("mouseout", routeResultContainerMouseOutListener);
 
-        const pointFeature = new ol.Feature(new ol.geom.Point([x, y]));
+//경로탐색 결과 컨테이너를 클릭할 때 발생하는 이벤트
+$("#sidenav").click(routeResultContainerClickListener);
 
-        // 기존의 포인트를 지우고 새로운 포인트를 추가합니다.
-        routeVectorSource.clear();
-        routeVectorSource.addFeature(pointFeature);
-    }
-});
-
-//경로탐색 결과 컨테이너에 마우스가 호버 해제될 때 발생하는 이벤트. 지도 위에 찍었던 포인트를 지운다.
-$("#sidenav").on("mouseout", function(event) {
-    if (event.target.tagName === "A") {
-        routeVectorSource.clear();
-    }
-});
-
-//경로탐색 결과 컨테이너를 클릭할 때 발생하는 이벤트. a태그를 클릭할 때 data로 저장된 좌표를 이용해 지도의 중앙을 이동한다.
-$("#sidenav").click(function(event) {
-    if (event.target.tagName === "A") {
-        const customValue = event.target.getAttribute("data-coordinate");
-
-        const coords = customValue.split(",").map(Number);
-        map.getView().animate({
-            zoom: map.getView().getZoom(),
-            center: coords,
-            duration: 500,
-        });
-    }
-});
-
-//경로탐색 셀렉트박스의 값이 변경될 때 발생하는 이벤트. 시작, 도착 마커가 찍혀있는 여부에 따라 경로탐색을 진행한다.
-$("#route-kind-select").on("change", function(e) {
-    const selectedOption = e.target.value;
-    console.log("Selected option:", selectedOption);
-
-    const source = objectControllVectorLayer.getSource();
-    const features = source.getFeatures();
-    const startFeature = features.find(
-        (feature) => feature.get("attribute") === "start"
-    );
-    const endFeature = features.find(
-        (feature) => feature.get("attribute") === "end"
-    );
-    //console.log(startFeature, endFeature)
-    if (startFeature && endFeature) {
-        map.getOverlays()
-            .getArray()
-            .slice(0)
-            .forEach(function (overlay) {
-                if (overlay.get("type") === "route") {
-                    map.removeOverlay(overlay);
-                }
-            });
-        map.getLayers()
-            .getArray()
-            .slice()
-            .forEach(function (layer) {
-                if (layer.get("type") === "routeLayer") {
-                    map.removeLayer(layer);
-                }
-            });
-        searchRouteSummury(startFeature, endFeature, selectedOption);
-    }
-});
-
-//CCTV API에서 제공하는 도로 CCTV 영상 재생 함수
-function stremVideo(videoSrc, videoName) {
-    const modal = $("#videoModal");
-
-    const modalTitle = $("#videoModalLabel");
-    modalTitle.text(`${videoName} CCTV 영상`);
-
-    // 비디오 플레이어 요소 선택
-    const videoPlayer = $("#video");
-
-    // 비디오 소스 업데이트
-    videoPlayer.attr('src', videoSrc);
-
-    // 모달 열기
-    modal.modal("show");
-
-    const player = videojs("video");
-
-    // Update the source
-    player.src({
-        src: videoSrc,
-        type: "application/x-mpegURL",
-    });
-
-    // Play the video
-    player.play();
-
-    modal.on("hidden.bs.modal", function () {
-        player.pause();
-    });
-}
+//경로탐색 셀렉트박스의 값이 변경될 때 발생하는 이벤트.
+$("#route-kind-select").on("change", routeKindSelectChangeListener);
 
 // document.getElementById('mountaion-fire-map-checkbox').addEventListener('change', function() {
 //     if (this.checked) {
@@ -1165,11 +764,6 @@ function clickGeoData(event, type) {
     }
 }
 
-//텍스트에 하이라이트를 넣는 함수.
-function addHighlight(html, query) {
-    return html.replaceAll(query, `<mark style="padding:0px;">${query}</mark>`);
-}
-
 //오버레이의 주소를 클릭하면 동작하는 함수. 해당 주소를 이용해 검색 API를 호출하고 해당 탭으로 이동한다.
 function searchLocalAddress(e) {
     console.log(e.innerText);
@@ -1242,24 +836,22 @@ $("#search-input").on("keypress", function (e) {
 });
 
 // 페이지네이션 초기화 함수
-function initPagination(response, searchFunction, addFunction, elementId, searchQuery, itemsPerPage, ...containerSelectors) {
-    containerSelectors.forEach((containerSelector) => {
-        $(containerSelector).twbsPagination("destroy");
-        $(containerSelector).twbsPagination({
-            totalPages: response[0].response.page.total,
-            visiblePages: 5,
-            hideOnlyOnePage: true,
-            first: '<i class="bi bi-chevron-double-left"></i>',
-            prev: '<i class="bi bi-chevron-left"></i>',
-            next: '<i class="bi bi-chevron-right"></i>',
-            last: '<i class="bi bi-chevron-double-right"></i>',
-            initiateStartPageClick: true,
-            onPageClick: function (event, page) {
-                $.when(searchFunction(searchQuery, page)).done(function (response) {
-                    addFunction(elementId, response, searchQuery, itemsPerPage);
-                });
-            },
-        });
+function initPagination(response, searchFunction, addFunction, elementId, searchQuery, itemsPerPage, containerSelector) {
+    $(containerSelector).twbsPagination("destroy");
+    $(containerSelector).twbsPagination({
+        totalPages: response[0].response.page.total,
+        visiblePages: 5,
+        hideOnlyOnePage: true,
+        first: '<i class="bi bi-chevron-double-left"></i>',
+        prev: '<i class="bi bi-chevron-left"></i>',
+        next: '<i class="bi bi-chevron-right"></i>',
+        last: '<i class="bi bi-chevron-double-right"></i>',
+        initiateStartPageClick: true,
+        onPageClick: function (event, page) {
+            $.when(searchFunction(searchQuery, page)).done(function (response) {
+                addFunction(elementId, response, searchQuery, itemsPerPage);
+            });
+        },
     });
 }
 
@@ -1302,12 +894,10 @@ $("#serach-button").on("click", function () {
             ["#all-place-result", "#place-result", "#all-address-result", "#address-result", "#all-district-result", "#district-result", "#all-road-result", "#road-result"].map(selector => $(selector)[0].id);
 
         // 페이지네이션 초기화
-        initPagination(placeResponse, searchPlace, addPlace, placeElementId, searchQuery, 10,
-            ".place-pagination-container",
-            ".address-pagination-container",
-            ".district-pagination-container",
-            ".road-pagination-container"
-          );
+        initPagination(placeResponse, searchPlace, addPlace, placeElementId, searchQuery, 10, ".place-pagination-container");
+        initPagination(addressResponse, searchAddress, addAddress, addressElementId, searchQuery, 10, ".address-pagination-container");
+        initPagination(districtResponse, searchDistrict, addDistrict, districtElementId, searchQuery, 10, ".district-pagination-container");
+        initPagination(roadResponse, searchRoad, addRoad, roadElementId, searchQuery, 10, ".road-pagination-container");
 
         // 전체검색 엘리먼트에 최초 검색 결과를 표출.
         addPlace(allPlaceElementId, placeResponse[0], searchQuery);
