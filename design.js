@@ -227,6 +227,7 @@ $(document).ready(function () {
     });
 
     initializeAddressSelection()
+    registerProj4CoordinateSystem()
 });
 
 //북마크의 아이템을 클릭했을 때 발생하는 이벤트. 로컬스토리지에서 해당하는 데이터를 가져와 저장했던 줌 레벨, 좌표를 이용해 해당 위치로 이동한다.
