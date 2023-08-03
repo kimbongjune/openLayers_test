@@ -677,8 +677,16 @@ function stremVideo(videoSrc, videoName) {
     });
 }
 
-
 //텍스트에 하이라이트를 넣는 함수.
 function addHighlight(html, query) {
     return html.replaceAll(query, `<mark style="padding:0px;">${query}</mark>`);
+}
+
+//좌표계 셀렉터에 epsg 좌표계에 대한 옵션을 추가하는 함수
+function addCoordinateSystemSelectOption(epsgCode, description) {
+    const selectElement = document.querySelector('.coordinate-system-selector');
+    const optionElement = document.createElement('option');
+    optionElement.value = epsgCode;
+    optionElement.textContent = `${description} : (${epsgCode})`;
+    selectElement.appendChild(optionElement);
 }
