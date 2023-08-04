@@ -1111,7 +1111,19 @@ ul, ol {
     min-width: 32rem;
 }
 
+#coordinate-collpase {
+    position: absolute;
+    bottom: 4%;
+    width: auto;
+    left: 17rem;
+    min-width: 32rem;
+}
+
 #address-collpase > .card-body{
+    padding: 0.5rem 0.5rem;
+}
+
+#coordinate-collpase > .card-body{
     padding: 0.5rem 0.5rem;
 }
 
@@ -1119,6 +1131,22 @@ ul, ol {
     margin: 0px;
 }
 
+#coordinate-collpase > .card-body > .row {
+    margin: 0px;
+    align-items: center;
+}
+
+#coordinate-collpase > .card-body > .row > .col > .form-control {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    padding-left: 0.5rem;
+    font-size: .875rem;
+}
+
 #address-collpase > .card-body > .row > .col{
+    padding: 0px 0.2rem;
+}
+
+#coordinate-collpase > .card-body > .row > .col{
     padding: 0px 0.2rem;
 }
