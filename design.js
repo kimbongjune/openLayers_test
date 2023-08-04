@@ -121,8 +121,6 @@ $('.draw-checkbox').change(handleDrawCheckboxChangeListener);
 //키보드 입력이 발생될 때 발생하는 이벤트.
 $(window).keydown(keyDownEventListener);
 
-
-
 //지도 위치가 이동할 때 발생하는 이벤트.
 map.on("pointermove", mapPointMoveEventListener);
 
@@ -352,11 +350,10 @@ function coordinateSystemSelectChangeListener(){
     }
 
     let coordinateValue = $("#coordinate").text().split(",");
-    info.innerHTML = formatCoordinate(
-        [parseFloat(coordinateValue[0]), parseFloat(coordinateValue[1])],
-        prevValue,
-        selectedValue
-    );
+    const coordinate = formatCoordinate([parseFloat(coordinateValue[0]), parseFloat(coordinateValue[1])], prevValue, selectedValue);
+    info.innerHTML = coordinate
+    $("#first-coordinate").val(coordinate.split(",")[0])
+    $("#second-coordinate").val(coordinate.split(",")[1])
 
     $(this).data("prevValue", selectedValue);
 }
@@ -914,6 +911,25 @@ $("#serach-button").on("click", function () {
     });
 });
 
+//좌표 이동 버튼 클릭 이벤트
+$("#btn-move-coordinate").on("click", function(){
+    if($("#first-coordinate").val().trim().length <= 0 || $("#second-coordinate").val().trim().length <= 0){
+        return alert("입력값은 필수입니다.")
+    }
+    const regex = /^[0-9.]+$/;
+    if (!regex.test($("#first-coordinate").val().trim()) || !regex.test($("#second-coordinate").val().trim())) {
+        return alert("입력값은 숫자와 소수점만 포함해야 합니다.");
+    }
+    const coordinate = [parseFloat($("#first-coordinate").val()), parseFloat($("#second-coordinate").val())];
+    const selectedValue = $(".coordinate-system-selector").val();
+    const changedCoordinate = ol.proj.transform(coordinate, selectedValue, "EPSG:3857");
+    if (ol.extent.containsCoordinate(KOREA_EXTENT, changedCoordinate)) {
+        map.getView().setCenter(changedCoordinate);
+    } else {
+        return alert("입력된 좌표가 정의된 범위를 벗어났습니다.");
+    }
+})
+
 //주소 이동 버튼 클릭이벤트. 주소 셀렉트의 값을 이용해 SGIS API를 호출하여 Feature 객체를 반환받아 지도에 오버레이와 같이 표시한다.
 $("#btn-move-address").on("click", async function () {
     let addressCode, param
@@ -1114,4 +1130,22 @@ $("#road-tab").on("shown.bs.tab", function (e) {
 //검색결과 도로명 탭이 닫힐 때 실행되는 이벤트. TODO : 표시된 도로명 feature와 overlay를 삭제한다.
 $("#road-tab").on("hidden.bs.tab", function (e) {
     console.log(e.target.id + " tab is now hidden");
+});
+
+//좌표를 클릭했을 때 발생하는 이벤트. 콜랩스가 표출되며, 표출 시 발생하는 이벤트와, 표출 후 발생하는 이벤트를 처리한다.
+$('#coordinate-collpase').on('show.bs.collapse', function () {
+    $('#address-collpase').collapse('hide');
+    $('#map-info-address').css('pointer-events', 'none');
+}).on('shown.bs.collapse', function () {
+    console.log('coordinate collapse has been fully shown');
+    $('#map-info-address').css('pointer-events', 'auto');
+});
+  
+//주소를 클릭했을 때 발생하는 이벤트. 콜랩스가 표출되며, 표출 시 발생하는 이벤트와, 표출 후 발생하는 이벤트를 처리한다.
+$('#address-collpase').on('show.bs.collapse', function () {
+    $('#coordinate-collpase').collapse('hide');
+    $('#map-info-coordinate').css('pointer-events', 'none');
+}).on('shown.bs.collapse', function () {
+    console.log('address collapse has been fully shown');
+    $('#map-info-coordinate').css('pointer-events', 'auto');
 });
