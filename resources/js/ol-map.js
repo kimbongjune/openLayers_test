@@ -36,7 +36,10 @@ function mapLoadStartEventListener(){
 function mapLoadEndEventListener(){
     const center = mapView.getCenter();
     const selectedValue = $(".coordinate-system-selector").val();
-    info.innerHTML = formatCoordinate(center, "EPSG:3857", selectedValue);
+    const coordinate = formatCoordinate(center, "EPSG:3857", selectedValue);
+    info.innerHTML = coordinate
+    $("#first-coordinate").val(coordinate.split(",")[0])
+    $("#second-coordinate").val(coordinate.split(",")[1])
     const zoomLevel = map.getView().getZoom();
     zoomInfo.innerHTML = `level: ${zoomLevel}`;
     map.getTargetElement().classList.remove("spinner");
@@ -176,7 +179,8 @@ function addMarker(coordinate, template = "", attribute = "", searchType = "") {
 function mapPointMoveEventListener(e){
     const center = mapView.getCenter();
     const selectedValue = $(".coordinate-system-selector").val();
-    info.innerHTML = formatCoordinate(center, "EPSG:3857", selectedValue);
+    const coordinate = formatCoordinate(center, "EPSG:3857", selectedValue);
+    info.innerHTML = coordinate
     if (e.dragging) return;
 
     const pixel = map.getEventPixel(e.originalEvent);
