@@ -559,8 +559,26 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="collapse justify-content-center" id="coordinate-collpase">
+                            <div class="card card-body">
+                                <!-- Grid system for horizontal select boxes -->
+                                <div class="row">
+                                    <div class="col">
+                                        <input type="text" class="form-control" id="first-coordinate">
+                                    </div>
+                                    <div class="col">
+                                        <input type="text" class="form-control" id="second-coordinate">
+                                    </div>
+                                    <div class="col-auto">
+                                        <button type="button" class="btn btn-outline-primary" style="font-size: 0.7rem;"
+                                            id="btn-move-coordinate">이동</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                        <div id="map-info-coordinate"><span class="fw-normal" id="coordinate">14123658.12,
+                        <div id="map-info-coordinate"><span class="fw-normal" id="coordinate" 
+                            data-bs-toggle="collapse" data-bs-target="#coordinate-collpase" aria-expanded="false" aria-controls="coordinate-collpase">14123658.12,
                                 4513950.36</span></div>
                         <div id="map-info-address" data-bs-toggle="collapse" data-bs-target="#address-collpase"
                             aria-expanded="false" aria-controls="address-collpase"><span class="fw-normal"
