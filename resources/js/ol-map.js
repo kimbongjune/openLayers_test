@@ -177,10 +177,6 @@ function addMarker(coordinate, template = "", attribute = "", searchType = "") {
 
 //지도 위치가 이동할 때 동작하는 이벤트 리스너. 길이와 면적 측정시 마우스 커서를 변경하고, 지도 위에 특정 레이어가 존재한다면 커서를 변경한다.
 function mapPointMoveEventListener(e){
-    const center = mapView.getCenter();
-    const selectedValue = $(".coordinate-system-selector").val();
-    const coordinate = formatCoordinate(center, "EPSG:3857", selectedValue);
-    info.innerHTML = coordinate
     if (e.dragging) return;
 
     const pixel = map.getEventPixel(e.originalEvent);
@@ -196,6 +192,17 @@ function mapPointMoveEventListener(e){
         map.getTargetElement().style.cursor = hit ? "pointer" : "";
     }
 }
+
+//지도 위에서 마우스 드래그가 발생할 때 동작하는 이벤트 리스너. 지도 중앙 좌표를 html 엘리먼트에 갱신한다.
+function mapPointDragEventListener(e){
+    const center = mapView.getCenter();
+    const selectedValue = $(".coordinate-system-selector").val();
+    const coordinate = formatCoordinate(center, "EPSG:3857", selectedValue);
+    info.innerHTML = coordinate
+    $("#first-coordinate").val(coordinate.split(",")[0])
+    $("#second-coordinate").val(coordinate.split(",")[1])
+}
+
 
 //측정레이어 삭제 버튼을 클릭했을 때 동작하는 이벤트 리스너. 지도 위의 면적 및 길이측적 벡터 레이어와 툴팁 오버레이를 전부 삭제한다.
 function removeMeasureEventListener(){
