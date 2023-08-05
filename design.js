@@ -25,6 +25,9 @@ map.on("click", mapClickEventListener);
 //지도의 이동이 종료되었을 때 발생하는 이벤트.
 map.on("moveend", mapMoveEndEventListener);
 
+//지도 위에서 마우스 드래그가 발생할 때 발생하는 이벤트.
+map.on("pointerdrag", mapPointDragEventListener);
+
 //Extent 인터렉션 오버레이에 표시할 html을 생성하는 함수
 function createExtentInteractionTooltipHtml(width, heght, measure) {
 
@@ -87,7 +90,7 @@ function createDrawingAreaTooltipHtml(targetInfo, geom, isDrawing) {
     return text;
 }
 
-//측정 오버레이의 html을 초기화 하는 함수
+//오버레이의 html을 초기화 하는 함수
 function createDrawTooltip(offsetX = 0, offsetY = 0, position = "bottom-center") {
     let element = document.createElement("div");
     element.className = 'tooltip tooltip-measure';
@@ -913,14 +916,18 @@ $("#serach-button").on("click", function () {
 
 //좌표 이동 버튼 클릭 이벤트
 $("#btn-move-coordinate").on("click", function(){
-    if($("#first-coordinate").val().trim().length <= 0 || $("#second-coordinate").val().trim().length <= 0){
+
+    const firstCoordinate = $("#first-coordinate").val().trim();
+    const secondCoordinate = $("#second-coordinate").val().trim();
+
+    if(firstCoordinate.length <= 0 || secondCoordinate.length <= 0){
         return alert("입력값은 필수입니다.")
     }
     const regex = /^[0-9.]+$/;
-    if (!regex.test($("#first-coordinate").val().trim()) || !regex.test($("#second-coordinate").val().trim())) {
+    if (!regex.test(firstCoordinate) || !regex.test(secondCoordinate)) {
         return alert("입력값은 숫자와 소수점만 포함해야 합니다.");
     }
-    const coordinate = [parseFloat($("#first-coordinate").val()), parseFloat($("#second-coordinate").val())];
+    const coordinate = [parseFloat(firstCoordinate), parseFloat(secondCoordinate)];
     const selectedValue = $(".coordinate-system-selector").val();
     const changedCoordinate = ol.proj.transform(coordinate, selectedValue, "EPSG:3857");
     if (ol.extent.containsCoordinate(KOREA_EXTENT, changedCoordinate)) {
@@ -995,9 +1002,8 @@ $("#btn-move-address").on("click", async function () {
         overlayElement.innerHTML += `<div id="popup-content">
                                         <div class="ol-popup-title">정보</div>
                                             <code class="code">
-                                                <div class="popup-coordinate">${ol.extent.getCenter(
-                                                    vectorSource.getExtent()
-                                                )}</div><span>주소</span><br>
+                                                <div class="popup-coordinate">${ol.extent.getCenter(vectorSource.getExtent())}</div>
+                                                <span>주소</span><br>
                                                 <div class="leftBottom__etcBtn">
                                                     <ul>
                                                         <li class="select customSelect">
@@ -1044,9 +1050,9 @@ $("#profile-tab").on("hidden.bs.tab", function (e) {
 
 //상위 주소검색 탭이 보여질 때 실행되는 이벤트. 열려있는 하위 탭을 찾아 해당하는 검색 결과의 마커를 지도에 표시한다.
 $("#profile-tab").on("shown.bs.tab", function (e) {
-    let activeSubTab = $(".tab-pane:visible")
+    const activeSubTab = $(".tab-pane:visible")
     activeSubTab.each(function () {
-        let tabId = $(this).attr('id'); // 각 요소의 id 값을 가져옴
+        const tabId = $(this).attr('id'); // 각 요소의 id 값을 가져옴
         if(tabId == "place-tab-pane"){
             const addressNameSpans = $("#place-tab-pane .address-name-span");
 
@@ -1061,8 +1067,8 @@ $("#profile-tab").on("shown.bs.tab", function (e) {
             });
         }else if(tabId == "address-tab-pane"){
             $("#address-result .address-name-span").each(function () {
-                let coord = $(this).attr("data-coord").split(", ");
-                let addressName = $(this).text();
+                const coord = $(this).attr("data-coord").split(", ");
+                const addressName = $(this).text();
                 addMarker(coord, addressName, "address", "search");
             });
         }
