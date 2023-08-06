@@ -61,3 +61,24 @@ function handleEscKeyEvent() {
     }
     
 }
+
+//카카오 좌표 <-> 행정구역 API를 전역 이벤트 리스너에 등록하는 함수
+function addKakaoCoordinateToRegionApiEventListener(){
+    $(document).on("kakaoregionapi", reverseGeoCodingToRegion);
+}
+
+//카카오 좌표 <-> 행정구역 API를 전역 이벤트 리스너에서 해제하는 함수
+function removeKakaoCoordinateToRegionApiEventListener(){
+    $(document).off("kakaoregionapi");
+}
+
+
+//카카오 좌표 <-> 주소 API를 전역 이벤트 리스너에 등록하는 함수
+function addKakaoReverseGeocodingApiEventListener(){
+    $(document).on("kakaorgapi", reverseGeoCoding);
+}
+
+//카카오 좌표 <-> 주소 API를 전역 이벤트 리스너에 등록하는 함수
+function removeKakaoReverseGeocodingApiEventListener(){
+    $(document).off("kakaorgapi");
+}
