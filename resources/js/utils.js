@@ -125,7 +125,7 @@ function toGeoJSON(data) {
 }
 
 //카카오 좌표를 행정구역으로 변환하는 API를 호출하는 함수
-async function reverseGeoCodingToRegion(coordinateX, coordinateY) {
+async function reverseGeoCodingToRegion(event, coordinateX, coordinateY) {
     try {
         const response = await axios.get("https://dapi.kakao.com/v2/local/geo/coord2regioncode.json", {
             params: {
