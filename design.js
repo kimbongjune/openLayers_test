@@ -13,6 +13,9 @@ addLinkInteraction();
 //지도에 cctv cluster레이어의 인터렉션 추가
 addCctvInteraction()
 
+//카카오 지오코딩 API 로직 활성화
+addKakaoCoordinateToRegionApiEventListener()
+
 //지도 객체의 로딩이 시작되면 실행되는 이벤트
 map.on("loadstart", mapLoadStartEventListener);
 

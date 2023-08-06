@@ -50,13 +50,15 @@ async function mapMoveEndEventListener(){
     const view = map.getView();
     const center = view.getCenter();
     const coordinate = ol.proj.transform(center, "EPSG:3857", "EPSG:4326");
-    await reverseGeoCodingToRegion(coordinate[0], coordinate[1]);
+    //await reverseGeoCodingToRegion(coordinate[0], coordinate[1]);
     const zoom = map.getView().getZoom();
     zoomInfo.innerHTML = `level: ${zoom}`;
+    $(document).trigger("kakaoregionapi", [coordinate[0], coordinate[1]]);
 }
 
 //현재 위치(geoLocation)를 얻어와 해당 좌표에 마커를 찍는 함수
 function locationMarker(coordinate) {
+    removeKakaoReverseGeocodingApiEventListener()
     const source = objectControllVectorLayer.getSource();
     const features = source.getFeatures();
     for (let i = 0; i < features.length; i++) {
