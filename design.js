@@ -1044,6 +1044,18 @@ $("#btn-move-address").on("click", async function () {
     }
 });
 
+//유저 레이어 탭이 보여질 때 실행되는 이벤트. 기존 지도를 가리고 새로운 지도를 생성한다.
+$("#contact-tab").on("shown.bs.tab", function (e) {
+    $('#map').hide();
+    $('#map2').show();
+})
+
+//유저 레이어 탭이 가려질 때 실행되는 이벤트. 새로운 지도를 가리고 기존 지도를 다시 표출한다.
+$("#contact-tab").on("hidden.bs.tab", function (e) {
+    $('#map2').hide();
+    $('#map').show();
+})
+
 //상위 주소검색 탭이 숨겨질 때 실행되는 이벤트. 장소, 주소검색 결과의 마커를 삭제한다.
 $("#profile-tab").on("hidden.bs.tab", function (e) {
     const source = objectControllVectorLayer.getSource();
