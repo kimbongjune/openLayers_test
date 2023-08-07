@@ -27,6 +27,24 @@ const map = new ol.Map({
     }),
 });
 
+//OSM 지도 객체 유저 레이어를 컨트롤 할 때 사용한다.
+const map2 = new ol.Map({
+    target: document.getElementById("map2"),
+    pixelRatio: 1,
+    view : new ol.View({
+        center : map.getView().getCenter(),
+        maxZoom: MAX_ZOOM_LEVEL,
+        minZoom: MIN_ZOOM_LEVEL,
+        zoom : map.getView().getZoom(),
+        constrainResolution: true,
+        rotation : map.getView().getRotation()
+    }),
+    interactions: ol.interaction.defaults.defaults({
+        shiftDragZoom: false,
+    }),
+    layers : [new ol.layer.Tile({source: new ol.source.OSM()})]
+});
+
 //지도 객체의 로딩이 시작되면 동작하는 이벤트 리스너
 function mapLoadStartEventListener(){
     map.getTargetElement().classList.add("spinner");

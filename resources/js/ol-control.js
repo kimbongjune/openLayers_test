@@ -4,109 +4,161 @@
  *  지도 서비스의 컨트롤을 관리하는 파일
  */
 
-//지도에 축적 컨트롤 추가
-const scaleControl = new ol.control.ScaleLine({
-    units: "metric", //미터법
-    bar: true, //scalebars
-    steps: 4, //scalebars 개수
-    text: true, //scale 비율 텍스트 표시 플래그
-    minWidth: 200, //최소 너비
-});
-map.addControl(scaleControl);
+//지도에 축적 컨트롤을 추가하는 함수
+function createScaleControl() {
+    const control = new ol.control.ScaleLine({
+        units: "metric", // 미터법
+        bar: true, // scalebars
+        steps: 4, // scalebars 개수
+        text: true, // scale 비율 텍스트 표시 플래그
+        minWidth: 200, // 최소 너비
+    });
+    return control;
+}
+//베이스 지도에 축적 컨트롤 추가
+map.addControl(createScaleControl());
+//서브 지도에 축적 컨트롤 추가
+map2.addControl(createScaleControl());
 
-//지도에 줌 슬라이더 컨트롤 추가
-const zoomControl = new ol.control.ZoomSlider()
-map.addControl(zoomControl);
+//지도에 줌 슬라이더 컨트롤을 추가하는 함수
+function createZoomControl() {
+    const control = new ol.control.ZoomSlider();
+    return control;
+}
+//베이스 지도에 줌 슬라이더 컨트롤 추가
+map.addControl(createZoomControl());
+//서브 지도에 줌 슬라이더 컨트롤 추가
+map2.addControl(createZoomControl());
 
+//지도에 풀 스크린 컨트롤을 추가하는 함수
+function createFullScreenControl() {
+    const control = new ol.control.FullScreen({
+        className: "ol-fullscreen-control",
+    });
+    return control;
+}
+//베이스 지도에 풀 스크린 컨트롤 추가
+map.addControl(createFullScreenControl());
+//서브 지도에 풀 스크린 컨트롤 추가
+map2.addControl(createFullScreenControl());
 
-//지도에 풀 스크린 컨트롤 추가
-const fullScreenControl = new ol.control.FullScreen({
-    className: "ol-fullscreen-control",
-})
-map.addControl(fullScreenControl);
-
-//지도에 오버뷰맵 컨트롤 추가
-const overviewMapControl = new ol.control.OverviewMap({
-    className: "ol-overviewmap ol-custom-overviewmap",
-    view: new ol.View({
-        projection: "EPSG:3857",
-        center: mapView.getCenter(),
-        maxZoom: MAX_ZOOM_LEVEL,
-        zoom: mapView.getZoom(),
-        minZoom: MIN_ZOOM_LEVEL,
-        constrainResolution: true,
+//베이스 지도의 오버뷰 맵에 표시할 지도 객체
+const map1OverviewMap = new ol.layer.Tile({
+    source: new ol.source.XYZ({
+        url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Base/{z}/{y}/{x}.png`,
+        serverType: "geoserver",
+        crossOrigin: "anonymous",
     }),
-    // see in overviewmap-custom.html to see the custom CSS used
-    layers: [
-        new ol.layer.Tile({
-            source: new ol.source.XYZ({
-                url: `http://api.vworld.kr/req/wmts/1.0.0/${VWORLD_API_KEY}/Base/{z}/{y}/{x}.png`,
-                serverType: "geoserver",
-                crossOrigin: "anonymous",
-            }),
-            preload: Infinity,
-            type: "map",
-        }),
-    ],
-    rotateWithView: true,
-    collapsed:
-        localStorage.getItem("overviewMapCollapsed") === "true" ? true : false,
+    preload: Infinity,
+    type: "map",
 });
 
-//오버뷰 맵이 클릭되었을 때 발생하는 이벤트. 로컬스토리지에 오버뷰맵의 콜랩스 상태를 저장한다.
-overviewMapControl.getOverviewMap().on("change:size", function(){
-    const isCollapsed = overviewMapControl.getCollapsed();
-    localStorage.setItem("overviewMapCollapsed", isCollapsed);
-})
-map.addControl(overviewMapControl);
+//서브 지도의 오버뷰 맵에 표시할 지도 객체
+const map2OverviewMap = new ol.layer.Tile({
+    source: new ol.source.OSM(),
+    preload: Infinity,
+    type: "map",
+});
 
-
-//지도의 센터 타겟 컨트롤 추가
-const centerTargetControl = new ol.control.Target({
-    style: [
-        new ol.style.Style({
-            image: new ol.style.RegularShape({
-                points: 4,
-                radius: 11,
-                radius1: 0,
-                radius2: 0,
-                snapToPixel: true,
-                stroke: new ol.style.Stroke({ color: "#fff", width: 3 }),
-            }),
+//지도에 오버뷰맵 컨트롤을 추가하기 위한 함수
+function createOverviewMapControl(layer, localStorageId) {
+    const control = new ol.control.OverviewMap({
+        className: "ol-overviewmap ol-custom-overviewmap",
+        view: new ol.View({
+            projection: "EPSG:3857",
+            center: mapView.getCenter(),
+            maxZoom: MAX_ZOOM_LEVEL,
+            zoom: mapView.getZoom(),
+            minZoom: MIN_ZOOM_LEVEL,
+            constrainResolution: true,
         }),
-        new ol.style.Style({
-            image: new ol.style.RegularShape({
-                points: 4,
-                radius: 11,
-                radius1: 0,
-                radius2: 0,
-                snapToPixel: true,
-                stroke: new ol.style.Stroke({ color: "black", width: 2 }),
-            }),
-        }),
-    ],
-    composite: "",
-})
-map.addControl(centerTargetControl);
+        layers: [layer],
+        rotateWithView: true,
+        collapsed:
+            localStorage.getItem(`overviewMapCollapse${localStorageId}`) === "true"
+                ? true
+                : false,
+    });
 
-//지도에 ZoomToExtent 컨트롤러 추가
-const zoomToExtentControl = new ol.control.ZoomToExtent({
-    extent: [
-        14103925.705518028, 4533240.7238401985, 14229588.180018857,
-        4473925.589890901,
-    ],
-})
-map.addControl(zoomToExtentControl);
+    //오버뷰 맵이 클릭되었을 때 발생하는 이벤트. 로컬스토리지에 오버뷰맵의 콜랩스 상태를 저장한다.
+    control.getOverviewMap().on("change:size", function () {
+        const isCollapsed = control.getCollapsed();
+        localStorage.setItem(`overviewMapCollapse${localStorageId}`, isCollapsed);
+    });
+
+    return control;
+}
+//베이스 지도에 오버뷰맵 컨트롤 추가
+map.addControl(createOverviewMapControl(map1OverviewMap, 1));
+//서브 지도에 오버뷰맵 컨트롤 추가
+map2.addControl(createOverviewMapControl(map2OverviewMap, 2));
+
+
+//지도의 센터 타겟 컨트롤을 추가하는 함수
+function createCenterTargetControl() {
+    const control = new ol.control.Target({
+        style: [
+            new ol.style.Style({
+                image: new ol.style.RegularShape({
+                    points: 4,
+                    radius: 11,
+                    radius1: 0,
+                    radius2: 0,
+                    snapToPixel: true,
+                    stroke: new ol.style.Stroke({ color: "#fff", width: 3 }),
+                }),
+            }),
+            new ol.style.Style({
+                image: new ol.style.RegularShape({
+                    points: 4,
+                    radius: 11,
+                    radius1: 0,
+                    radius2: 0,
+                    snapToPixel: true,
+                    stroke: new ol.style.Stroke({ color: "black", width: 2 }),
+                }),
+            }),
+        ],
+        composite: "",
+    });
+
+    return control;
+}
+//베이스 지도에 CenterTarget 컨트롤 추가
+map.addControl(createCenterTargetControl());
+//서브 지도에 CenterTarget 컨트롤 추가
+map2.addControl(createCenterTargetControl());
+
+//지도에 ZoomToExtent 컨트롤을 추가하는 함수
+function createZoomToExtentControl() {
+    return new ol.control.ZoomToExtent({
+        extent: [
+            14103925.705518028, 4533240.7238401985, 14229588.180018857,
+            4473925.589890901,
+        ],
+    });
+}
+//베이스 지도에 ZoomToExtent 컨트롤 추가
+map.addControl(createZoomToExtentControl());
+//서브 지도에 ZoomToExtent 컨트롤 추가
+map2.addControl(createZoomToExtentControl()); 
 
 //방위계 아이콘을 변경하고 컨트롤 객체에 추가한다.
 // var span = document.createElement("span");
 // span.innerHTML = '<img src="./resources/img/rotate-removebg.png">';
 // map.addControl(new ol.control.Rotate({ autoHide: false, label: span }));
-//지도에 방위계 컨트롤 추가
-const rotateControl = new ol.control.Rotate({ 
-    autoHide: false 
-})
-map.addControl(rotateControl);
+
+//지도에 방위계 컨트롤을 추가하는 함수
+function createRotateControl() {
+    const control = new ol.control.Rotate({
+        autoHide: false
+    });
+    return control;
+}
+//베이스 지도에 Rotate 컨트롤 추가
+map.addControl(createRotateControl());
+//서브 지도에 Rotate 컨트롤 추가
+map2.addControl(createRotateControl());
 
 //지도에 ol-ext의 printDialog 컨트롤 추가
 const printControl = new ol.control.PrintDialog({
