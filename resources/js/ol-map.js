@@ -28,8 +28,8 @@ const map = new ol.Map({
 });
 
 //OSM 지도 객체 유저 레이어를 컨트롤 할 때 사용한다.
-const map2 = new ol.Map({
-    target: document.getElementById("map2"),
+const subMap = new ol.Map({
+    target: document.getElementById("sub-map"),
     pixelRatio: 1,
     view : new ol.View({
         center : map.getView().getCenter(),

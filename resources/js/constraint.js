@@ -134,6 +134,11 @@ let areaPolygon;
 //원을 그리는 draw객체
 let circlePolygon;
 
+//베이스 지도와 서브 지도에 각각 사용할 로컬스토리지 고유 아이디
+const MAIN_MAP_LOCALSTORAGE_ID = 1
+const SUB_MAP_LOCALSTORAGE_ID = 2
+
+
 //주소를 키밸류로 찾기 위한 전역변수
 const addressMapping = {
     "dong": {

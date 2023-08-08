@@ -173,7 +173,7 @@ function refresh(obj) {
 
 //ol-context callback 함수. 맵의 중앙 위치를 이동한다.
 function center(obj) {
-    mapView.animate({
+    map.getView().animate({
         duration: 700,
         center: obj.coordinate,
     });
