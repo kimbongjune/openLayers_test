@@ -283,7 +283,7 @@ function addDragAndDropInteraction() {
 
 
 //지도에 뒤로가기, 새로고침시 이전 상태를 저장하기 위한 Link 인터렉션을 추가하는 함수
-function addLinkInteraction() {
+function addLinkInteraction(map) {
     map.addInteraction(new ol.interaction.Link());
 }
 
