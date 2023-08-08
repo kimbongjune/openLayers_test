@@ -8,8 +8,7 @@ addDragBoxInteraction();
 addExtentInteraction();
 
 //지도에 뒤로가기, 새로고침시 이전 상태를 저장하기 위한 Link 인터렉션 추가
-addLinkInteraction();
-
+addLinkInteraction(map);
 //지도에 cctv cluster레이어의 인터렉션 추가
 addCctvInteraction()
 
@@ -1047,12 +1046,12 @@ $("#btn-move-address").on("click", async function () {
 //유저 레이어 탭이 보여질 때 실행되는 이벤트. 기존 지도를 가리고 새로운 지도를 생성한다.
 $("#contact-tab").on("shown.bs.tab", function (e) {
     $('#map').hide();
-    $('#map2').show();
+    $('#sub-map').show();
 })
 
 //유저 레이어 탭이 가려질 때 실행되는 이벤트. 새로운 지도를 가리고 기존 지도를 다시 표출한다.
 $("#contact-tab").on("hidden.bs.tab", function (e) {
-    $('#map2').hide();
+    $('#sub-map').hide();
     $('#map').show();
 })
 
