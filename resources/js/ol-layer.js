@@ -96,58 +96,61 @@ const radarWebglStyle = {
         ],
         color: [
             "case",
-            [">=", ["get", "value"], 110],
-            "#333333",
-            [">=", ["get", "value"], 90],
-            "#000390",
-            [">=", ["get", "value"], 80],
-            "#4C4EB1",
-            [">=", ["get", "value"], 70],
-            "#B3B4DE",
-            [">=", ["get", "value"], 60],
-            "#9300E4",
-            [">=", ["get", "value"], 50],
-            "#B329FF",
-            [">=", ["get", "value"], 40],
-            "#C969FF",
-            [">=", ["get", "value"], 30],
-            "#E0A9FF",
-            [">=", ["get", "value"], 25],
-            "#B40000",
-            [">=", ["get", "value"], 20],
-            "#D20000",
-            [">=", ["get", "value"], 15],
-            "#FF3200",
-            [">=", ["get", "value"], 10],
-            "#FF6600",
-            [">=", ["get", "value"], 9],
-            "#CCAA00",
-            [">=", ["get", "value"], 8],
-            "#E0B900",
-            [">=", ["get", "value"], 7],
-            "#F9CD00",
-            [">=", ["get", "value"], 6],
-            "#FFDC1F",
-            [">=", ["get", "value"], 5],
-            "#FFE100",
-            [">=", ["get", "value"], 4],
-            "#005A00",
-            [">=", ["get", "value"], 3],
-            "#008C00",
-            [">=", ["get", "value"], 2],
-            "#00BE00",
-            [">=", ["get", "value"], 1],
-            "#00FF00",
-            [">=", ["get", "value"], 0.5],
-            "#0033F5",
-            [">=", ["get", "value"], 0.1],
-            "#009BF5",
-            ["==", ["get", "value"], 0],
-            "rgba(0,0,0,0)",
-            "rgba(0,0,0,0)", // default color if no match
+            [">=", ["get", "value"], 110], "#333333",
+            [">=", ["get", "value"], 90], "#000390",
+            [">=", ["get", "value"], 80], "#4C4EB1",
+            [">=", ["get", "value"], 70], "#B3B4DE",
+            [">=", ["get", "value"], 60], "#9300E4",
+            [">=", ["get", "value"], 50], "#B329FF",
+            [">=", ["get", "value"], 40], "#C969FF",
+            [">=", ["get", "value"], 30], "#E0A9FF",
+            [">=", ["get", "value"], 25], "#B40000",
+            [">=", ["get", "value"], 20], "#D20000",
+            [">=", ["get", "value"], 15], "#FF3200",
+            [">=", ["get", "value"], 10], "#FF6600",
+            [">=", ["get", "value"], 9], "#CCAA00",
+            [">=", ["get", "value"], 8], "#E0B900",
+            [">=", ["get", "value"], 7], "#F9CD00",
+            [">=", ["get", "value"], 6], "#FFDC1F",
+            [">=", ["get", "value"], 5], "#FFE100",
+            [">=", ["get", "value"], 4], "#005A00",
+            [">=", ["get", "value"], 3], "#008C00",
+            [">=", ["get", "value"], 2], "#00BE00",
+            [">=", ["get", "value"], 1], "#00FF00",
+            [">=", ["get", "value"], 0.5], "#0033F5",
+            [">=", ["get", "value"], 0.1], "#009BF5",
+            ["==", ["get", "value"], 0], "rgba(0,0,0,0)",
+            "rgba(0,0,0,0)", // 기본 색상 (매치되지 않으면)
         ],
-        opacity: 1,
+        opacity: 0.15,
+        blur: 25, // 블러 효과 적용
     },
+    // 프래그먼트 셰이더 추가
+    vertexShader: `
+        attribute vec4 a_position;
+        attribute vec2 a_texCoord;
+        varying vec2 v_textureCoord;
+
+        void main() {
+            gl_Position = a_position;
+            v_textureCoord = a_texCoord; // 텍스처 좌표 전달
+        }
+    `,
+    // 프래그먼트 셰이더 수정
+    fragmentShader: `
+        precision mediump float;
+        varying vec2 v_textureCoord;
+        uniform sampler2D u_texture;
+
+        void main() {
+            vec4 color = texture2D(u_texture, v_textureCoord);
+            float dist = distance(v_textureCoord, vec2(0.5, 0.5)); // 중심으로부터 거리 계산
+            if (dist > 0.5) {
+                discard; // 경계 외곽 부분 투명 처리
+            }
+            gl_FragColor = vec4(color.rgb, smoothstep(0.4, 0.5, dist) * color.a); // 경계를 부드럽게 처리
+        }
+    `
 };
 
 //경로탐색 레이어를 지도위에 표출하기 위한 레이어 소스.
@@ -323,7 +326,7 @@ async function radarLayerChange(treeNode, treeId) {
             treeObj.setChkDisabled(treeNode, true, false, false);
 
             const url = "http://apis.data.go.kr/1360000/RadarObsInfoService/getNationalRadarRn";
-            const serviceKey ="myYHhhNxJO5zGLT39cjBldHCap4TWme/JU4ubw5WcPfX0CX5CIFLuEA6N0zH115SujHcKBLUbGsxo/Nn8jIVDw==";
+            const serviceKey ="PGarApfpuY1YOjiqqzSf2rDH0jRgz4DG7JPgm2Une6+Y/IyWCjPB/kO+JGiqs3Od4iX9JZpHs7BU4YAHzv/9nQ==";
             const pageNo = 1;
             const numOfRows = 10;
             const dataType = "json";
@@ -357,6 +360,8 @@ async function radarLayerChange(treeNode, treeId) {
                 data.response.body.items.item[0].cappiCompressData
             );
 
+            //saveCsvData(csvData)
+
             const startLon = data.response.body.items.item[0].lon;
             const startLat = data.response.body.items.item[0].lat;
             const gridKm = data.response.body.items.item[0].gridKm;
@@ -376,28 +381,124 @@ async function radarLayerChange(treeNode, treeId) {
                 altitude
             );
 
-            const geojsonData = toGeoJSON(dataWithCoords);
+            // const geojsonData = toGeoJSON(dataWithCoords);
 
-            const geoJsonFeatures = geojsonFormat.readFeatures(
-                geojsonData,
-                {
-                    dataProjection: "EPSG:4326",
-                    featureProjection: "EPSG:3857",
-                }
-            );
+            // const geoJsonFeatures = geojsonFormat.readFeatures(
+            //     geojsonData,
+            //     {
+            //         dataProjection: "EPSG:4326",
+            //         featureProjection: "EPSG:3857",
+            //     }
+            // );
 
-            const getJsonSource = new ol.source.Vector({
-                features: geoJsonFeatures,
+            // const getJsonSource = new ol.source.Vector({
+            //     features: geoJsonFeatures,
+            // });
+
+            // webGlVectorLayer = new ol.layer.WebGLPoints({
+            //     preload: Infinity,
+            //     source: getJsonSource,
+            //     style: radarWebglStyle,
+            //     blur: 2,
+            // });
+            // webGlVectorLayer.setZIndex(5);
+            // map.addLayer(webGlVectorLayer);
+
+            const features = dataWithCoords.map((d) => {
+                const feature = new ol.Feature({
+                    geometry: new ol.geom.Point(ol.proj.fromLonLat([d.lon, d.lat])),
+                });
+                feature.set('value', parseFloat(d.value)); // 각 포인트에 가중치 값을 설정
+                return feature;
             });
 
+            const featuresa = [
+                new ol.Feature({
+                    geometry: new ol.geom.Point([0, 0]),
+                })
+            ];
+
+            console.log(features);
+            console.log(featuresa);
+
+            // WebGL 레이어 생성 (가중치에 따른 색상 및 블러 효과 적용)
             webGlVectorLayer = new ol.layer.WebGLPoints({
-                preload: Infinity,
-                source: getJsonSource,
-                style: radarWebglStyle,
-                blur: 2,
+                source: new ol.source.Vector({
+                    features: features,
+                }),
+                attributes: [
+                    {
+                        name: 'size',
+                        callback: function(feature) {
+                            return feature.get('value') * 2; // 각 피처의 가중치 기반 크기 설정
+                        }
+                    },
+                    {
+                        name: 'color',
+                        callback: function(feature) {
+                            return [1.0, 0.0, 0.0, 1.0]; // 고정된 빨간색 값 반환
+                        }
+                    }
+                ],
+                style: {
+                    'circle-radius': [
+                        'interpolate', ['linear'], ['zoom'], 
+                        6, 2, 
+                        8, 4,  // 줌 레벨에 따른 크기 조정 (더 작게)
+                    ],
+                    'circle-fill-color': [
+                        'case',
+                        ['>=', ['get', 'value'], 110], '#333333',
+                        ['>=', ['get', 'value'], 90], '#000390',
+                        ['>=', ['get', 'value'], 80], '#4C4EB1',
+                        ['>=', ['get', 'value'], 70], '#B3B4DE',
+                        ['>=', ['get', 'value'], 60], '#9300E4',
+                        ['>=', ['get', 'value'], 50], '#B329FF',
+                        ['>=', ['get', 'value'], 40], '#C969FF',
+                        ['>=', ['get', 'value'], 30], '#E0A9FF',
+                        ['>=', ['get', 'value'], 25], '#B40000',
+                        ['>=', ['get', 'value'], 20], '#D20000',
+                        ['>=', ['get', 'value'], 15], '#FF3200',
+                        ['>=', ['get', 'value'], 10], '#FF6600',
+                        ['>=', ['get', 'value'], 9], '#CCAA00',
+                        ['>=', ['get', 'value'], 8], '#E0B900',
+                        ['>=', ['get', 'value'], 7], '#F9CD00',
+                        ['>=', ['get', 'value'], 6], '#FFDC1F',
+                        ['>=', ['get', 'value'], 5], '#FFE100',
+                        ['>=', ['get', 'value'], 4], '#005A00',
+                        ['>=', ['get', 'value'], 3], '#008C00',
+                        ['>=', ['get', 'value'], 2], '#00BE00',
+                        ['>=', ['get', 'value'], 1], '#00FF00',
+                        ['>=', ['get', 'value'], 0.5], '#0033F5',
+                        ['>=', ['get', 'value'], 0.1], '#009BF5',
+                        'rgba(0,0,0,0)'  // Default color if no conditions match
+                    ],
+                    'circle-opacity': [
+                        'interpolate', ['linear'], ['get', 'value'],
+                        0, 0.01,   // value가 낮은 경우 투명도를 낮게
+                        50, 0.2,   // 중간값일 경우
+                        110, 0.4   // value가 클수록 불투명도 높게
+                    ]
+                },
+                //     vertexShader: `
+                //     attribute vec2 a_position;
+                //     void main() {
+                //         gl_Position = vec4(a_position, 0.0, 1.0);
+                //     }
+                // `,
+                // fragmentShader: `
+                //     precision mediump float;
+                //     void main() {
+                //         gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+                //     }
+                // `,
+                // },
             });
-            webGlVectorLayer.setZIndex(5);
+
+            console.log(webGlVectorLayer)
+
             map.addLayer(webGlVectorLayer);
+
             treeObj.setChkDisabled(treeNode, false, false, false);
         } catch (error) {
             console.log(error)
@@ -419,6 +520,24 @@ async function radarLayerChange(treeNode, treeId) {
             map.removeLayer(webGlVectorLayer);
         }
     }
+}
+
+function saveCsvData(csv) {
+    const blob = new Blob([csv], {type:'text/plain'});
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = "a.csv"
+    document.body.appendChild(a);
+    
+    a.click();
+
+    setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }, 100);
 }
 
 //건물 레이어 토글 함수
