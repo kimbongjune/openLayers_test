@@ -925,7 +925,7 @@ $("#btn-move-coordinate").on("click", function(){
     if(firstCoordinate.length <= 0 || secondCoordinate.length <= 0){
         return alert("입력값은 필수입니다.")
     }
-    const regex = /^[0-9.]+$/;
+    const regex = /^[-0-9.]+$/;
     if (!regex.test(firstCoordinate) || !regex.test(secondCoordinate)) {
         return alert("입력값은 숫자와 소수점만 포함해야 합니다.");
     }
