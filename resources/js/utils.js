@@ -63,14 +63,46 @@ function decodeCAPPIData(cappiCompressData) {
 }
 
 //레이더 좌표를 4326 좌표계로 변환하는 함수. api 응답객체의 값을 이용해 2진 좌표계에 실제 좌표계를 대입한다.
+//TODO 0.5 이하는 주변에 0.5 이상이 없으면 없애버림
 function assignCoordinates(startLon, startLat, gridKm, csvData, xdim, ydim, altitude) {
     const dataWithCoords = [];
+
+    function hasNeighborWithHighWeight(i, j) {
+        // 주변의 8방향 이웃을 검사 (상하좌우 + 대각선)
+        const neighbors = [
+            [i - 1, j],   // 위
+            [i + 1, j],   // 아래
+            [i, j - 1],   // 왼쪽
+            [i, j + 1],   // 오른쪽
+            [i - 1, j - 1], // 좌상단
+            [i - 1, j + 1], // 우상단
+            [i + 1, j - 1], // 좌하단
+            [i + 1, j + 1], // 우하단
+        ];
+
+        // 유효한 인덱스 내에 있는지 확인하고 가중치가 0.5 이상인지 검사
+        for (const [ni, nj] of neighbors) {
+            if (ni >= 0 && ni < ydim && nj >= 0 && nj < xdim && csvData[ni][nj] >= 0.5) {
+                return true; // 가중치가 0.5 이상인 이웃이 존재
+            }
+        }
+        return false; // 주변에 가중치 0.5 이상인 이웃이 없음
+    }
+
     for (let i = 0; i < ydim; i++) {
         const row = csvData[i];
         for (let j = 0; j < xdim; j++) {
             if (row[j] == -127 || row[j] == -128) {
                 continue;
             }
+
+            // if (row[j] < 0.5) {
+            //     // 주변에 가중치가 0.5 이상인 이웃이 있는지 확인
+            //     if (!hasNeighborWithHighWeight(i, j)) {
+            //         continue; // 주변에 0.5 이상인 가중치가 없으면 건너뛰기
+            //     }
+            // }
+
             //cappi 고도를 고려하여 피타고라스 정리를 이용해 거리를 재 계산한다.
             const realDistance = Math.sqrt(
                 Math.pow(gridKm * j, 2) + Math.pow(altitude, 2)
